@@ -5,8 +5,6 @@
 #include <float.h>
 #endif
 
-#define NA_DATA DBL_MAX
-
 enum bw_op_type
 {
     invalid = 0,

@@ -3,8 +3,8 @@ include ${KENT}/inc/common.mk
 
 L += -lm -lz
 MYLIBDIR = ${KENT}/lib/${MACHTYPE}
-MYLIBS = ../lib/andycrg.a ${MYLIBDIR}/jkweb.a ${GSL}/lib/libgsl.a
-HG_INC=-I${KENT}/inc -I${SAMTOOL} -I${GSL}/include -I../include
+MYLIBS = ../lib/andycrg.a ${MYLIBDIR}/jkweb.a
+HG_INC=-I${KENT}/inc -I../include
 
 A = bwtool
 O = aggregate.o bwtool.o chromgraph.o distrib.o fill.o find.o lift.o matrix.o paste.o rand.o remove.o sax.o shift.o summarize.o

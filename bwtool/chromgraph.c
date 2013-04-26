@@ -50,7 +50,7 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 	    sum = 0;
 	    for (i = windowPos; (i < pbw->chromEnd) && (i < windowPos + every); i++)
 	    {
-		if (pbw->data[i] != NA_DATA)
+		if (!isnan(pbw->data[i]))
 		{
 		    numBases++;
 		    sum += pbw->data[i];

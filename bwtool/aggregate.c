@@ -11,9 +11,7 @@
 #include "random_coord.h"
 #include "bwtool.h"
 #include "cluster.h"
-
-#include <gsl/gsl_statistics_double.h>
-#include <gsl/gsl_sort_double.h>
+#include "stuff.h"
 
 #define NANUM sqrt(-1)
 
@@ -96,25 +94,45 @@ void free_agg_data(struct agg_data **pAgg)
 void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expanded, int offset)
 /* calculate mean, median, sd */
 {
+    const double na = NANUM;
     int i, j;
     double *one_pbm_col; 
     AllocArray(one_pbm_col, pbm->nrow);
     for (i = 0; i < agg->nrow; i++)
     {
 	int size = 0;
+	double sum = 0;
+	double mean = 0;
+	double sd = 0;
 	for (j = 0; j < pbm->nrow; j++)
 	    if (!isnan(pbm->matrix[j][i]))
-	    {
 		one_pbm_col[size++] = pbm->matrix[j][i];
-		/* uglyf("row %d, el %d = %f, size = %d\n", i, j, pbm->matrix[j][i], size); */
-	    }
-	agg->data[i][offset] = gsl_stats_mean(one_pbm_col, 1, size);
-	if (expanded)
+	if (size > 0)
 	{
-	    gsl_sort(one_pbm_col, 1, size);
-	    agg->data[i][offset+1] = gsl_stats_median_from_sorted_data(one_pbm_col, 1, size);
-	    agg->data[i][offset+2] = gsl_stats_sd(one_pbm_col, 1, size);
-	    agg->data[i][offset+3] = (double)size;
+	    for (j = 0; j < size; j++)
+		sum += one_pbm_col[j];
+	    mean = sum/size;
+	    sum = 0;
+	    for (j = 0; j < size; j++)
+		sum += pow(one_pbm_col[j] - size,2);
+	    sd = sqrt(sum/size);
+	    agg->data[i][offset] = mean;
+	    if (expanded)
+	    {
+		agg->data[i][offset+1] = doubleMedian(size, one_pbm_col);
+		agg->data[i][offset+2] = sd;
+		agg->data[i][offset+3] = (double)size;
+	    }
+	}
+	else
+	{
+	    agg->data[i][offset] = na;
+	    if (expanded)
+	    {
+		agg->data[i][offset+1] = na;
+		agg->data[i][offset+2] = na;
+		agg->data[i][offset+3] = na;
+	    }
 	}
     }
     freeMem(one_pbm_col);

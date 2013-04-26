@@ -9,10 +9,8 @@
 #include "basicBed.h"
 #include "bigWig.h"
 #include "bigs.h"
+#include "stuff.h"
 #include "bwtool.h"
-
-#include <gsl/gsl_sort_double.h>
-#include <gsl/gsl_statistics.h>
 
 void usage_summary()
 /* Explain usage of the summarize program and exit. */
@@ -35,17 +33,14 @@ void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, char *chrom,
     struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, chromStart, chromEnd, FALSE);
     int size = pbw->chromEnd - pbw->chromStart;
     double *vector = pbw->data;
-    unsigned num_data = 0;
-    gsl_sort(vector, 1, size);
-    while ((num_data < size) && (vector[num_data] != NA_DATA))
-	num_data++;
+    unsigned num_data = doubleWithNASort(size, vector);
     if (num_data > 0)
     {
 	double mean = 0;
 	double sum = 0;
 	double min = DBL_MAX;
 	double max = -1 * DBL_MAX;
-	double median = gsl_stats_median_from_sorted_data(vector, 1, num_data);
+	double median = doubleWithNAMedianAlreadySorted(num_data, vector);
 	for (i = 0; i < num_data; i++)
 	{
 	    sum += vector[i];

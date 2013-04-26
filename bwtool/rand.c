@@ -11,7 +11,7 @@
 #include "random_coord.h"
 #include "bwtool.h"
 
-#include <gsl/gsl_rng.h>
+#include <stdlib.h>
 
 void usage_random()
 /* Explain usage of randomized data program and exit. */
@@ -34,7 +34,6 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
 		   char *num_s, char *size_s, char *bigfile, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
-    const gsl_rng_type *T;
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
     FILE *out = mustOpen(output_file, "w");
     boolean just_bed = (hashFindVal(options, "bed") != NULL) ? TRUE : FALSE;
@@ -44,24 +43,21 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
     struct bed *blacklist = NULL;
     struct perBaseWig *pbw;
     struct perBaseWig *pbwList = NULL;
-    gsl_rng *r;
     double NA_perc = sqlDouble(hashOptionalVal(options, "NA-perc", "0.4"));
     struct random_coord *rc = NULL;
     unsigned long max = 0;
     unsigned kept = 0;
+    srand(time(NULL));
     if (blacklist_file)
 	blacklist = bedLoadNAll(blacklist_file, 3);
     rc = random_coord_init(mb->chromSizeHash, blacklist);
     max = rc->length - size;
-    gsl_rng_env_setup();
-    T = gsl_rng_default;
-    r = gsl_rng_alloc(T);
     while (kept < N)
     {
 	struct bed *bed = NULL;
 	while (bed == NULL)
 	{
-	    unsigned long rand = gsl_rng_uniform_int(r, max);
+	    unsigned long rand = random_in_range(0, max);
 	    bed = random_bed(rc, size, rand);
 	}
 	pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE);
@@ -92,7 +88,6 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
 		fprintf(out, "%0.*f%c", decimals, pbw->data[i], (i < pbw->chromEnd - pbw->chromStart - 1) ? '\t' : '\n');
 	}
     }
-    gsl_rng_free(r);
     carefulClose(&out);
     bedFreeList(&blacklist);
     random_coord_free(&rc);
