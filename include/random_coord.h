@@ -32,6 +32,9 @@ struct random_coord
     struct rbTree *lookup_by_coord;  /* used to find chroms from catted-space */
 };
 
+int random_in_range(unsigned long min, unsigned long max);
+/* Would like a semi-open interval [min, max) */
+
 struct random_coord *random_coord_init(struct hash *chrom_sizes, struct bed *blacklist);
 /* Initialize struct using a typical chrom_sizes hash and an optional bedfile that's */
 /* already been read in. The hash is cloned, so the original needs free'ing separately */

@@ -1,4 +1,4 @@
-bwtool
+public branch 
 ----
 include/      Library headers
 lib/          Library source

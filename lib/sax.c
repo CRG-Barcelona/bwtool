@@ -1,6 +1,5 @@
 #include <float.h>
 #include <math.h>
-#include <gsl/gsl_statistics_double.h>
 #include "common.h"
 #include "linefile.h"
 #include "hash.h"
@@ -247,8 +246,8 @@ static double *sax_make_cut_points_array(int alphabet_size)
 static void sax_z_norm(double *array, size_t len, double mean, double std)
 /* z-normalize an array in place. (needs GSL) */
 {
-    double stdd = (std > 0) ? std : gsl_stats_sd(array, 1, len);
-    double meen = (std > 0) ? mean : gsl_stats_mean(array, 1, len);
+    double stdd = (std > 0) ? std : 1;
+    double meen = (std > 0) ? mean : 0;
     int i;
     for (i = 0; i < len; i++)
 	array[i] = (array[i] - meen)/stdd;

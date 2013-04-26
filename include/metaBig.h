@@ -16,8 +16,10 @@
 #include "bigBed.h"
 #endif
 
-#ifndef BAMFILE_H
+#ifdef USE_BAM
 #include "bamFile.h"
+#include "sam.h"
+#include "bam.h"
 #endif
 
 enum metaBigFileType
@@ -53,10 +55,14 @@ struct metaBig
     enum metaBigFileType type;     /* important thing to know what kinda file it is */
     union
     {                              /* should only be one of these things */
+#ifdef USE_BAM
 	samfile_t *bam;       
+#endif
 	struct bbiFile *bbi;
     } big;
+#ifdef USE_BAM
     bam_index_t *idx;              /* NULL if not a BAM file */ 
+#endif
     boolean isRemote;              /* is this a URL or not? */
     char *originalFileName;        /* full filename including URL or sectioning */
     char *fileName;                /* just the filename without sectioning */
@@ -69,7 +75,9 @@ struct metaBig
     int shift;                     /* shift items fetched by <shift> bases (can be negative) */
     char strand;                   /* restrict fetching to a particular strand, NULL if not */
     /* bam-only stuff */
+#ifdef USE_BAM
     bam_header_t *header;          /* header info */
+#endif
     int mapQ;                      /* minimum mapping quality */
     boolean pe;                    /* only use paired-end reads */
     boolean se;                    /* only use single-end reads */
@@ -111,6 +119,21 @@ struct bed6
     int score; /* Score - 0-1000 */
     char strand[2];  /* + or -.  */    
 };
+
+struct metaBigBed6Helper
+/* Helper structure to help get sam alignments out of a BAM file */
+    {
+    struct lm *lm;	/* Local memory pool to allocate into */
+    char *chrom;	/* Chromosome name */
+    char *dot;          /* When name='.', this remains dot. */
+    int chromSize;      /* size of chromosome */
+    struct metaBig *mb; /* the original metaBig with all the options and everything */
+    struct bed6 *bedList;	/* List of alignments. */
+    };
+
+#ifdef USE_BAM
+#include "metaBigBam.h"
+#endif
 
 struct bed6 *readBed6(char *file);
 /* read from a file */

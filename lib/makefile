@@ -1,10 +1,13 @@
 include ../local.mk
 include ${KENT}/inc/common.mk
 
-KENTLIBDIR = ${KENT}/lib/${MACHTYPE}
-HG_INC=-I${KENT}/inc -I${GSL}/include -I${SAMTOOL} -I../include
+HG_INC=-I${KENT}/inc -I../include
+ifeq (${USE_BAM},1)
+	L+=${SAMDIR}/libbam.a
+	HG_INC+=-I${SAMDIR}
+endif
 
-O = bigs.o cluster.o extrema.o fastq_stuff.o favs.o metaBig.o random_coord.o sax.o
+O = bigs.o cluster.o extrema.o fastq_stuff.o favs.o metaBig.o metaBigBam.o mt19937-64.o random_coord.o sax.o stuff.o
 
 andycrg.a: $(O)
 	ar rcus andycrg.a $(O)
