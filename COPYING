@@ -1,0 +1,12 @@
+Except for the code in the libjkweb/ subdirectory, comprising the libjkweb library,
+the software within the bwtoo distribution is using the GNU General Public License.
+See http://www.gnu.org/licenses/gpl-3.0.html for a detailed explanation, but 
+basically this restricts the use of this software for other free software and not
+for proprietary software, including free proprietary software.
+
+The libjkweb code is copyrighted by the Regents of the University of California
+and Jim Kent and is used here with his permission.  The use of that code inside of
+proprietary software may be possible with a license, but otherwise it's mainly
+intended for academic use.  Apart from a slight reorganization in the structure
+of compilation (the makefile and header directory), no modification of the 
+libjkweb code is made for the function of the bwtool software.

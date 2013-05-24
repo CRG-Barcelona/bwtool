@@ -18,11 +18,28 @@ void usage_paste()
 errAbort(
   "bwtool paste - simultaneously output same regions of multiple bigWigs\n"
   "usage:\n"
-  "   bwtool paste regions.bed input1.bw input2.bw input3.bw ...\n"
+  "   bwtool paste input1.bw input2.bw input3.bw ...\n"
   "options:\n"
   "   -skip-NA        don't output lines (bases) where one of the inputs is NA\n"
   );
 }
+
+/* void check_chrom_sizes(struct metaBig *mbList) */
+/* /\* check to make sure the metaBigs all have the same size chroms. *\/ */
+/* /\* After all, it would be bad to mix genomes/assemblies by accident. *\/ */
+/* { */
+/*     /\* First trim down all chroms to one list *\/ */
+/*     if (!mbList) */
+/* 	errAbort("No metaBigs in input"); */
+/*     struct hash *one_hash = mbList->chromSizeHash; */
+/*     struct metaBig *mb; */
+/*     struct hashEl *list = hashElListHash(one_hash); */
+/*     for (mb = mbList; mb != NULL; mb = mb->next) */
+/*     { */
+/* 	struct hashEl *el; */
+/* 	for (el =  */
+/*     } */
+/* } */
 
 void output_pbws(struct perBaseWig *pbw_list, int decimals, boolean skip_NA)
 /* outputs one set of perBaseWigs all at the same section */
@@ -69,12 +86,12 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     /* open the files one by one */
     for (file = files; file != NULL; file = file->next)
     {
-	mb = metaBigOpen(file->name, NULL);
+	mb = metaBigOpen(file->name, regions);
 	slAddHead(&mb_list, mb);
     }
     /* list is reversed but then so will be making the list of pbws, */
     /* so this avoids double-reversing */
-    for (bed = reg_list; bed != NULL; bed = bed->next)
+    for (bed = mb->sections; bed != NULL; bed = bed->next)
     {
 	struct perBaseWig *pbw_list = NULL;
 	/* load each region */

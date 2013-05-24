@@ -1,0 +1,7 @@
+bwtool's desired features
+=========================
+- man page documentation
+- parallel execution with OpenMP
+- autocorrelation or fourier analysis features
+- re-add the random number stuff with GSL and link
+  to GSL if detected.

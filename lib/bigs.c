@@ -50,13 +50,17 @@ struct perBaseWig *alloc_perBaseWig(char *chrom, int start, int end)
 /* simply allocate the perBaseWig. not a super necessary function. */
 {
     struct perBaseWig *pbw;
+    const double na = NANUM;
     int size = end - start;
+    int i;
     AllocVar(pbw);
     pbw->chrom = cloneString(chrom);
     pbw->chromStart = start;
     pbw->chromEnd = end;
     pbw->len = size;
     AllocArray(pbw->data, size);
+    for (i = 0; i < size; i++)
+	pbw->data[i] = na;
     return pbw;
 }
 

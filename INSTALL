@@ -1,0 +1,32 @@
+bwtool installation instructions
+================================
+Hopefully all that there is to do is to execute the following:
+
+   $ ./configure 
+   $ make 
+   $ sudo make install
+
+Sometimes of course root access isn't possible. Sometimes libraries
+required are in non-standard directories.  At the minimum, bwtool
+requires the pthread, math (libm), and zlib libraries. These are 
+quite standard on linux computers or Mac computers with the developer
+kit and the command-line tools installed.
+
+If there is a library that cannot be found automatically by the
+configure script, the way to add them is to do this:
+
+   $ ./configure LDFLAGS="-L<path to dir containing library>"
+
+but note that it may also be necessary to add the location of the
+header files for that library.  In this case add:
+
+   CFLAGS="-I<path to dir containing header files>"
+
+in addition to the LDFLAGS as above.  Finally, it's common to work
+on a computer without root access.  In this case, "make install" 
+will probably not work because it will try to install bwtool
+in a system directory such as /usr/bin or /usr/local/bin.  In this
+case, use the --prefix option for configure to choose a directory
+which can be written to, e.g.
+
+   $ ./configure --prefix=$HOME

@@ -9,12 +9,18 @@
 #include "basicBed.h"
 #include "chain.h"
 #include "binRange.h"
-#include "liftOverCore.h"
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
 
 #define NANUM sqrt(-1)
+
+struct liftOverChromMap
+/* Remapping information for one (old) chromosome */
+{
+    char *name;                 /* Chromosome name. */
+    struct binKeeper *bk;       /* Keyed by old position, values are chains. */
+};
 
 void usage_lift()
 /* Explain usage of the lift program */

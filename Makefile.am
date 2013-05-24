@@ -1,0 +1,1 @@
+SUBDIRS = libjkweb lib bwtool

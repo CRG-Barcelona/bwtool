@@ -227,7 +227,6 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
     boolean clustering = (hashFindVal(options, "cluster") != NULL) ? TRUE : FALSE;
     char *cluster_sets = (char *)hashFindVal(options, "cluster-sets");
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
-    /* int verbose = sqlSigned((char *)hashOptionalVal(options, "verbose", "0")); */
     FILE *output;
     char *tmp_s = cloneString(size_s);
     char *range[2];

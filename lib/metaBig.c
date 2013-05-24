@@ -103,6 +103,11 @@ static enum metaBigFileType isBigWigOrBed(char *filename)
 	ret = isaBigWig;
     else if (magic == bigBedSig)
 	ret = isaBigBed;
+    if (ret != isNotBig)
+    {
+	udcFileClose(&udc);
+	return ret;
+    }
     magic = byteSwap32(magic);
     if (magic == bigWigSig)
 	ret = isaBigWig;

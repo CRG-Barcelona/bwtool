@@ -23,16 +23,29 @@ errAbort(
   "where:\n"
   "   -\"loci\" corresponds to either (a) a bed file with regions to summarize or\n"
   "    (b) a size of interval to summarize genome-wide.\n"
+  "options:\n"
+  "   -zero-fill       treat NA regions as zero\n"
   );
 }
 
-void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, char *chrom, unsigned chromStart, unsigned chromEnd)
+void fill_zeros(double *data, int size)
+/* with the -zero-fill option, add zeroes */
+{
+    int i;
+    for (i = 0; i < size; i++)
+	if (isnan(data[i]))
+	    data[i] = 0;
+}
+
+void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, char *chrom, unsigned chromStart, unsigned chromEnd, boolean zero_fill)
 /* at each iteration of */
 {
     int i;
     struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, chromStart, chromEnd, FALSE);
     int size = pbw->chromEnd - pbw->chromStart;
     double *vector = pbw->data;
+    if (zero_fill)
+	fill_zeros(vector, size);
     unsigned num_data = doubleWithNASort(size, vector);
     if (num_data > 0)
     {
@@ -53,20 +66,24 @@ void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, char *chrom,
 	fprintf(out, "%s\t%d\t%d\t%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\n", chrom, chromStart, chromEnd, size, 
 		num_data, decimals, min, decimals, max, decimals, mean, decimals, median);
     }
+    else
+    {
+	fprintf(out, "%s\t%d\t%d\t0\tna\tna\tna\tna\tna\n", chrom, chromStart, chromEnd, size);
+    }
     perBaseWigFreeList(&pbw);
 }
 
-void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, char *bedfile, FILE *out)
+void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, char *bedfile, FILE *out, boolean zero_fill)
 /* if the "loci" ends up being a bed file */
 {
     struct bed *section;
     struct bed *summary_regions = bedLoadNAll(bedfile, 3);
     for (section = summary_regions; section != NULL; section = section->next)
-	summary_loop(mb, decimals, out, section->chrom, section->chromStart, section->chromEnd);
+	summary_loop(mb, decimals, out, section->chrom, section->chromStart, section->chromEnd, zero_fill);
     bedFreeList(&summary_regions);
 }
 
-void bwtool_summary_interval(struct metaBig *mb, unsigned decimals, unsigned interval, FILE *out)
+void bwtool_summary_interval(struct metaBig *mb, unsigned decimals, unsigned interval, FILE *out, boolean zero_fill)
 /* if the "loci" ends up being an interval */
 {
     struct hashEl *chroms = hashElListHash(mb->chromSizeHash);
@@ -81,7 +98,7 @@ void bwtool_summary_interval(struct metaBig *mb, unsigned decimals, unsigned int
 	    end = start + interval;
 	    if (end > size)
 		end = size;
-	    summary_loop(mb, decimals, out, el->name, start, end);
+	    summary_loop(mb, decimals, out, el->name, start, end, zero_fill);
 	}
     }
     hashElFreeList(&chroms);
@@ -91,16 +108,17 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
 		    char *loci_s, char *bigfile, char *outputfile)
 /* bwtool_summary - main for the summarize program */
 {
+    boolean zero_fill = (hashFindVal(options, "zero-fill") != NULL) ? TRUE : FALSE;
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
     if (mb->type != isaBigWig)
 	errAbort("file not bigWig type");
     FILE *out = mustOpen(outputfile, "w");
     if (fileExists(loci_s))
-	bwtool_summary_bed(mb, decimals, loci_s, out);
+	bwtool_summary_bed(mb, decimals, loci_s, out, zero_fill);
     else
     {
 	unsigned interval = sqlUnsigned(loci_s);
-	bwtool_summary_interval(mb, decimals, interval, out);
+	bwtool_summary_interval(mb, decimals, interval, out, zero_fill);
     }
     carefulClose(&out);
     metaBigClose(&mb);
