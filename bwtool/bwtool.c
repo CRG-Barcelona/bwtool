@@ -18,24 +18,26 @@ errAbort(
   "usage:\n"
   "   bwtool command [additional command parameters]\n" 
   "commands:\n"
-  "   remove         remove data equal to or thresholded on a given value\n"
-  "                  or remove data using ranges specified in a bed file\n"
-  "   fill           fill in regions of genome where no data exists with a value\n"
-  "   shift          move data on the chromosome\n"
-  "   paste          output data from multiple bigWigs and align them one per column\n"
-  "                  in tab-delimited output meant to feed into computations\n"
-  "   find           find regions of bigWig with given properties\n"
-  "   matrix         extract same-sized sections from bigWig to examine as a matrix\n"
-  "   summary        provide some summary stats for each region in a bed file\n"
-  "   random         print out random data or random regions from the bigWig file\n"
-  "   lift           project data from one genome assembly to another using a\n"
-  "                  liftOver file (can be lossy)\n"
-  "   aggregate      produce plot data as an average of values around the regions\n"
-  "                  specified in a bed file\n"
+  "   aggregate      (or \"agg\") produce plot data as an average of values around\n"
+  "                  the regions specified in a bed file\n"
   "   chromgraph     roughly convert to the chromgraph format, suitable for UCSC's\n"
   "                  Genome Graphs page\n"
-  "   distribution   produce plot data as the frequency of values seen in the bigWig\n"
+  "   distribution   (or \"dist\") produce plot data as the frequency of values seen\n"
+  "                  in the bigWig\n"
+  "   fill           fill in regions of genome where no data exists with a value\n"
+  "   find           find regions of bigWig with given properties\n"
+  "   lift           project data from one genome assembly to another using a\n"
+  "                  liftOver file (can be lossy)\n"
+  "   matrix         extract same-sized sections from bigWig to examine as a matrix\n"
+  "   paste          output data from multiple bigWigs and align them one per column\n"
+  "                  in tab-delimited output meant to feed into computations\n"
+  "   random         print out random data or random regions from the bigWig file\n"
+  "   remove         remove data equal to or thresholded on a given value\n"
+  "                  or remove data using ranges specified in a bed file\n"
   "   sax            run symbolic aggregate approximation (SAX) algorithm on data\n"
+  "   shift          move data on the chromosome\n"
+  "   summary        provide some summary stats for each region in a bed file\n"
+  "   window         print out tiling windows of data in comma-separated lists\n\n"
   "general options:\n"
   " -wigtype=<bg|fix|var>    output bedGraph, fixedStep, or variableStep wig\n"
   " -regions=bed             use specific regions\n"
@@ -159,13 +161,6 @@ else if (sameString(argv[1], "distribution") || sameString(argv[1], "dist"))
     else
 	bwtool_distrib(options, favorites, regions, decimals, argv[2], argv[3]);
 }
-/* else if (sameString(argv[1], "autocorr")) */
-/* { */
-/*     if (argc != 4) */
-/* 	usage_autocorr(); */
-/*     else */
-/* 	bwtool_autocorr(options, favorites, regions, decimals, argv[3], argv[4]); */
-/* } */
 else if (sameString(argv[1], "random"))
 {
     if (argc != 6)
@@ -175,6 +170,7 @@ else if (sameString(argv[1], "random"))
 }
 else if (sameString(argv[1], "aggregate") || sameString(argv[1], "agg"))
 {
+    decimals = sqlUnsigned((char *)hashOptionalVal(options, "decimals", "6"));
     if (argc != 6)
 	usage_aggregate();
     else
@@ -189,28 +185,21 @@ else if (sameString(argv[1], "chromgraph") || sameString(argv[1], "cg"))
 }
 else if (sameString(argv[1], "paste"))
 {
-    if (argc < 4)
+    if (argc < 3)
 	usage_paste();
     else
     {
 	struct slName *list = NULL;
 	int i;
-	for (i = 3; i < argc; i++)
+	for (i = 2; i < argc; i++)
 	{
 	    struct slName *name = slNameNew(argv[i]);
 	    slAddHead(&list, name);
 	}
 	slReverse(&list);
-	bwtool_paste(options, favorites, argv[2], decimals, list);
+	bwtool_paste(options, favorites, regions, decimals, list);
     }
 }
-/* else if (sameString(argv[1], "distance")) */
-/* { */
-/*     if (argc != 5) */
-/* 	usage_distance(); */
-/*     else */
-/* 	bwtool_distance(options, favorites, regions, decimals, argv[2], argv[3], argv[4]); */
-/* } */
 else if (sameString(argv[1], "lift"))
 {
     if (argc != 5)
@@ -231,6 +220,13 @@ else if (sameString(argv[1], "sax"))
 	usage_sax();
     else
 	bwtool_sax(options, favorites, regions, decimals, argv[2], argv[3], argv[4]);
+}
+else if (sameString(argv[1], "window") || sameString(argv[1], "win"))
+{
+    if (argc != 4)
+	usage_window();
+    else
+	bwtool_window(options, favorites, regions, decimals, argv[2], argv[3]);
 }
 else 
     usage();

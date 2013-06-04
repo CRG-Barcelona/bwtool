@@ -47,7 +47,8 @@ int perBaseWigLabelCmp(const void *a, const void *b)
 }
 
 struct perBaseWig *alloc_perBaseWig(char *chrom, int start, int end)
-/* simply allocate the perBaseWig. not a super necessary function. */
+/* simply allocate the perBaseWig. this is filled with NA values */
+/* it's best to call this one if we are going to read a bigWig */
 {
     struct perBaseWig *pbw;
     const double na = NANUM;
@@ -61,6 +62,17 @@ struct perBaseWig *alloc_perBaseWig(char *chrom, int start, int end)
     AllocArray(pbw->data, size);
     for (i = 0; i < size; i++)
 	pbw->data[i] = na;
+    return pbw;
+}
+
+struct perBaseWig *alloc_zero_perBaseWig(char *chrom, int start, int end)
+/* simply allocate the perBaseWig. this is filled with zeros */
+/* it may be best to call this one before writing a wig */
+{
+    struct perBaseWig *pbw = alloc_perBaseWig(chrom, start, end);
+    int i;
+    for (i = 0; i < pbw->len; i++)
+	pbw->data[i] = 0;
     return pbw;
 }
 
@@ -92,6 +104,87 @@ struct perBaseWig *perBaseWigClone(struct perBaseWig *pbw)
     return clone;
 }
 
+static char *seq_name_disassemble(struct dnaSeq *seq, unsigned *chromStart, unsigned *chromEnd)
+    /* This chops a sequence name up at the first ':' and fills the chromStart/chromEnd */
+    /* with the expected values */
+{
+    unsigned start = 0;
+    unsigned end = seq->size;
+    char *s = strchr(seq->name, ':');
+    if (s)
+    {
+	*s++ = '\0';
+	char *e = strchr(s, '-');
+	if (e)
+	{
+	    *e++ = '\0';
+	    end = sqlUnsigned(e);
+	}
+	start = sqlUnsigned(s);
+    }
+    *chromStart = (int)start;
+    *chromEnd = (int)end;
+    return cloneString(seq->name);
+}
+
+static struct bed *seq_subsection_list(struct dnaSeq *seq, boolean skipN)
+    /* find all the good sections of sequence */
+{
+    struct bed *list = NULL;
+    if (skipN)
+    {
+	int start = 0;
+	int end = 0;
+	while (end < seq->size)
+	{
+	    while ((end < seq->size) && (seq->dna[end] == 'N'))
+		end++;
+	    start = end;
+	    while ((end < seq->size) && (seq->dna[end] != 'N'))
+		end++;
+	    if (end - start > 0)
+	    {
+		struct bed *section;
+		AllocVar(section);
+		section->chrom = cloneString(seq->name);
+		section->chromStart = start;
+		section->chromEnd = end;
+		slAddHead(&list, section);
+	    }
+	}
+	slReverse(&list);
+    }
+    else
+    {
+	struct bed *wholeseq;
+	AllocVar(wholeseq);
+	wholeseq->chrom = cloneString(seq->name);
+	wholeseq->chromStart = 0;
+	wholeseq->chromEnd = seq->size;
+	slAddHead(&list, wholeseq);
+    }
+    return list;
+}
+
+struct perBaseWig *alloc_perBaseWig_matchingSequence(struct dnaSeq *seq, boolean skipN)
+/* allocate a perBaseWig to match the length of the dnaSeq.  Optionally choose to skip */
+/* N bases by making a subsections bed list that avoids them. One feature this */
+/* function has is that the name of the sequence is something like "chrom:start-end" */
+/* in 0-based coordinates. If so, the chromStart/chromEnd are set to match the coordinates in */
+/* the name.  If not, the chromStart will be 0, and the chromEnd will be seq->size. */
+/* (this is used by symcurv) */
+{
+    struct perBaseWig *pbw;
+    int size = seq->size;
+    int chromStart;
+    int chromEnd;
+    char *chrom = seq_name_disassemble(seq, &chromStart, &chromEnd);
+    pbw = alloc_perBaseWig(chrom, chromStart, chromEnd);
+    pbw->subsections = seq_subsection_list(seq, skipN);
+    AllocArray(pbw->data, size);
+    return pbw;
+}
+
 void perBaseWigFree(struct perBaseWig **pRegion)
 /* Free-up a perBaseWig */
 {
@@ -114,12 +207,14 @@ void perBaseWigFreeList(struct perBaseWig **pList)
     freez(pList);
 }
 
-struct perBaseWig *perBaseWigLoadContinue(struct bbiFile *bbi, char *chrom, int start, int end)
+struct perBaseWig *perBaseWigLoadContinue(struct metaBig *mb, char *chrom, int start, int end)
 /* load a perBaseWig from a wig/bigWig that's already open */
 {
+    if (mb->type != isaBigWig)
+	return NULL;
     struct perBaseWig *list = NULL;
     struct lm *lm = lmInit(0);
-    struct bbiInterval *intervals = bigWigIntervalQuery(bbi, chrom, start, end, lm);
+    struct bbiInterval *intervals = bigWigIntervalQuery(mb->big.bbi, chrom, start, end, lm);
     struct bbiInterval *bbStart = intervals, *bbEnd;
     while (bbStart != NULL)
     {
@@ -131,13 +226,7 @@ struct perBaseWig *perBaseWigLoadContinue(struct bbiFile *bbi, char *chrom, int 
 	/* loop until discontinuity detected */
 	while ((bbEnd->next != NULL) && (bbEnd->end == bbEnd->next->start))
 	    bbEnd = bbEnd->next;
-	AllocVar(region);
-	size = bbEnd->end - bbStart->start;
-	AllocArray(region->data, size);
-	region->chrom = cloneString(chrom);
-	region->chromStart = bbStart->start;
-	region->chromEnd = bbEnd->end;
-	region->len = size;
+	region = alloc_perBaseWig(chrom, bbStart->start, bbEnd->end);
 	for (cur = bbStart; cur != bbEnd->next; cur = cur->next)
 	{
 	    int j;
@@ -155,10 +244,15 @@ struct perBaseWig *perBaseWigLoadContinue(struct bbiFile *bbi, char *chrom, int 
 struct perBaseWig *perBaseWigLoad(char *wigFile, char *chrom, int start, int end)
 /* Load all the regions from a wig or bigWig into a list of arrays basically. */
 {
-    struct bbiFile *bbi = bigWigFileOpen(wigFile);
+    struct metaBig *mb = metaBigOpen(wigFile, NULL);
+    if (mb->type != isaBigWig)
+    {
+	metaBigClose(&mb);
+	return NULL;
+    }
     struct perBaseWig *list;
-    list = perBaseWigLoadContinue(bbi, chrom, start, end);
-    bigWigFileClose(&bbi);
+    list = perBaseWigLoadContinue(mb, chrom, start, end);
+    metaBigClose(&mb);
     return list;
 }
 
@@ -176,23 +270,19 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 {
+    if (mb->type != isaBigWig)
+	return NULL;
     struct perBaseWig *list;
     struct perBaseWig *region;
     struct perBaseWig *wholething = NULL;
-    double na = NANUM;
     int size = end - start;
     int i, j;
     int s = start, e = end;
+    if (!hashFindVal(mb->chromSizeHash, chrom))
+	return NULL;
     chromOob(mb, chrom, &s, &e);
-    list = perBaseWigLoadContinue(mb->big.bbi, chrom, s, e);
-    AllocVar(wholething);
-    wholething->chrom = cloneString(chrom);
-    wholething->chromStart = start;
-    wholething->chromEnd = end;
-    AllocArray(wholething->data, size);
-    wholething->len = size;
-    for (i = 0; i < size; i++)
-	wholething->data[i] = na;
+    list = perBaseWigLoadContinue(mb, chrom, s, e);
+    wholething = alloc_perBaseWig(chrom, start, end);
     if (list)
     {
 	for (region = list; region != NULL; region = region->next)
@@ -222,6 +312,11 @@ struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, i
 /* in with NA value */
 {
     struct metaBig *mb = metaBigOpen(wigFile, NULL);
+    if (mb->type != isaBigWig)
+    {
+	metaBigClose(&mb);
+	return NULL;
+    }
     struct perBaseWig *list;
     list = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse);
     metaBigClose(&mb);

@@ -222,7 +222,7 @@ void do_pass1(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw)
     struct bed *section;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, section->chromEnd);
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	{
@@ -256,7 +256,7 @@ void do_pass2(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw)
     struct bed *section;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, section->chromEnd);
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	{
@@ -287,7 +287,7 @@ void do_final_pass(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw
 	bad = mustOpen(bad_file, "w");
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, section->chromEnd);
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	{

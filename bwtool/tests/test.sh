@@ -1,47 +1,5 @@
 #!/bin/bash
 
-# mult tests
-
-# multiply by 10 
-lc=`bwtool -decimals=1 mult 10 A.bw /dev/stdout | diff - mult1.wig | wc -l`
-if [ "$lc" -eq 0 ]; then 
-    echo " "1:  passed mult1.wig test -- multiplying constants; 
-else
-    echo " "1:  did NOT pass mult1.wig test -- problem multiplying constants;
-fi
-
-# divide by 10
-lc=`bwtool -divide -decimals=2 mult 10 A.bw /dev/stdout | diff - mult2.wig | wc -l`
-if [ "$lc" -eq 0 ]; then 
-    echo " "2:  passed mult2.wig test -- dividing constants; 
-else
-    echo " "2:  did NOT pass mult2.wig test -- problem dividing constants;
-fi
-
-# multiply by another bw (itself)
-lc=`bwtool mult A.bw A.bw /dev/stdout -decimals=2 | diff - mult3.wig | wc -l`
-if [ "$lc" -eq 0 ]; then 
-    echo " "3:  passed mult3.wig test -- multiplying by files;
-else
-    echo " "3:  did NOT pass mult3.wig test -- problem multiplying by files;
-fi
-
-# multiply with NA data
-lc=`bwtool mult 2 D.bw /dev/stdout -decimals=2 | diff - mult4.wig | wc -l`
-if [ "$lc" -eq 0 ]; then 
-    echo " "4:  passed mult4.wig test -- multiplying with NA data;
-else
-    echo " "4:  did NOT pass mult5.wig test -- problem multiplying with NA data;
-fi
-
-# multiply then log10
-lc=`bwtool -logb=10 mult A.bw A.bw /dev/stdout -decimals=2 | diff - mult5.wig | wc -l`
-if [ "$lc" -eq 0 ]; then 
-    echo " "4:  passed mult5.wig test -- multiplying by file then logging;
-else
-    echo " "4:  did NOT pass mult5.wig test -- problem multiplying by file then logging;
-fi
-
 # shift -3 bp (upstream)
 lc=`bwtool shift up 3 A.bw /dev/stdout -decimals=2 | diff - shift1.wig | wc -l`
 if [ "$lc" -eq 0 ]; then 

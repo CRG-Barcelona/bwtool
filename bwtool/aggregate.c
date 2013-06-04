@@ -277,10 +277,11 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
 	    struct metaBig *mb = metaBigOpen(wig_name->name, NULL);
 	    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
 	    do_summary(pbm, agg, expanded, offset++);
-	    output_agg_data(output, decimals, expanded, agg);
 	    free_perBaseMatrix(&pbm);
 	    metaBigClose(&mb);
 	}
+	output_agg_data(output, decimals, expanded, agg);
+	free_agg_data(&agg);
 	bed6FreeList(&regions);
     }
     else if (clustering)

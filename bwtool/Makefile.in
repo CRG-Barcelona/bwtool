@@ -54,9 +54,11 @@ am_bwtool_OBJECTS = bwtool-aggregate.$(OBJEXT) bwtool-bwtool.$(OBJEXT) \
 	bwtool-lift.$(OBJEXT) bwtool-matrix.$(OBJEXT) \
 	bwtool-paste.$(OBJEXT) bwtool-rand.$(OBJEXT) \
 	bwtool-remove.$(OBJEXT) bwtool-sax.$(OBJEXT) \
-	bwtool-shift.$(OBJEXT) bwtool-summarize.$(OBJEXT)
+	bwtool-shift.$(OBJEXT) bwtool-summarize.$(OBJEXT) \
+	bwtool-window.$(OBJEXT)
 bwtool_OBJECTS = $(am_bwtool_OBJECTS)
-bwtool_DEPENDENCIES = ../lib/libbeato.a ../libjkweb/libjkweb.a
+bwtool_DEPENDENCIES = $(top_srcdir)/lib/libbeato.a \
+	$(top_srcdir)/libjkweb/libjkweb.a
 bwtool_LINK = $(CCLD) $(bwtool_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -173,7 +175,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 bwtool_CFLAGS = -I$(top_srcdir)/libjkweb -I$(top_srcdir)/lib
-bwtool_LDADD = ../lib/libbeato.a ../libjkweb/libjkweb.a
+bwtool_LDADD = $(top_srcdir)/lib/libbeato.a $(top_srcdir)/libjkweb/libjkweb.a
 bwtool_SOURCES = \
 	aggregate.c \
 	bwtool.c \
@@ -189,7 +191,8 @@ bwtool_SOURCES = \
 	remove.c \
 	sax.c \
 	shift.c \
-	summarize.c
+	summarize.c \
+	window.c
 
 all: all-am
 
@@ -286,6 +289,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-sax.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-shift.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-summarize.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-window.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -496,6 +500,20 @@ bwtool-summarize.obj: summarize.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='summarize.c' object='bwtool-summarize.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-summarize.obj `if test -f 'summarize.c'; then $(CYGPATH_W) 'summarize.c'; else $(CYGPATH_W) '$(srcdir)/summarize.c'; fi`
+
+bwtool-window.o: window.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-window.o -MD -MP -MF $(DEPDIR)/bwtool-window.Tpo -c -o bwtool-window.o `test -f 'window.c' || echo '$(srcdir)/'`window.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/bwtool-window.Tpo $(DEPDIR)/bwtool-window.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='window.c' object='bwtool-window.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-window.o `test -f 'window.c' || echo '$(srcdir)/'`window.c
+
+bwtool-window.obj: window.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-window.obj -MD -MP -MF $(DEPDIR)/bwtool-window.Tpo -c -o bwtool-window.obj `if test -f 'window.c'; then $(CYGPATH_W) 'window.c'; else $(CYGPATH_W) '$(srcdir)/window.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/bwtool-window.Tpo $(DEPDIR)/bwtool-window.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='window.c' object='bwtool-window.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-window.obj `if test -f 'window.c'; then $(CYGPATH_W) 'window.c'; else $(CYGPATH_W) '$(srcdir)/window.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

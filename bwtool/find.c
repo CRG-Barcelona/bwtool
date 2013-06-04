@@ -156,7 +156,7 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions,
     struct bed *section; 
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	int i, len;

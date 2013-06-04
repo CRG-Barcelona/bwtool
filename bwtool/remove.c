@@ -65,7 +65,7 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
     const double na = NANUM;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, section->chromEnd);
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	{
@@ -136,7 +136,7 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
     const double na = NANUM;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, section->chromEnd);
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, section->chromEnd);
 	struct perBaseWig *pbw;
 	struct rbTree *chrom_tree = (struct rbTree *)hashFindVal(rt_hash, section->chrom);
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)

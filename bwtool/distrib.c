@@ -49,7 +49,7 @@ void bwtool_distrib(struct hash *options, char *favorites, char *regions, unsign
     AllocArray(counts, size);
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)

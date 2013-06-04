@@ -24,22 +24,48 @@ errAbort(
   );
 }
 
-/* void check_chrom_sizes(struct metaBig *mbList) */
-/* /\* check to make sure the metaBigs all have the same size chroms. *\/ */
-/* /\* After all, it would be bad to mix genomes/assemblies by accident. *\/ */
-/* { */
-/*     /\* First trim down all chroms to one list *\/ */
-/*     if (!mbList) */
-/* 	errAbort("No metaBigs in input"); */
-/*     struct hash *one_hash = mbList->chromSizeHash; */
-/*     struct metaBig *mb; */
-/*     struct hashEl *list = hashElListHash(one_hash); */
-/*     for (mb = mbList; mb != NULL; mb = mb->next) */
-/*     { */
-/* 	struct hashEl *el; */
-/* 	for (el =  */
-/*     } */
-/* } */
+void check_chrom_sizes(struct metaBig *mbList)
+/* check to make sure the metaBigs all have the same size chroms. */
+/* After all, it would be bad to mix genomes/assemblies by accident. */
+{
+    /* First trim down all chroms to one list */
+    if (!mbList)
+	errAbort("No metaBigs in input");
+    struct hash *one_hash = mbList->chromSizeHash;
+    struct metaBig *mb;
+    struct hashEl *list = hashElListHash(one_hash);
+    for (mb = mbList->next; mb != NULL; mb = mb->next)
+    {
+	struct hashEl *el;
+	struct hashEl *nextList = NULL;
+	while ((el = slPopHead(&list)) != NULL)
+	{
+	    struct hashEl *other = hashLookup(mb->chromSizeHash, el->name);
+	    if (other)
+	    {
+		int size = ptToInt(el->val);
+		int other_size = ptToInt(other->val);
+		if (size != other_size)
+		    errAbort("%s sizes different in %s and %s (%d != %d)", 
+			     el->name, mbList->fileName, mb->fileName, size, other_size);
+		slAddHead(&nextList, other);
+	    }
+	    else
+		hashElFree(&el);
+	    list = nextList;
+	}
+    }
+    /* Clear each chrom size hash and replace it with a new one. */
+    for (mb = mbList; mb != NULL; mb = mb->next)
+    {
+	struct hashEl *el;
+	struct hash *newCsHash = newHash(12);
+	hashFree(&mb->chromSizeHash);
+	for (el = list; el != NULL; el = el->next)
+	    hashAdd(newCsHash, el->name, el->val);
+	mb->chromSizeHash = newCsHash;
+    }
+}
 
 void output_pbws(struct perBaseWig *pbw_list, int decimals, boolean skip_NA)
 /* outputs one set of perBaseWigs all at the same section */
@@ -52,12 +78,19 @@ void output_pbws(struct perBaseWig *pbw_list, int decimals, boolean skip_NA)
 	{
 	    if (skip_NA)
 	    {
-		for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
-		    if (isnan(pbw->data[i]))
-		    {
-			i++;
-			continue;
-		    }
+		boolean skip_i = TRUE;
+		do 
+		{
+		    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
+			if (isnan(pbw->data[i]))
+			{
+			    i++;
+			    break;
+			}
+		    if (pbw == NULL)
+			skip_i = FALSE;
+		} 
+		while (skip_i);
 	    }
 	    printf("%s\t%d\t%d\t", pbw_list->chrom, pbw_list->chromStart+i, pbw_list->chromStart+i+1);
 	    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
@@ -79,8 +112,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 {
     struct metaBig *mb;
     struct metaBig *mb_list = NULL;
-    struct bed6 *reg_list = readBed6(regions);
-    struct bed6 *bed; 
+    struct bed *bed; 
     struct slName *file;
     boolean skip_na = (hashFindVal(options, "skip-NA") != NULL) ? TRUE : FALSE;
     /* open the files one by one */
@@ -91,6 +123,8 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     }
     /* list is reversed but then so will be making the list of pbws, */
     /* so this avoids double-reversing */
+    check_chrom_sizes(mb_list);
+    
     for (bed = mb->sections; bed != NULL; bed = bed->next)
     {
 	struct perBaseWig *pbw_list = NULL;
@@ -98,7 +132,8 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	for (mb = mb_list; mb != NULL; mb = mb->next)
 	{
 	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE);
-	    slAddHead(&pbw_list, pbw);
+	    if (pbw)
+		slAddHead(&pbw_list, pbw);
 	}
 	output_pbws(pbw_list, decimals, skip_na);
 	perBaseWigFreeList(&pbw_list);

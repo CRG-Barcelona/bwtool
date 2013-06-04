@@ -81,7 +81,20 @@ int perBaseWigLabelCmp(const void *a, const void *b);
 /* for sorting after clustering */
 
 struct perBaseWig *alloc_perBaseWig(char *chrom, int start, int end);
-/* simply allocate the perBaseWig. not a super necessary function. */
+/* simply allocate the perBaseWig. this is filled with NA values */
+/* it's best to call this one if we are going to read a bigWig */
+
+struct perBaseWig *alloc_zero_perBaseWig(char *chrom, int start, int end);
+/* simply allocate the perBaseWig. this is filled with zeros */
+/* it may be best to call this one before writing a wig */
+
+struct perBaseWig *alloc_perBaseWig_matchingSequence(struct dnaSeq *seq, boolean skipN);
+/* allocate a perBaseWig to match the length of the dnaSeq.  Optionally choose to skip */
+/* N bases by making a subsections bed list that avoids them. One feature this */
+/* function has is that the name of the sequence is something like "chrom:start-end" */
+/* in 0-based coordinates. If so, the chromStart/chromEnd are set to match the coordinates in */
+/* the name.  If not, the chromStart will be 0, and the chromEnd will be seq->size. */
+/* (this is used by symcurv) */
 
 struct perBaseWig *perBaseWigClone(struct perBaseWig *pbw);
 /* Clone the structure exactly */
@@ -92,7 +105,7 @@ void perBaseWigFree(struct perBaseWig **pRegion);
 void perBaseWigFreeList(struct perBaseWig **pList);
 /* Free up a list of perBaseWigs */
 
-struct perBaseWig *perBaseWigLoadContinue(struct bbiFile *bbi, char *chrom, int start, int end);
+struct perBaseWig *perBaseWigLoadContinue(struct metaBig *mb, char *chrom, int start, int end);
 /* load a perBaseWig from a wig/bigWig that's already open */
 
 struct perBaseWig *perBaseWigLoad(char *wigFile, char *chrom, int start, int end);

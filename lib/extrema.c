@@ -135,7 +135,7 @@ struct extrema *extrema_find(struct metaBig *mb, int min_sep, enum ex_removal re
     struct extrema *big_list = NULL;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb->big.bbi, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	struct extrema *section_list = NULL;

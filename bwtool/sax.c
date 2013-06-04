@@ -39,7 +39,7 @@ errAbort(
 void wigsax_fasta(FILE *out, struct metaBig *mb, struct bed *region, int alpha, int window, double mean, double std)
 /* when not using an iterative alphabet size, make an output similar to FASTA */
 {
-    struct perBaseWig *wigList = perBaseWigLoadContinue(mb->big.bbi, region->chrom, region->chromStart, region->chromEnd);
+    struct perBaseWig *wigList = perBaseWigLoadContinue(mb, region->chrom, region->chromStart, region->chromEnd);
     struct perBaseWig *pbw;
     for (pbw = wigList; pbw != NULL; pbw = pbw->next)
     {
@@ -85,7 +85,7 @@ void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alphaS, 
 {
     struct bed *outBedList = NULL;
     struct bed *bed;
-    struct perBaseWig *wigList = perBaseWigLoadContinue(mb->big.bbi, region->chrom, region->chromStart, region->chromEnd);
+    struct perBaseWig *wigList = perBaseWigLoadContinue(mb, region->chrom, region->chromStart, region->chromEnd);
     struct perBaseWig *pbw;
     struct slDouble *datList = NULL;
     struct slDouble *oneDub;
