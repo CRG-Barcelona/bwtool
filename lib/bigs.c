@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "common.h"
 #include "obscure.h"
 #include "hash.h"
@@ -33,6 +37,17 @@ enum wigOutType get_wig_out_type(char *option)
     return invalidOut;
 }
 
+double bigWigMean(struct bbiFile *bw)
+/* return the mean value of a bigWig */
+{
+    double na = NANUM;
+    struct bbiSummaryElement bbs = bbiTotalSummary(bw);
+    if (bbs.validCount == 0)
+	return na;
+    else
+	return bbs.sumData/bbs.validCount;
+}
+
 int perBaseWigLabelCmp(const void *a, const void *b)
 /* for sorting after clustering */
 {
@@ -40,9 +55,13 @@ int perBaseWigLabelCmp(const void *a, const void *b)
     const struct perBaseWig *pbw_b = *((struct perBaseWig **)b);    
     int diff = pbw_a->label - pbw_b->label;
     if (diff == 0)
-	diff = strcmp(pbw_a->chrom, pbw_b->chrom);
-    if (diff == 0)
-	diff = pbw_a->chromStart - pbw_b->chromStart;
+    {
+	double dist_diff = pbw_b->cent_distance - pbw_a->cent_distance;
+	if (dist_diff < 0)
+	    diff = 1;
+	else if (dist_diff > 0)
+	    diff = -1;
+    }
     return diff;
 }
 
@@ -87,6 +106,7 @@ struct perBaseWig *perBaseWigClone(struct perBaseWig *pbw)
     clone->chrom = cloneString(pbw->chrom);
     clone->chromStart = pbw->chromStart;
     clone->chromEnd = pbw->chromEnd;
+    clone->len = size;
     AllocArray(clone->data, size);
     for (i = 0; i < size; i++)
 	clone->data[i] = pbw->data[i];
@@ -271,15 +291,20 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
 /* in with NA value */
 {
     if (mb->type != isaBigWig)
-	return NULL;
+	errAbort("tried to load data from a non-bigWig file");
     struct perBaseWig *list;
     struct perBaseWig *region;
     struct perBaseWig *wholething = NULL;
     int size = end - start;
     int i, j;
     int s = start, e = end;
+    double na = NANUM;
     if (!hashFindVal(mb->chromSizeHash, chrom))
-	return NULL;
+    {
+	/* if the chrom isn't in the bigWig's chrom-size hash, return values of NA */
+	wholething = alloc_perBaseWig(chrom, start, end);
+	return wholething;
+    }
     chromOob(mb, chrom, &s, &e);
     list = perBaseWigLoadContinue(mb, chrom, s, e);
     wholething = alloc_perBaseWig(chrom, start, end);
@@ -334,6 +359,8 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
     if (!mb->sections)
 	return NULL;
     item = regions;
+    if (!item)
+	return NULL;
     AllocVar(pmat);
     pmat->nrow = slCount(regions);
     pmat->ncol = item->chromEnd - item->chromStart;
@@ -351,6 +378,56 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
 	pmat->matrix[i] = pbw->data;
     }
     return pmat;
+}
+
+struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size)
+/* the matrix is tiled averages instead the values at each base */
+{
+    struct perBaseMatrix *pmat;
+    struct bed6 *item;
+    int i, j, k;
+    double na = NANUM;
+    if (!mb->sections)
+	return NULL;
+    item = regions;
+    if (!regions || (((regions->chromEnd - regions->chromStart) % size) != 0))
+	return NULL;
+    AllocVar(pmat);
+    pmat->nrow = slCount(regions);
+    pmat->ncol = item->chromEnd - item->chromStart;
+    pmat->ncol /= size;
+    AllocArray(pmat->array, pmat->nrow);
+    AllocArray(pmat->matrix, pmat->nrow);
+    for (i = 0; (i < pmat->nrow) && (item != NULL); i++, item = item->next)
+    {
+	struct perBaseWig *pbw;
+	struct perBaseWig *small = alloc_perBaseWig(item->chrom, item->chromStart, item->chromStart + pmat->ncol);
+	small->chromEnd = item->chromEnd;
+	pbw = perBaseWigLoadSingleContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-');
+	for (j = 0; j < pmat->ncol; j++)
+	{
+	    double sum = 0, ave;
+	    int n = 0;
+	    for (k = j*size; k < j*size+size; k++)
+		if (!isnan(pbw->data[k]))
+		{
+		    sum += pbw->data[k];
+		    n++;
+		}
+	    if (n > 0)
+		ave = sum / n;
+	    else
+		ave = na;
+	    small->data[j] = ave;
+	}
+	small->name = cloneString(item->name);
+	small->score = item->score;
+	small->strand[0] = item->strand[0];
+	pmat->array[i] = small;
+	pmat->matrix[i] = small->data;
+	perBaseWigFree(&pbw);
+    }
+    return pmat;    
 }
 
 void perBaseMatrixAddOrigRegions(struct perBaseMatrix *pbm, struct bed6 *orig_regions)
@@ -609,7 +686,6 @@ struct middles *beds_to_middles(struct bed6 *bedList)
     {	
 	pos_mids[i*2] = (cur->chromStart + cur->chromEnd)/2;
 	pos_mids[i*2 + 1] = cur->chromEnd - cur->chromStart;
-	/* uglyf("%d\t%d\n", pos_mids[i*2], pos_mids[i*2+1]); */
 	/* note: can be out-of-range positions. we don't deal with this here */
     }
     qsort(pos_mids, size, sizeof(int) * 2, pos_compare2);
@@ -623,13 +699,13 @@ struct middles *beds_to_middles(struct bed6 *bedList)
     return mids;
 }
 
-static struct starts *beds_to_starts(struct bed6 *bedList)
+static struct starts *beds_to_starts(struct bed6 *bedList, boolean both_ends)
 /* convert bigBedIntervals to minimal information needed for phasing */
 {
     struct bed6 *cur;
     struct starts *starts;
-    int *pos_starts;
-    int *neg_starts;
+    int *pos_starts = NULL;
+    int *neg_starts = NULL;
     int total_size = slCount(bedList);
     int num_ps = 0;
     int num_ns = 0;
@@ -637,16 +713,24 @@ static struct starts *beds_to_starts(struct bed6 *bedList)
     /* on the minus strand */
     if (total_size == 0)
 	return NULL;
-    AllocArray(pos_starts, total_size);
+    AllocArray(pos_starts, total_size*2);
     AllocArray(neg_starts, total_size);
     for (cur = bedList; cur != NULL; cur = cur->next)
     {
-	if (cur->strand[0] == '+')
+	if (both_ends)
+	{
+	    pos_starts[num_ps++] = cur->chromStart;
+	    neg_starts[num_ns++] = cur->chromEnd;	    
+	}
+	else if (cur->strand[0] == '+')
 	    pos_starts[num_ps++] = cur->chromStart;
 	else
 	    neg_starts[num_ns++] = cur->chromEnd;
     }
-    qsort(neg_starts, num_ns, sizeof(int), pos_compare);
+    if (both_ends)
+	qsort(pos_starts, num_ps, sizeof(int), pos_compare);
+    else
+	qsort(neg_starts, num_ns, sizeof(int), pos_compare);
     /* find the number of unique starts */
     AllocVar(starts);
     starts->num_pos_starts = unique_nums(pos_starts, num_ps);
@@ -676,7 +760,18 @@ struct starts *metaBig_get_starts(struct metaBig *mb, char *chrom, unsigned star
     struct starts *starts = NULL;
     struct lm *lm = lmInit(0);
     struct bed6 *bedList = metaBigBed6Fetch(mb, chrom, start, end, lm);
-    starts = beds_to_starts(bedList);
+    starts = beds_to_starts(bedList, FALSE);
+    lmCleanup(&lm);
+    return starts;
+}
+
+struct starts *metaBig_get_starts_both_ends(struct metaBig *mb, char *chrom, unsigned start, unsigned end)
+/* return starts struct used with the phasogram/distogram programs */
+{
+    struct starts *starts = NULL;
+    struct lm *lm = lmInit(0);
+    struct bed6 *bedList = metaBigBed6Fetch(mb, chrom, start, end, lm);
+    starts = beds_to_starts(bedList, TRUE);
     lmCleanup(&lm);
     return starts;
 }

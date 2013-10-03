@@ -11,6 +11,7 @@
 #include "bigs.h"
 #include "bwtool.h"
 #include "cluster.h"
+#include "bwtool_shared.h"
 
 void usage_paste()
 /* Explain usage of paste program and exit. */
@@ -20,125 +21,126 @@ errAbort(
   "usage:\n"
   "   bwtool paste input1.bw input2.bw input3.bw ...\n"
   "options:\n"
+  "   -header         put header with labels from file or filenames\n"
   "   -skip-NA        don't output lines (bases) where one of the inputs is NA\n"
   );
 }
 
-void check_chrom_sizes(struct metaBig *mbList)
-/* check to make sure the metaBigs all have the same size chroms. */
-/* After all, it would be bad to mix genomes/assemblies by accident. */
+void print_line(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, int i)
 {
-    /* First trim down all chroms to one list */
-    if (!mbList)
-	errAbort("No metaBigs in input");
-    struct hash *one_hash = mbList->chromSizeHash;
-    struct metaBig *mb;
-    struct hashEl *list = hashElListHash(one_hash);
-    for (mb = mbList->next; mb != NULL; mb = mb->next)
+    struct perBaseWig *pbw;
+    if (wot == bedGraphOut)
+	printf("%s\t%d\t%d\t", pbw_list->chrom, pbw_list->chromStart+i, pbw_list->chromStart+i+1);
+    else if (wot == varStepOut)
+	printf("%d\t", pbw_list->chromStart+i+1);
+    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
     {
-	struct hashEl *el;
-	struct hashEl *nextList = NULL;
-	while ((el = slPopHead(&list)) != NULL)
-	{
-	    struct hashEl *other = hashLookup(mb->chromSizeHash, el->name);
-	    if (other)
-	    {
-		int size = ptToInt(el->val);
-		int other_size = ptToInt(other->val);
-		if (size != other_size)
-		    errAbort("%s sizes different in %s and %s (%d != %d)", 
-			     el->name, mbList->fileName, mb->fileName, size, other_size);
-		slAddHead(&nextList, other);
-	    }
-	    else
-		hashElFree(&el);
-	    list = nextList;
-	}
-    }
-    /* Clear each chrom size hash and replace it with a new one. */
-    for (mb = mbList; mb != NULL; mb = mb->next)
-    {
-	struct hashEl *el;
-	struct hash *newCsHash = newHash(12);
-	hashFree(&mb->chromSizeHash);
-	for (el = list; el != NULL; el = el->next)
-	    hashAdd(newCsHash, el->name, el->val);
-	mb->chromSizeHash = newCsHash;
+	if (isnan(pbw->data[i]))
+	    printf("NA");
+	else
+	    printf("%0.*f", decimals, pbw->data[i]);
+	printf("%c", (pbw->next == NULL) ? '\n' : '\t');
     }
 }
 
-void output_pbws(struct perBaseWig *pbw_list, int decimals, boolean skip_NA)
+boolean has_na(struct perBaseWig *pbw_list, int i)
+{
+    struct perBaseWig *pbw;
+    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
+	if (isnan(pbw->data[i]))
+	    return TRUE;
+    return FALSE;
+}
+
+void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, boolean skip_NA)
 /* outputs one set of perBaseWigs all at the same section */
 {
     struct perBaseWig *pbw;
     if (pbw_list)
     {
+	boolean last_skipped = TRUE;
 	int i = 0;
-	while (i < pbw_list->len)
+	int last_printed = -2;
+	for (i = 0; i < pbw_list->len; i++)
 	{
-	    if (skip_NA)
+	    if (!skip_NA || !has_na(pbw_list, i))
 	    {
-		boolean skip_i = TRUE;
-		do 
+		if (i - last_printed > 1)
 		{
-		    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
-			if (isnan(pbw->data[i]))
-			{
-			    i++;
-			    break;
-			}
-		    if (pbw == NULL)
-			skip_i = FALSE;
-		} 
-		while (skip_i);
+		    if (wot == varStepOut)
+			printf("variableStep chrom=%s span=1\n", pbw_list->chrom);
+		    else if (wot == fixStepOut)
+			printf("fixedStep chrom=%s start=%d step=1 span=1\n", pbw_list->chrom, pbw_list->chromStart+i+1);
+		}
+		print_line(pbw_list, decimals, wot, i);
+		last_printed = i;
 	    }
-	    printf("%s\t%d\t%d\t", pbw_list->chrom, pbw_list->chromStart+i, pbw_list->chromStart+i+1);
-	    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
-	    {
-		if (isnan(pbw->data[i]))
-		    printf("NA");
-		else
-		    printf("%0.*f", decimals, pbw->data[i]);
-		printf("%c", (pbw->next == NULL) ? '\n' : '\t');
-	    }
-	    i++;
 	}
     }
 }
 
-void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-		   struct slName *files)
+void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
+		   struct slName **p_files)
 /* bwtool_paste - main for paste program */
 {
     struct metaBig *mb;
     struct metaBig *mb_list = NULL;
     struct bed *bed; 
     struct slName *file;
+    int num_sections = 0;
+    int i = 0;
     boolean skip_na = (hashFindVal(options, "skip-NA") != NULL) ? TRUE : FALSE;
+    boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
+    boolean verbose = (hashFindVal(options, "verbose") != NULL) ? TRUE : FALSE;
+    struct slName *labels = NULL;
+    struct slName *files = *p_files;
     /* open the files one by one */
+    if (slCount(files) == 1)
+	check_for_list_files(&files, &labels);
     for (file = files; file != NULL; file = file->next)
     {
 	mb = metaBigOpen(file->name, regions);
 	slAddHead(&mb_list, mb);
     }
-    /* list is reversed but then so will be making the list of pbws, */
-    /* so this avoids double-reversing */
-    check_chrom_sizes(mb_list);
-    
-    for (bed = mb->sections; bed != NULL; bed = bed->next)
+    slReverse(&mb_list);
+    num_sections = slCount(mb_list->sections);
+    if (header)
+    {
+	printf("#chrom\tchromStart\tchromEnd");
+	if (labels)
+	{
+	    struct slName *label;
+	    for (label = labels; label != NULL; label = label->next)
+		printf("\t%s", label->name);
+	}
+	else
+	    for (mb = mb_list; mb != NULL; mb = mb->next)
+		printf("\t%s", mb->fileName);
+	printf("\n");
+    }
+    for (bed = mb_list->sections; bed != NULL; bed = bed->next)
     {
 	struct perBaseWig *pbw_list = NULL;
 	/* load each region */
+	if (verbose)
+	    fprintf(stderr, "section %d / %d: %s:%d-%d\n", i++, num_sections, bed->chrom, bed->chromStart, bed->chromEnd);
 	for (mb = mb_list; mb != NULL; mb = mb->next)
 	{
 	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE);
-	    if (pbw)
-		slAddHead(&pbw_list, pbw);
+	    /* if the load returns null then NA the whole thing. */
+	    /* this isn't very efficient but it's the easy way out. */
+	    if (!pbw)
+		pbw = alloc_perBaseWig(bed->chrom, bed->chromStart, bed->chromEnd);
+	    slAddHead(&pbw_list, pbw);
 	}
-	output_pbws(pbw_list, decimals, skip_na);
+	slReverse(&pbw_list);
+	output_pbws(pbw_list, decimals, wot, skip_na);
 	perBaseWigFreeList(&pbw_list);
     }
     /* close the files */
     while ((mb = slPopHead(&mb_list)) != NULL)
 	metaBigClose(&mb);
+    if (labels)
+	slNameFreeList(&labels);
+    slNameFreeList(p_files);
 }

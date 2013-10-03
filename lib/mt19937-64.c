@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* 
    A C-program for MT19937-64 (2004/9/29 version).
    Coded by Takuji Nishimura and Makoto Matsumoto.

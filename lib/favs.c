@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* library that provides some functionality to the utilities for keeping track of */
 /* files and URLs easily */
 

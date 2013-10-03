@@ -57,6 +57,9 @@ void usage_matrix();
 void usage_sax();
 /* Explain usage of the sax program and exit. */
 
+void usage_split();
+/* Explain usage of the splitting program and exit. */
+
 void usage_lift();
 /* Explain usage of the lift program */
 
@@ -106,8 +109,11 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
 		  boolean condense, char *val_s, char *up_s, char *bigfile, char *outputfile);
 /* bwtool_shift - main for shifting program */
 
+void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfile, char *outputfile);
+/* bwtool_split - main for the splitting program */
+
 void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-		   char *bigfile, char *outputfile);
+		   char *range_s, char *bigfile, char *outputfile);
 /* bwtool_matrix - main for matrix-creation program */
 
 void bwtool_autocorr(struct hash *options, char *favorites, char *regions, unsigned decimals, 
@@ -122,8 +128,8 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
 		 enum wigOutType wot, char *bigfile, char *chainfile, char *outputfile);
 /* bwtool_lift - main for lifting program */
 
-void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-		  struct slName *files);
+void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
+		  struct slName **p_files);
 /* bwtool_paste - main for paste program */
 
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, 

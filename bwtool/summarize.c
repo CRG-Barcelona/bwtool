@@ -25,6 +25,7 @@ errAbort(
   "    (b) a size of interval to summarize genome-wide.\n"
   "options:\n"
   "   -zero-fill       treat NA regions as zero\n"
+  "   -header          put in a header (fields are easy to forget)\n"
   );
 }
 
@@ -113,6 +114,9 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
     if (mb->type != isaBigWig)
 	errAbort("file not bigWig type");
     FILE *out = mustOpen(outputfile, "w");
+    boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
+    if (header)
+	fprintf(out, "#chrom\tstart\tend\tsize\tnum_data\tmin\tmax\tmean\tmedian\n");
     if (fileExists(loci_s))
 	bwtool_summary_bed(mb, decimals, loci_s, out, zero_fill);
     else

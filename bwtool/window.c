@@ -66,6 +66,7 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
 		    for (j = i; j < i + size; j++)
 			if (isnan(pbw->data[j]))
 			{
+			    i = j-step+1;
 			    has_NA = TRUE;
 			    break;
 			}

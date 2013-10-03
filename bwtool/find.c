@@ -74,6 +74,7 @@ void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, u
     if (!main_big || (!other_big && other_bigfile))
 	errAbort("could not open bigWig file");
     main_list = extrema_find(main_big, min_sep, rem);
+    slReverse(&main_list);
     if (other_bigfile)
     {
 	other_list = extrema_find(other_big, min_sep, rem);

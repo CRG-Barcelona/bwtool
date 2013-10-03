@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /*****
  ** kmeans.c
  ** - a simple k-means clustering routine
@@ -61,18 +65,6 @@
 #include "bigs.h"
 #include "cluster.h"
 
-/* static void perBaseMatrixDump(const struct perBaseMatrix *pbm) */
-/* /\* for debugging *\/ */
-/* { */
-/*     int i, j; */
-/*     for (i = 0; i < pbm->nrow; i++) */
-/*     { */
-/* 	for (j = 0; j < pbm->ncol; j++) */
-/* 	    uglyf("\t%0.2f", pbm->matrix[i][j]); */
-/* 	uglyf("\n"); */
-/*     } */
-/* } */
-
 static int perBaseWigJustLabelCmp(const void *a, const void *b)
 /* for sorting after clustering */
 {
@@ -95,6 +87,7 @@ static int clear_na_rows(struct perBaseMatrix *pbm)
 	    if (isnan(pbm->matrix[i][j]))
 	    {
 		pbm->array[i]->label = -1;
+		pbm->array[i]->cent_distance = 0;
 		num_na++;
 		break;
 	    }
@@ -185,7 +178,7 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
 	    {
 		double distance = 0;
 		for (j = m-1; j >= 0; j--)
-			distance += pow(cbm->pbm->matrix[h][j] - cbm->centroids[i][j], 2);
+		    distance += pow(cbm->pbm->matrix[h][j] - cbm->centroids[i][j], 2);
 		if (distance < min_distance) 
 		{
 		    labels[h] = i;
@@ -197,6 +190,7 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
 		c1[labels[h]][j] += cbm->pbm->matrix[h][j];
 	    cbm->cluster_sizes[labels[h]]++;
 	    /* update standard error */
+	    cbm->pbm->array[h]->cent_distance = min_distance;
 	    error += min_distance;
 	}
 	for (i = 0; i < k; i++) 

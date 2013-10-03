@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* module to deal with random coordinates across chromosomes */
 
 #include "common.h"

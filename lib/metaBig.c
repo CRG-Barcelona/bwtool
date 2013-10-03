@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "common.h"
 #include "obscure.h"
 #include "hash.h"
@@ -23,10 +27,15 @@ struct bed6 *readBed6(char *file)
 /* read from a file */
 {
     char *words[6];
+    if (!fileExists(file))
+	errAbort("Can't find file: %s", file);
     struct lineFile *lf = lineFileOpen(file, TRUE);
     struct bed6 *list = NULL;
-    while (lineFileRowTab(lf, words))
+    int num_words = 0;
+    while ((num_words = lineFileChopTab(lf, words)) > 0)
     {
+	if (num_words < 6)
+	    errAbort("Expecting BED-6 formatted file (%s) but there are only %d columns on line %d", file, num_words, lf->lineIx);
 	struct bed6 *newb;
 	AllocVar(newb);
 	newb->chrom = cloneString(words[0]);
@@ -36,6 +45,69 @@ struct bed6 *readBed6(char *file)
 	newb->score = sqlSigned(words[4]);
 	newb->strand[0] = words[5][0];
 	newb->strand[1] = '\0';
+	slAddHead(&list, newb);
+    }
+    slReverse(&list);
+    lineFileClose(&lf);
+    return list;
+}
+
+struct bed6 *readBed6Soft(char *file)
+/* read from a file.  If it's missing fields, fill the bed */
+{
+    char *words[6];
+    if (!fileExists(file))
+	errAbort("Can't find file: %s", file);
+    struct lineFile *lf = lineFileOpen(file, TRUE);
+    struct bed6 *list = NULL;
+    int num_words = 0;
+    while ((num_words = lineFileChopTab(lf, words)) > 0)
+    {
+	if (num_words < 3)
+	    errAbort("Expecting BED-3 formatted file (%s) but there are only %d columns on line %d", file, num_words, lf->lineIx);
+	struct bed6 *newb;
+	AllocVar(newb);
+	newb->chrom = cloneString(words[0]);
+	newb->chromStart = sqlSigned(words[1]);
+	newb->chromEnd = sqlSigned(words[2]);
+	if (num_words < 4)
+	    newb->name = cloneString(".");
+	else
+	    newb->name = cloneString(words[3]);
+	if (num_words < 5)
+	    newb->score = 0;
+	else
+	    newb->score = sqlSigned(words[4]);
+	if (num_words < 6)
+	    newb->strand[0] = '+';
+	else
+	    newb->strand[0] = words[5][0];
+	newb->strand[1] = '\0';
+	slAddHead(&list, newb);
+    }
+    slReverse(&list);
+    lineFileClose(&lf);
+    return list;
+}
+
+static struct bed *readAtLeastBed3(char *file)
+/* read from a file */
+{
+    char *words[3];
+    if (!fileExists(file))
+	errAbort("Can't find file: %s", file);
+    struct lineFile *lf = lineFileOpen(file, TRUE);
+    struct bed *list = NULL;
+    int num_words = 0;
+    while ((num_words = lineFileChopTab(lf, words)) > 0)
+    {
+	if (num_words < 3)
+	    errAbort("Expecting BED-3 formatted file (%s) but there are only %d columns on line %d", file, num_words, lf->lineIx);
+	struct bed *newb;
+	AllocVar(newb);
+	newb->chrom = cloneString(words[0]);
+	newb->chromStart = sqlSigned(words[1]);
+	newb->chromEnd = sqlSigned(words[2]);
 	slAddHead(&list, newb);
     }
     slReverse(&list);
@@ -89,7 +161,7 @@ void pairbedFreeList(struct pairbed **pList)
     *pList = NULL;    
 }
 
-static enum metaBigFileType isBigWigOrBed(char *filename)
+enum metaBigFileType isBigWigOrBed(char *filename)
 /* Peak at a file to see if it's bigWig */
 {
     enum metaBigFileType ret = isNotBig;
@@ -117,7 +189,7 @@ static enum metaBigFileType isBigWigOrBed(char *filename)
     return ret;
 }
 
-static enum metaBigFileType sniffBigFile(char *filename)
+enum metaBigFileType sniffBigFile(char *filename)
 /* try to figure out what type of big file it is. */
 {
     enum metaBigFileType ft = isBigWigOrBed(filename);
@@ -340,15 +412,14 @@ static struct bed6 *bed6FromBigBedInterval(struct bigBedInterval *bbi, struct me
 	start += mb->shift;
 	if (mb->length > 0)
 	    end = start + mb->length;
-	else
-	    end += mb->shift;
+	start += mb->shift;
+	end += mb->shift;
     }
     else
     {
 	if (mb->length > 0)
-	    start -= (mb->shift + mb->length);
-	else
-	    start -= mb->shift;
+	    start = end - mb->length;;
+	start -= mb->shift;
 	end -= mb->shift;
     }
     /* filter out ones that go out-of-bounds after shifting/extending */
@@ -389,11 +460,24 @@ static struct bed6 *bigBedBed6Fetch(struct metaBig *mb, char *chrom, unsigned st
     return helper.bedList;
 }
 
-static long bigBedCount(struct metaBig *mb, char *chrom, unsigned start, unsigned end)
+static long bigBedCount(struct metaBig *mb, char *chrom, unsigned start, unsigned end, boolean fifty)
 /* main counter for bigBed.  I wonder if this can be done without fetching items */
 {
     struct lm *lm = lmInit(0);
     struct bigBedInterval *ints = bigBedIntervalQuery(mb->big.bbi, chrom, (bits32)start, (bits32)end, 0, lm);
+    if (fifty)
+    {
+	struct bigBedInterval *new_list = NULL;
+	struct bigBedInterval *one = NULL;
+	while ((one = slPopHead(&ints)) != NULL)
+	{
+	    unsigned middle = (unsigned)(((double)one->end-one->start)/2)+one->start;
+	    if ((middle >= start) && (middle < end))
+		slAddHead(&new_list, one);
+	}
+	ints = new_list;
+    }
+    slReverse(&ints);
     int count = slCount(ints);
     lmCleanup(&lm);
     return (long)count;
@@ -445,6 +529,37 @@ static struct bed *subset_beds(char *sectionString, struct bed **pRegions, struc
     return subset;
 }
 
+static struct bed *regionsLoad(char *sectionsBed)
+/* return a bed3 list of regions for times when -regions is used. */
+/* If the filename has a comma then a number, then take just that line */
+{
+    struct bed *list = NULL;
+    unsigned ix = 0;
+    char *comma = NULL;
+    if (strchr(sectionsBed, ','))
+    {
+	char *number_part = chopPrefixAt(sectionsBed, ',');
+	if (number_part)
+	    ix = sqlUnsigned(number_part);
+    }
+    list = readAtLeastBed3(sectionsBed);
+    if (list && (ix > 0))
+    {
+	struct bed *single = slElementFromIx(list, ix-1);
+	if (single)
+	{
+	    struct bed *rem;
+	    while ((rem = slPopHead(&list)) != single)
+		bedFree(&rem);
+	    rem = single->next;
+	    bedFreeList(&rem);
+	    single->next = NULL;
+	    list = single;
+	}
+    }
+    return list;
+}
+
 /************** the "public" functions from the .h  ***************/
 
 struct metaBig *metaBigOpen(char *fileOrUrlwSections, char *sectionsBed)
@@ -470,6 +585,7 @@ struct metaBig *metaBigOpen(char *fileOrUrlwSections, char *sectionsBed)
     {
 	mb->big.bbi = bigBedFileOpen(mb->fileName);
 	mb->chromSizeHash = bbiChromSizes(mb->big.bbi);
+	mb->numReads = bigBedItemCount(mb->big.bbi);
     }
 #ifdef USE_BAM
     else if (mb->type == isaBam)
@@ -482,6 +598,7 @@ struct metaBig *metaBigOpen(char *fileOrUrlwSections, char *sectionsBed)
 	    mb->fileName = anotherFileName;
 	/* Also need to load the index since it's a bam */
 	mb->idx = bam_index_load(mb->fileName);
+	metaBigBamFlagCountsInit(mb);
     }
 #endif
     else if (mb->type == isaBigWig)
@@ -490,22 +607,31 @@ struct metaBig *metaBigOpen(char *fileOrUrlwSections, char *sectionsBed)
 	mb->chromSizeHash = bbiChromSizes(mb->big.bbi);	
     }
     else 
+    {
+	/* maybe I should free some stuff up here */
+	if (fullFileName)
+	    freeMem(fullFileName);
+	if (remoteDir)
+	    freeMem(remoteDir);
+	if (baseFileName)
+	    freeMem(baseFileName);
+	if (sections)
+	    freeMem(sections);
+	freez(&mb);
 	return NULL;
+    }
     if (sectionsBed && sections)
     {
-	struct bed *regions = bedLoadNAll(sectionsBed, 3);
+	struct bed *regions = regionsLoad(sectionsBed);
 	struct bed *subsets = subset_beds(sections, &regions, mb->chromSizeHash);
 	mb->sections = subsets;
     }
     else if (sectionsBed)
     {
-	mb->sections = bedLoadNAll(sectionsBed, 6);
+	mb->sections = regionsLoad(sectionsBed);
     }
     else
 	mb->sections = parseSectionString(sections, mb->chromSizeHash);
-#ifdef USE_BAM
-    metaBigBamFlagCountsInit(mb);
-#endif
     return mb;
 }
 
@@ -614,10 +740,22 @@ long metaBigCount(struct metaBig *mb, char *chrom, unsigned start, unsigned end)
 /* the main counter */
 {
     if (mb->type == isaBigBed)
-	return bigBedCount(mb, chrom, start, end);
+	return bigBedCount(mb, chrom, start, end, FALSE);
 #ifdef USE_BAM
     if (mb->type == isaBam)
 	return bamCount(mb, chrom, start, end);
+#endif
+    return -1;
+}
+
+long metaBigFiftyCount(struct metaBig *mb, char *chrom, unsigned start, unsigned end)
+/* the main counter */
+{
+    if (mb->type == isaBigBed)
+	return bigBedCount(mb, chrom, start, end, TRUE);
+#ifdef USE_BAM
+    if (mb->type == isaBam)
+	errAbort("-fifty option not possible with bams right now");
 #endif
     return -1;
 }
@@ -634,6 +772,8 @@ long metaBigNumItems(struct metaBig *mb, boolean verbose)
     struct bed *chroms = NULL;
     if (mb->type == isaBigWig)
 	return 0;
+    else if (mb->type == isaBigBed)
+	return (long)bigBedItemCount(mb->big.bbi);
     else
 	chroms = sectionsFromChromSizes(mb->chromSizeHash);
     for (section = chroms; section != NULL; section = section->next)

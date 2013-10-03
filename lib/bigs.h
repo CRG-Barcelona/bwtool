@@ -13,6 +13,10 @@
 #include "metaBig.h"
 #endif
 
+#ifndef DNASEQ_H
+#include "dnaseq.h"
+#endif
+
 struct perBaseWig
 {
     struct perBaseWig *next;    /* next in list */
@@ -25,6 +29,7 @@ struct perBaseWig
     int label;                 /* for clustering */
     int len;                   /* same as chromEnd - chromStart */
     double *data;              /* array of per-base data extracted */
+    double cent_distance;      /* for clustering.  it's the difference between */  
     unsigned total_coverage;   /* total number of bases in subsections */
     struct bed *subsections;   /* list of subsections to use with 0-based coords i.e. */
                                /* actual coordinate is chromStart + subsection->chromStart */
@@ -77,6 +82,9 @@ enum wigOutType
 enum wigOutType get_wig_out_type(char *option);
 /* scan the option and return it */
 
+double bigWigMean(struct bbiFile *bw);
+/* return the mean value of a bigWig */
+
 int perBaseWigLabelCmp(const void *a, const void *b);
 /* for sorting after clustering */
 
@@ -126,6 +134,9 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
 /* that the regions may include negative and out-of-bounds coordinates.  Out-of-bounds data is */
 /* NA in the matrix. */ 
 
+struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size);
+/* the matrix is tiled averages instead the values at each base */
+
 void perBaseMatrixAddOrigRegions(struct perBaseMatrix *pbm, struct bed6 *orig_regions);
 /* add the original bed information for retrieval later.  it's really important */
 /* that this is in the same order as the pbws in the array  */
@@ -143,6 +154,9 @@ void perBaseWigOutputNASkip(struct perBaseWig *pbwList, FILE *output, enum wigOu
 
 struct starts *metaBig_get_starts(struct metaBig *mb, char *chrom, unsigned start, unsigned end);
 /* return starts struct used with the phasogram/distogram programs */
+
+struct starts *metaBig_get_starts_both_ends(struct metaBig *mb, char *chrom, unsigned start, unsigned end);
+/* return starts struct for pair-end to collect both ends */
 
 struct middles *beds_to_middles(struct bed6 *bedList);
 /* minimal information for stacking middles */

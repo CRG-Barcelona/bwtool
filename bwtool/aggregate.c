@@ -10,6 +10,7 @@
 #include "bigs.h"
 #include "random_coord.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 #include "cluster.h"
 #include "stuff.h"
 
@@ -23,12 +24,13 @@ errAbort(
   "   seen in the bigWig.\n"
   "usage:\n"
   "   bwtool aggregate left:right a.bed,b.bed,... x.bw,y.bw,... output.txt\n" 
+  "   bwtool aggregate left:right bed.lst bigWig.lst output.txt\n"
   "where:\n"
   "  left:right is a description of the range to use surrounding the\n"
   "         centers/starts. A value of 200:300 will create plot points\n"
   "         for -200 bp to +300 bp from the center of all the regions.\n"
-  "  a comma-separated list of bed files (or just one) OR a comma-\n"
-  "         separated list of data bigWigs (or just one) is given\n"
+  "  bed.lst/bigWig.lst are files containing lists of files to be used\n"
+  "         in place of a comma-separated list.\n\n"
   "options:\n"
   "   -starts          use starts of bed regions as opposed to the middles\n"
   "   -ends            use ends of bed regions as opposed to the middles\n"
@@ -43,6 +45,10 @@ errAbort(
   "   -cluster-sets=file.bed\n"
   "                    write out the original bed with the cluster label along\n"
   "                    with the accompanying region used for the clustering\n"
+  "   -long-form=[label1,label2,...,labeln]\n"
+  "                    output \"long form\" where each line is just the position\n"
+  "                    and one of the values and the first column is the name of\n"
+  "                    the file.\n"
   "   -verbose=n       output some progress info every n regions loaded\n"
   );
 }
@@ -51,19 +57,29 @@ struct agg_data
 {
     int nrow;
     int ncol;
+    int num_firsts;
+    int num_seconds;
     int *indexes;
+    char **first_names;
+    char **second_names;
     double **data;
 };
 
-struct agg_data *init_agg_data(int left, int right, boolean firstbase, boolean nozero, int num_cols)
+struct agg_data *init_agg_data(int left, int right, boolean firstbase, boolean nozero, int num_firsts, 
+			       int num_seconds, boolean expanded, struct slName *lf_labels)
 /* init the output struct */
 {
     struct agg_data *agg;
+    struct slName *name;
     int i;
     int addone = 0;
     AllocVar(agg);
+    agg->num_firsts = num_firsts;
+    agg->num_seconds = num_seconds;
     agg->nrow = left + right;
-    agg->ncol = num_cols;
+    agg->ncol = num_firsts * num_seconds;
+    if (expanded)
+	agg->ncol *= 4;
     if (firstbase)
 	agg->nrow++;
     AllocArray(agg->indexes, agg->nrow);
@@ -76,6 +92,17 @@ struct agg_data *init_agg_data(int left, int right, boolean firstbase, boolean n
     AllocArray(agg->data, agg->nrow);
     for (i = 0; i < agg->nrow; i++)
 	AllocArray(agg->data[i], agg->ncol);
+    AllocArray(agg->first_names, num_firsts);
+    AllocArray(agg->second_names, num_seconds);
+    i = 0;
+    for (name = lf_labels; name != NULL; name = name->next)
+    {
+	if (i < num_firsts)
+	    agg->first_names[i] = cloneString(name->name);
+	else
+	    agg->second_names[i-num_firsts] = cloneString(name->name);
+	i++;
+    }
     return agg;
 }
 
@@ -88,6 +115,8 @@ void free_agg_data(struct agg_data **pAgg)
 	freeMem(agg->data[i]);
     freeMem(agg->data);
     freeMem(agg->indexes);
+    freeMem(agg->first_names);
+    freeMem(agg->second_names);
     freez(&agg);
 }
 
@@ -114,7 +143,7 @@ void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expande
 	    mean = sum/size;
 	    sum = 0;
 	    for (j = 0; j < size; j++)
-		sum += pow(one_pbm_col[j] - size,2);
+		sum += pow(one_pbm_col[j] - mean,2);
 	    sd = sqrt(sum/size);
 	    agg->data[i][offset] = mean;
 	    if (expanded)
@@ -149,25 +178,65 @@ void copy_centroids(struct cluster_bed_matrix *cbm, struct agg_data *agg)
     }
 }
 
-void output_agg_data(FILE *out, int decimals, boolean expanded, struct agg_data *agg)
+void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_data *agg, boolean long_form)
 /* simply output the stuff */
 {
-    int i, j;
-    for (i = 0; i < agg->nrow; i++)
+    int i, j, k, l;
+    if (long_form)
+    /* currently there is no expanded form here */
     {
-	fprintf(out, "%d\t", agg->indexes[i]);
-	j = 0;
-	while (j < agg->ncol)
+	if (header)
 	{
-	    fprintf(out, "%0.*f", decimals, agg->data[i][j]);
+	    fprintf(out, "Region\tSignal\tPosition\tMean");
 	    if (expanded)
-	    {
-		fprintf(out, "\t%0.*f\t%0.*f\t%d", decimals, agg->data[i][j+1], decimals, agg->data[i][j+2], (int)agg->data[i][j+3]);
-		j += 4;
-	    }
+		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tStd_Err_Mean\tY_High\tY_Low\n");
 	    else
-		j++;
-	    fprintf(out, "%c", (j < agg->ncol) ? '\t' : '\n');
+		fprintf(out, "\n");
+	}
+	for (i = 0; i < agg->nrow; i++)
+	{
+	    k = 0;   /* index for first names (beds) */
+	    l = 0;   /* index for second names (wigs) */
+	    for (j = 0; j < agg->ncol; j++)
+	    {
+		if (expanded)
+		{
+		    double se = agg->data[i][j+2]/sqrt(agg->data[i][j+3]);
+		    double y_high = agg->data[i][j] + se;
+		    double y_low = agg->data[i][j] - se;
+		    fprintf(out, "%s\t%s\t%d\t%f\t%f\t%f\t%d\t%f\t%f\t%f\n", agg->first_names[k], agg->second_names[l], agg->indexes[i], agg->data[i][j], 
+			    agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], se, y_high, y_low);
+		    j += 3;
+		}
+		else
+		    fprintf(out, "%s\t%s\t%d\t%f\n", agg->first_names[k], agg->second_names[l], agg->indexes[i], agg->data[i][j]);
+		l++;
+		if (l == agg->num_seconds)
+		{
+		    k++;
+		    l = 0;
+		}
+	    }
+	}
+    }
+    else
+    {
+	for (i = 0; i < agg->nrow; i++)
+	{
+	    fprintf(out, "%d\t", agg->indexes[i]);
+	    j = 0;
+	    while (j < agg->ncol)
+	    {
+		fprintf(out, "%f", agg->data[i][j]);
+		if (expanded)
+		{
+		    fprintf(out, "\t%f\t%f\t%d", agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3]);
+		    j += 4;
+		}
+		else
+		    j++;
+		fprintf(out, "%c", (j < agg->ncol) ? '\t' : '\n');
+	    }
 	}
     }
 }
@@ -191,25 +260,72 @@ void output_cluster_sets(struct cluster_bed_matrix *cbm, char *cluster_sets)
     carefulClose(&out);
 }
 
-struct bed6 *load_and_recalculate(char *list_file, int left, int right, boolean firstbase, boolean starts, boolean ends)
-/* do the coordinate recalculation */
+static struct slName *setup_labels(char *long_form, boolean clustering, int k, struct slName *region_list, struct slName *wig_list, 
+			    struct slName **lf_labels_b, struct slName **lf_labels_w)
 {
-    struct bed6 *bed;
-    struct bed6 *list = readBed6(list_file);
-    for (bed = list; bed != NULL; bed = bed->next)
+    int num_regions = slCount(region_list);
+    int num_wigs = slCount(wig_list);
+    struct slName *lf_labels = NULL;
+    /* use the labels provided */
+    if (long_form && !sameString(long_form, "on"))
     {
-	boolean rev = (bed->strand[0] == '-');
-	int l = (rev) ? right : left;
-	int size = left + right + (firstbase ? 1 : 0);
-	int center = bed->chromStart + ((bed->chromEnd - bed->chromEnd) / 2);
-	if ((starts && !rev) || (ends && rev))
-	    center = bed->chromStart;
-	else if ((ends && !rev) || (starts && rev))
-	    center = bed->chromEnd;
-	bed->chromStart = center - l;
-	bed->chromEnd = bed->chromStart + size;
+	lf_labels = slNameListFromComma(long_form);
+	int num_labels = slCount(lf_labels);
+	/* we should only have one or two labels if clustering is done */
+	if (clustering)
+	{
+	    int i;
+	    char buf[256];
+	    /* handle the first case, where labels are only put on bed */
+	    if (num_labels == 1)
+		for (i = 1; i <= k; i++)
+		{
+		    safef(buf, sizeof(buf), "Cluster_%d", i);
+		    slAddHead(&lf_labels, slNameNew(buf));
+		}
+	    /* the second case is to prefix the second label to each cluster name */
+	    else if (num_labels == 2)
+	    {
+		char *second_name = lf_labels->next->name;
+		struct slName *to_remove = slPopTail(&lf_labels);
+		for (i = 1; i <= k; i++)
+		{
+		    safef(buf, sizeof(buf), "%s_cluster_%d", second_name, i);
+		    slAddHead(&lf_labels, slNameNew(buf));
+		}
+		slNameFree(&to_remove);
+	    }
+	    else
+		errAbort("Just use 0, 1, or 2 labels for -long-form when clustering");
+	    slReverse(&lf_labels);
+	}
+	/* not clustering and labels are provided */
+	else if (num_labels != num_regions + num_wigs)
+	    errAbort("number of labels provided should equal the number of beds plus the number of bigWigs");
     }
-    return list;
+    /* use labels from the filenames */
+    else
+    {
+	if (*lf_labels_b || *lf_labels_w)
+	{
+	    if (*lf_labels_b && *lf_labels_w && (slCount(*lf_labels_b) == num_regions) && (slCount(*lf_labels_w) == num_wigs))
+		lf_labels = slCat(*lf_labels_b, *lf_labels_w);
+	    else
+	    {
+		if (*lf_labels_b)
+		    slNameFreeList(lf_labels_b);
+		if (*lf_labels_w)
+		    slNameFreeList(lf_labels_w);
+	    }
+	}
+	if (!lf_labels)
+	{
+	    struct slName *copy1 = slNameCloneList(region_list);
+	    struct slName *copy2 = slNameCloneList(wig_list);
+	    lf_labels = slCat(copy1, copy2);
+	}
+    }
+    return lf_labels;
 }
 
 void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, 
@@ -221,82 +337,83 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
     struct slName *wig_list = slNameListFromComma(wig); 
     boolean firstbase = (hashFindVal(options, "firstbase") != NULL) ? TRUE : FALSE;
     boolean nozero = (hashFindVal(options, "nozero") != NULL) ? TRUE : FALSE;
+    boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean use_start = (hashFindVal(options, "starts") != NULL) ? TRUE : FALSE;
     boolean use_end = (hashFindVal(options, "ends") != NULL) ? TRUE : FALSE;
     boolean expanded = (hashFindVal(options, "expanded") != NULL) ? TRUE : FALSE;
     boolean clustering = (hashFindVal(options, "cluster") != NULL) ? TRUE : FALSE;
     char *cluster_sets = (char *)hashFindVal(options, "cluster-sets");
+    char *long_form = (char *)hashFindVal(options, "long-form");
+    boolean do_long_form = (long_form != NULL);
+    struct slName *lf_labels = NULL, *lf_labels_b = NULL, *lf_labels_w = NULL;
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
     FILE *output;
-    char *tmp_s = cloneString(size_s);
-    char *range[2];
-    boolean mult_regions = (slCount(region_list) > 1);
-    boolean mult_wigs = (slCount(wig_list) > 1);
-    int range_num = chopString(tmp_s, ":", range, sizeof(range));
+    int num_regions = check_for_list_files(&region_list, &lf_labels_b);
+    int num_wigs = check_for_list_files(&wig_list, &lf_labels_w);
+    boolean mult_regions = (num_regions > 1);
+    boolean mult_wigs = (num_wigs > 1);
+    parse_left_right(size_s, &left, &right);
     if (use_start && use_end)
 	errAbort("cannot specify both -starts and -ends");
-    if (range_num != 2)
-	errAbort("wrongly formatted range left:right");
-    left = sqlUnsigned(range[0]);
-    right = sqlUnsigned(range[1]);
     if ((clustering) && ((k < 2) || (k > 10)))
 	errAbort("k should be between 2 and 10\n");
-    if (mult_regions && mult_wigs)
-	errAbort("can't specify more than one region set AND more than one dataset: must choose either multiple region sets or multiple datasets");  
     if ((mult_regions || mult_wigs) && clustering)
 	errAbort("with clustering just specify one region list and one bigWig");
     if (firstbase && nozero)
 	errAbort("-firsbase and -nozero cannot be used together");
+    if (mult_regions && mult_wigs)
+	do_long_form = TRUE;
+    if (do_long_form)
+	lf_labels = setup_labels(long_form, clustering, k, region_list, wig_list, &lf_labels_b, &lf_labels_w);
     output = mustOpen(output_file, "w");
-    if (mult_regions)
+    if (!clustering)
     {
 	int num_regions = slCount(region_list);
-	struct agg_data *agg = init_agg_data(left, right, firstbase, nozero, (expanded) ? (num_regions * 4) : num_regions);
+	int num_wigs = slCount(wig_list);
 	struct slName *reg;
-	struct metaBig *mb = metaBigOpen(wig_list->name, NULL);
+	struct slName *wig_name;
+	struct agg_data *agg = NULL;
+	struct metaBig *mbList = NULL;
+	struct metaBig *mb;	
+	agg = init_agg_data(left, right, firstbase, nozero, num_regions, num_wigs, expanded, lf_labels);
+	for (wig_name = wig_list; wig_name != NULL; wig_name = wig_name->next)
+	{
+	    mb = metaBigOpen(wig_name->name, NULL);
+	    slAddHead(&mbList, mb);
+	}
+	slReverse(&mbList);
 	int offset = 0;
 	for (reg = region_list; reg != NULL; reg = reg->next)
 	{	
-	    struct bed6 *regions = load_and_recalculate(reg->name, left, right, firstbase, use_start, use_end);
-	    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
-	    do_summary(pbm, agg, expanded, offset++); 
-	    free_perBaseMatrix(&pbm);
+	    struct bed6 *regions = load_and_recalculate_coords(reg->name, left, right, firstbase, use_start, use_end);
+	    struct slName *wig_name;
+	    for (mb = mbList; mb != NULL; mb = mb->next)
+	    {
+		struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
+		do_summary(pbm, agg, expanded, offset); 
+		offset += (expanded) ? 4 : 1;
+		free_perBaseMatrix(&pbm);
+	    }
 	    bed6FreeList(&regions);
 	}
-	metaBigClose(&mb);
+	while ((mb = slPopHead(&mbList)) != NULL)
+	    metaBigClose(&mb); 
+    	output_agg_data(output, expanded, header, agg, do_long_form);
+	free_agg_data(&agg);	
     }
-    else if (mult_wigs)
+    else
     {
-	int num_wigs = slCount(wig_list);
-	struct agg_data *agg = init_agg_data(left, right, firstbase, nozero, (expanded) ? (num_wigs * 4) : num_wigs);
-	struct slName *wig_name; 
-	struct bed6 *regions = load_and_recalculate(region_list->name, left, right, firstbase, use_start, use_end);
-	int offset = 0;
-	for (wig_name = wig_list; wig_name != NULL; wig_name = wig_name->next)
-	{
-	    struct metaBig *mb = metaBigOpen(wig_name->name, NULL);
-	    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
-	    do_summary(pbm, agg, expanded, offset++);
-	    free_perBaseMatrix(&pbm);
-	    metaBigClose(&mb);
-	}
-	output_agg_data(output, decimals, expanded, agg);
-	free_agg_data(&agg);
-	bed6FreeList(&regions);
-    }
-    else if (clustering)
-    {
-	struct agg_data *agg = init_agg_data(left, right, firstbase, nozero, k);
+	struct agg_data *agg = init_agg_data(left, right, firstbase, nozero, 1, k, FALSE, lf_labels);
 	struct metaBig *mb = metaBigOpen(wig_list->name, NULL);
-	struct bed6 *regions = load_and_recalculate(region_list->name, left, right, firstbase, use_start, use_end);
-	struct bed6 *orig_regions = readBed6(region_list->name);
+	struct bed6 *regions = load_and_recalculate_coords(region_list->name, left, right, firstbase, use_start, use_end);
+	struct bed6 *orig_regions = readBed6Soft(region_list->name);
 	struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
 	if (cluster_sets)
 	    perBaseMatrixAddOrigRegions(pbm, orig_regions);
 	struct cluster_bed_matrix *cbm = init_cbm_from_pbm(pbm, k);
 	do_kmeans(cbm, k);
 	copy_centroids(cbm, agg);
-	output_agg_data(output, decimals, expanded, agg);
+	output_agg_data(output, FALSE, FALSE, agg, do_long_form);
 	if (cluster_sets)
 	    output_cluster_sets(cbm, cluster_sets);
 	free_cbm(&cbm);
@@ -304,22 +421,8 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
 	bed6FreeList(&regions);
 	free_agg_data(&agg);	
     }
-    else
-    /* easiest case*/
-    {
-	struct agg_data *agg = init_agg_data(left, right, firstbase, nozero, (expanded) ? 3 : 1);
-	struct metaBig *mb = metaBigOpen(wig_list->name, NULL);
-	struct bed6 *regions = load_and_recalculate(region_list->name, left, right, firstbase, use_start, use_end);
-	struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
-	do_summary(pbm, agg, expanded, 0);
-	output_agg_data(output, decimals, expanded, agg);
-	free_perBaseMatrix(&pbm);
-	metaBigClose(&mb);
-	bed6FreeList(&regions);
-	free_agg_data(&agg);
-    }
     carefulClose(&output);
+    slNameFreeList(&lf_labels);
     slNameFreeList(&region_list);
     slNameFreeList(&wig_list);
-    freeMem(tmp_s);
 }

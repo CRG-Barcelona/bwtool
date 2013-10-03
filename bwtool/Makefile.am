@@ -5,6 +5,8 @@ bwtool_SOURCES = \
 	aggregate.c \
 	bwtool.c \
 	bwtool.h \
+	bwtool_shared.c \
+	bwtool_shared.h \
 	chromgraph.c \
 	distrib.c \
 	fill.c \
@@ -16,5 +18,6 @@ bwtool_SOURCES = \
 	remove.c \
 	sax.c \
 	shift.c \
+	split.c \
 	summarize.c \
 	window.c

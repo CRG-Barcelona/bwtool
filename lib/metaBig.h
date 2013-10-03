@@ -60,9 +60,6 @@ struct metaBig
 #endif
 	struct bbiFile *bbi;
     } big;
-#ifdef USE_BAM
-    bam_index_t *idx;              /* NULL if not a BAM file */ 
-#endif
     boolean isRemote;              /* is this a URL or not? */
     char *originalFileName;        /* full filename including URL or sectioning */
     char *fileName;                /* just the filename without sectioning */
@@ -75,10 +72,8 @@ struct metaBig
     int shift;                     /* shift items fetched by <shift> bases (can be negative) */
     char strand;                   /* restrict fetching to a particular strand, NULL if not */
     /* bam-only stuff */
-#ifdef USE_BAM
-    bam_header_t *header;          /* header info */
-#endif
     int mapQ;                      /* minimum mapping quality */
+    long long numReads;                  /* number of reads total in the metaBig.  currently only set if using bigBed */
     boolean pe;                    /* only use paired-end reads */
     boolean se;                    /* only use single-end reads */
     boolean useMapQ;               /* use the MAPQ setting... otherwise rely on flags in the bam for QC fail */
@@ -92,7 +87,11 @@ struct metaBig
     struct hash *rgList;           /* just a list of read-groups to restrict to (a black or whitelist)  */
     boolean rgListIsBlack;         /* by default the list is a whitelist, otherwise it's a blacklist if */
                                    /* this is TRUE. */
+#ifdef USE_BAM
+    bam_index_t *idx;              /* NULL if not a BAM file */ 
     struct bamFlagCounts bc;       /* counts of the flags of the used reads */ 
+    bam_header_t *header;          /* header info */
+#endif
 };
 
 struct pairbed
@@ -138,12 +137,21 @@ struct metaBigBed6Helper
 struct bed6 *readBed6(char *file);
 /* read from a file */
 
+struct bed6 *readBed6Soft(char *file);
+/* read from a file.  If it's missing fields, fill the bed */
+
 void bed6Free(struct bed6 **pEl);
 /* Free a single dynamically allocated bed such as created
  * with bedLoad(). */
 
 void bed6FreeList(struct bed6 **pList);
 /* Free a list of dynamically allocated bed's */
+
+enum metaBigFileType isBigWigOrBed(char *filename);
+/* Peak at a file to see if it's bigWig */
+
+enum metaBigFileType sniffBigFile(char *filename);
+/* try to figure out what type of big file it is. */
 
 struct metaBig *metaBigOpen(char *fileOrUrlwSections, char *sectionsBed);
 /* load a file or URL with or without sectioning */

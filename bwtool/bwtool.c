@@ -36,6 +36,8 @@ errAbort(
   "                  or remove data using ranges specified in a bed file\n"
   "   sax            run symbolic aggregate approximation (SAX) algorithm on data\n"
   "   shift          move data on the chromosome\n"
+  "   split          make a set of files describing evenly-sized regions of the bigWig,\n"
+  "                  each of which may be used separately on a cluster and combined later\n"
   "   summary        provide some summary stats for each region in a bed file\n"
   "   window         print out tiling windows of data in comma-separated lists\n\n"
   "general options:\n"
@@ -149,10 +151,10 @@ else if (sameString(argv[1], "find"))
 }
 else if (sameString(argv[1], "matrix"))
 {
-    if (argc != 5)
+    if (argc != 6)
 	usage_matrix();
     else
-	bwtool_matrix(options, favorites, argv[2], decimals, argv[3], argv[4]);
+	bwtool_matrix(options, favorites, argv[3], decimals, argv[2], argv[4], argv[5]);
 }
 else if (sameString(argv[1], "distribution") || sameString(argv[1], "dist"))
 {
@@ -185,6 +187,8 @@ else if (sameString(argv[1], "chromgraph") || sameString(argv[1], "cg"))
 }
 else if (sameString(argv[1], "paste"))
 {
+    if (hashFindVal(options, "wigtype") == NULL)
+	wot = bedGraphOut;
     if (argc < 3)
 	usage_paste();
     else
@@ -197,7 +201,7 @@ else if (sameString(argv[1], "paste"))
 	    slAddHead(&list, name);
 	}
 	slReverse(&list);
-	bwtool_paste(options, favorites, regions, decimals, list);
+	bwtool_paste(options, favorites, regions, decimals, wot, &list);
     }
 }
 else if (sameString(argv[1], "lift"))
@@ -220,6 +224,13 @@ else if (sameString(argv[1], "sax"))
 	usage_sax();
     else
 	bwtool_sax(options, favorites, regions, decimals, argv[2], argv[3], argv[4]);
+}
+else if (sameString(argv[1], "split"))
+{
+    if (argc != 5)
+	usage_split();
+    else
+	bwtool_split(options, regions, argv[2], argv[3], argv[4]);
 }
 else if (sameString(argv[1], "window") || sameString(argv[1], "win"))
 {
