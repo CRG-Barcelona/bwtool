@@ -77,6 +77,19 @@ if test "x${has_zlib}" != xyes; then
    See the INSTALL for examples.
    ---------------------------------------------])
 fi
+AC_SEARCH_LIBS([png_read_png], [png], [has_png=yes], [has_png=no])
+if test "x${has_png}" != xyes; then
+   AC_MSG_ERROR([
+   ---------------------------------------------
+   Unable to find libpng required for compiling
+   libjkweb.a. Install this and run ./configure
+   with the appropriate LDFLAGS/CFLAGS/etc.
+   See the INSTALL for examples.
+   ---------------------------------------------])
+fi
+if test "x${has_png}" = xyes; then
+   AC_DEFINE([USE_PNG],[1],[Turn on PNG support in pngwrite.c])
+fi
 AC_SEARCH_LIBS([SSL_accept], [ssl], [has_ssl=yes], [has_ssl=no])
 AC_SEARCH_LIBS([SHA1_Init], [crypto], [has_ssl=yes], [has_ssl=no])
 if test "x${has_ssl}" = xyes; then
