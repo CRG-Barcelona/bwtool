@@ -845,6 +845,35 @@ struct bbiFile *bigWigFileOpen_favs(char *filename, char *favs_file)
     return bbi;
 }
 
+struct bed *metaBig_chopGenome(struct metaBig *mb, int size)
+/* return a bed of regularly-sized intervals (given) from the chromSizeHash */
+{
+    struct hashEl *list = hashElListHash(mb->chromSizeHash);
+    struct hashEl *el;
+    struct bed *bed_list = NULL;
+    for (el = list; el != NULL; el = el->next)
+    {
+	char *chrom = el->name;
+	int chromSize = ptToInt(el->val);
+	int i;
+	for (i = 0; i < chromSize; i += size)
+	{
+	    struct bed *newbed;
+	    AllocVar(newbed);
+	    newbed->chrom = cloneString(chrom);
+	    newbed->chromStart = i;
+	    if ((i + size) > chromSize)
+		newbed->chromEnd = chromSize;
+	    else
+		newbed->chromEnd = i+size;
+	    newbed->name = cloneString(".");
+	    slAddHead(&bed_list, newbed);
+	}
+    }
+    slReverse(&bed_list);
+    return bed_list;
+}
+
 static void startsFree(struct starts **pStarts)
 /* free a starts */
 {

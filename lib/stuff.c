@@ -83,3 +83,42 @@ double doubleWithNAMean(int count, double *array)
 	return NANUM;
     return (double)(sum/num_non_na);
 }
+
+void bedLoadAllReturnFieldCountAndRgbAtLeast3(char *fileName, struct bed **retList, int *retFieldCount, 
+    boolean *retRgb)
+/* Load bed of unknown size and return number of fields as well as list of bed items.
+ * Ensures that all lines in bed file have same field count.  Also returns whether 
+ * column 9 is being used as RGB or not. */
+/* This is a copy of bedLoadAllReturnFieldCountAndRgb except it allows bed3 */
+{
+struct bed *list = NULL;
+struct lineFile *lf = lineFileOpen(fileName, TRUE);
+char *line, *row[bedKnownFields];
+int fieldCount = 0;
+boolean isRgb = FALSE;
+
+while (lineFileNextReal(lf, &line))
+    {
+    int numFields = chopByWhite(line, row, ArraySize(row));
+    if (numFields < 3)
+	errAbort("file %s doesn't appear to be in bed format. At least 3 fields required, got %d", 
+		fileName, numFields);
+    if (fieldCount == 0)
+	{
+        fieldCount = numFields;
+	if (fieldCount >= 9)
+	    isRgb =  (strchr(row[8], ',') != NULL);
+	}
+    else
+        if (fieldCount != numFields)
+	    errAbort("Inconsistent number of fields in file. %d on line %d of %s, %d previously.",
+	        numFields, lf->lineIx, lf->fileName, fieldCount);
+    slAddHead(&list, bedLoadN(row, fieldCount));
+    }
+lineFileClose(&lf);
+slReverse(&list);
+*retList = list;
+*retFieldCount = fieldCount;
+if (retRgb != NULL)
+   *retRgb = isRgb;
+}

@@ -25,6 +25,7 @@ errAbort(
   "    (b) a size of interval to summarize genome-wide.\n"
   "options:\n"
   "   -zero-fill       treat NA regions as zero\n"
+  "   -keep-bed        if the loci bed is given, keep as many bed file\n"
   "   -header          put in a header (fields are easy to forget)\n"
   );
 }
@@ -38,11 +39,11 @@ void fill_zeros(double *data, int size)
 	    data[i] = 0;
 }
 
-void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, char *chrom, unsigned chromStart, unsigned chromEnd, boolean zero_fill)
+void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, struct bed *section, int bed_size, boolean use_rgb, boolean zero_fill)
 /* at each iteration of */
 {
     int i;
-    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, chromStart, chromEnd, FALSE);
+    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, section->chromEnd, FALSE);
     int size = pbw->chromEnd - pbw->chromStart;
     double *vector = pbw->data;
     if (zero_fill)
@@ -64,45 +65,24 @@ void summary_loop(struct metaBig *mb, unsigned decimals, FILE *out, char *chrom,
 		min = vector[i];
 	}
 	mean = sum/num_data;
-	fprintf(out, "%s\t%d\t%d\t%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\n", chrom, chromStart, chromEnd, size, 
+	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
+	fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\n", size, 
 		num_data, decimals, min, decimals, max, decimals, mean, decimals, median);
     }
     else
     {
-	fprintf(out, "%s\t%d\t%d\t0\tna\tna\tna\tna\tna\n", chrom, chromStart, chromEnd, size);
+	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
+	fprintf(out, "0\tna\tna\tna\tna\tna\n");
     }
     perBaseWigFreeList(&pbw);
 }
 
-void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, char *bedfile, FILE *out, boolean zero_fill)
+void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_list, int bed_size, boolean use_rgb, FILE *out, boolean zero_fill)
 /* if the "loci" ends up being a bed file */
 {
     struct bed *section;
-    struct bed *summary_regions = bedLoadNAll(bedfile, 3);
-    for (section = summary_regions; section != NULL; section = section->next)
-	summary_loop(mb, decimals, out, section->chrom, section->chromStart, section->chromEnd, zero_fill);
-    bedFreeList(&summary_regions);
-}
-
-void bwtool_summary_interval(struct metaBig *mb, unsigned decimals, unsigned interval, FILE *out, boolean zero_fill)
-/* if the "loci" ends up being an interval */
-{
-    struct hashEl *chroms = hashElListHash(mb->chromSizeHash);
-    struct hashEl *el;
-    for (el = chroms; el != NULL; el = el->next)
-    {
-	int size = ptToInt(el->val);
-	unsigned start = 0;
-	unsigned end;
-	for (start = 0; start < size; start += interval)
-	{
-	    end = start + interval;
-	    if (end > size)
-		end = size;
-	    summary_loop(mb, decimals, out, el->name, start, end, zero_fill);
-	}
-    }
-    hashElFreeList(&chroms);
+    for (section = bed_list; section != NULL; section = section->next)
+	summary_loop(mb, decimals, out, section, bed_size, use_rgb, zero_fill);
 }
 
 void bwtool_summary(struct hash *options, char *favorites, char *regions, unsigned decimals,
@@ -110,20 +90,54 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
 /* bwtool_summary - main for the summarize program */
 {
     boolean zero_fill = (hashFindVal(options, "zero-fill") != NULL) ? TRUE : FALSE;
+    boolean keep_bed = (hashFindVal(options, "keep-bed") != NULL) ? TRUE : FALSE;
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
     if (mb->type != isaBigWig)
 	errAbort("file not bigWig type");
     FILE *out = mustOpen(outputfile, "w");
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
-    if (header)
-	fprintf(out, "#chrom\tstart\tend\tsize\tnum_data\tmin\tmax\tmean\tmedian\n");
+    struct bed *bed_list = NULL;
+    boolean use_rgb = FALSE;
+    int bed_size = 3;
     if (fileExists(loci_s))
-	bwtool_summary_bed(mb, decimals, loci_s, out, zero_fill);
+	bedLoadAllReturnFieldCountAndRgbAtLeast3(loci_s, &bed_list, &bed_size, &use_rgb);
     else
     {
 	unsigned interval = sqlUnsigned(loci_s);
-	bwtool_summary_interval(mb, decimals, interval, out, zero_fill);
+	bed_list = metaBig_chopGenome(mb, interval);
     }
+    if (!keep_bed)
+	bed_size = 3;
+    if (header)
+    {
+	int i;
+	fprintf(out, "#chrom\tstart\tend");
+	if (bed_size > 3)
+	    fprintf(out, "\tname");
+	if (bed_size > 4)
+	    fprintf(out, "\tscore");
+	if (bed_size > 5)
+	    fprintf(out, "\tstrand");
+	if (bed_size > 6)
+	    fprintf(out, "\tthick_start");
+	if (bed_size > 7)
+	    fprintf(out, "\tthick_end");
+	if ((bed_size > 8) && (use_rgb))
+	    fprintf(out, "\trgb");
+	if ((bed_size > 8) && (!use_rgb))
+	    fprintf(out, "\treserved");
+	if (bed_size > 9)
+	    fprintf(out, "\tblocks");
+	if (bed_size > 10)
+	    fprintf(out, "\tblock_sizes");
+	if (bed_size > 11)
+	    fprintf(out, "\tblock_starts");
+	for (i = 12; i < bed_size; i++)
+	    fprintf(out, "\tunknown_field");
+	fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tmedian\n");
+    }
+    bwtool_summary_bed(mb, decimals, bed_list, bed_size, use_rgb, out, zero_fill);
+    bedFreeList(&bed_list);
     carefulClose(&out);
     metaBigClose(&mb);
 }

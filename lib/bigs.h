@@ -167,6 +167,9 @@ struct middles *metaBig_get_middles(struct metaBig *mb, char *chrom, unsigned st
 struct metaBig *metaBigOpen_favs(char *filename, char *sectionsBed, char *favs_file);
 /* open the file based on favorites.txt */
 
+struct bed *metaBig_chopGenome(struct metaBig *mb, int size);
+/* return a bed of regularly-sized intervals (given) from the chromSizeHash */
+
 struct bbiFile *bigWigFileOpen_favs(char *filename, char *favs_file);
 /* open the file based on favorites.txt */
 
