@@ -90,7 +90,8 @@ struct bed6 *readBed6SoftAndSize(char *file, int *orig_size)
     }
     slReverse(&list);
     lineFileClose(&lf);
-    *orig_size = size;
+    if (orig_size)
+	*orig_size = size;
     return list;
 }
 
