@@ -50,13 +50,13 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_bwtool_OBJECTS = bwtool-aggregate.$(OBJEXT) bwtool-bwtool.$(OBJEXT) \
 	bwtool-bwtool_shared.$(OBJEXT) bwtool-chromgraph.$(OBJEXT) \
-	bwtool-distrib.$(OBJEXT) bwtool-fill.$(OBJEXT) \
-	bwtool-find.$(OBJEXT) bwtool-lift.$(OBJEXT) \
-	bwtool-matrix.$(OBJEXT) bwtool-paste.$(OBJEXT) \
-	bwtool-rand.$(OBJEXT) bwtool-remove.$(OBJEXT) \
-	bwtool-sax.$(OBJEXT) bwtool-shift.$(OBJEXT) \
-	bwtool-split.$(OBJEXT) bwtool-summarize.$(OBJEXT) \
-	bwtool-window.$(OBJEXT)
+	bwtool-distrib.$(OBJEXT) bwtool-extract.$(OBJEXT) \
+	bwtool-fill.$(OBJEXT) bwtool-find.$(OBJEXT) \
+	bwtool-lift.$(OBJEXT) bwtool-matrix.$(OBJEXT) \
+	bwtool-paste.$(OBJEXT) bwtool-rand.$(OBJEXT) \
+	bwtool-remove.$(OBJEXT) bwtool-sax.$(OBJEXT) \
+	bwtool-shift.$(OBJEXT) bwtool-split.$(OBJEXT) \
+	bwtool-summarize.$(OBJEXT) bwtool-window.$(OBJEXT)
 bwtool_OBJECTS = $(am_bwtool_OBJECTS)
 bwtool_DEPENDENCIES = $(top_srcdir)/lib/libbeato.a \
 	$(top_srcdir)/libjkweb/libjkweb.a
@@ -185,6 +185,7 @@ bwtool_SOURCES = \
 	bwtool_shared.h \
 	chromgraph.c \
 	distrib.c \
+	extract.c \
 	fill.c \
 	find.c \
 	lift.c \
@@ -284,6 +285,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-bwtool_shared.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-chromgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-distrib.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-extract.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-fill.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-find.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-lift.Po@am__quote@
@@ -380,6 +382,20 @@ bwtool-distrib.obj: distrib.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='distrib.c' object='bwtool-distrib.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-distrib.obj `if test -f 'distrib.c'; then $(CYGPATH_W) 'distrib.c'; else $(CYGPATH_W) '$(srcdir)/distrib.c'; fi`
+
+bwtool-extract.o: extract.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-extract.o -MD -MP -MF $(DEPDIR)/bwtool-extract.Tpo -c -o bwtool-extract.o `test -f 'extract.c' || echo '$(srcdir)/'`extract.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/bwtool-extract.Tpo $(DEPDIR)/bwtool-extract.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extract.c' object='bwtool-extract.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-extract.o `test -f 'extract.c' || echo '$(srcdir)/'`extract.c
+
+bwtool-extract.obj: extract.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-extract.obj -MD -MP -MF $(DEPDIR)/bwtool-extract.Tpo -c -o bwtool-extract.obj `if test -f 'extract.c'; then $(CYGPATH_W) 'extract.c'; else $(CYGPATH_W) '$(srcdir)/extract.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/bwtool-extract.Tpo $(DEPDIR)/bwtool-extract.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extract.c' object='bwtool-extract.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-extract.obj `if test -f 'extract.c'; then $(CYGPATH_W) 'extract.c'; else $(CYGPATH_W) '$(srcdir)/extract.c'; fi`
 
 bwtool-fill.o: fill.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-fill.o -MD -MP -MF $(DEPDIR)/bwtool-fill.Tpo -c -o bwtool-fill.o `test -f 'fill.c' || echo '$(srcdir)/'`fill.c

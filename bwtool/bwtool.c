@@ -24,6 +24,8 @@ errAbort(
   "                  Genome Graphs page\n"
   "   distribution   (or \"dist\") produce plot data as the frequency of values seen\n"
   "                  in the bigWig\n"
+  "   extract        (or \"ex\") extract data in some other ways than paste, matrix, or\n"
+  "                  window with a given bed, preserving strand directionality.\n"
   "   fill           fill in regions of genome where no data exists with a value\n"
   "   find           find regions of bigWig with given properties\n"
   "   lift           project data from one genome assembly to another using a\n"
@@ -238,6 +240,13 @@ else if (sameString(argv[1], "window") || sameString(argv[1], "win"))
 	usage_window();
     else
 	bwtool_window(options, favorites, regions, decimals, argv[2], argv[3]);
+}
+else if (sameString(argv[1], "extract") || sameString(argv[1], "ex"))
+{
+    if (argc != 6)
+	usage_extract();
+    else
+	bwtool_extract(options, argv[3], decimals, argv[2], argv[4], argv[5]);
 }
 else 
     usage();

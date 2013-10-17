@@ -52,7 +52,7 @@ struct bed6 *readBed6(char *file)
     return list;
 }
 
-struct bed6 *readBed6Soft(char *file)
+struct bed6 *readBed6SoftAndSize(char *file, int *orig_size)
 /* read from a file.  If it's missing fields, fill the bed */
 {
     char *words[6];
@@ -61,12 +61,15 @@ struct bed6 *readBed6Soft(char *file)
     struct lineFile *lf = lineFileOpen(file, TRUE);
     struct bed6 *list = NULL;
     int num_words = 0;
+    int size = 0;
     while ((num_words = lineFileChopTab(lf, words)) > 0)
     {
 	if (num_words < 3)
 	    errAbort("Expecting BED-3 formatted file (%s) but there are only %d columns on line %d", file, num_words, lf->lineIx);
 	struct bed6 *newb;
 	AllocVar(newb);
+	if (size < num_words)
+	    size = num_words;
 	newb->chrom = cloneString(words[0]);
 	newb->chromStart = sqlSigned(words[1]);
 	newb->chromEnd = sqlSigned(words[2]);
@@ -87,7 +90,14 @@ struct bed6 *readBed6Soft(char *file)
     }
     slReverse(&list);
     lineFileClose(&lf);
+    *orig_size = size;
     return list;
+}
+
+struct bed6 *readBed6Soft(char *file)
+/* read from a file.  If it's missing fields, fill the bed */
+{
+    return readBed6SoftAndSize(file, NULL);
 }
 
 static struct bed *readAtLeastBed3(char *file)

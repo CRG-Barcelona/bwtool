@@ -285,6 +285,56 @@ static void chromOob(struct metaBig *mb, char *chrom, int *start, int *end)
 	*end = csize;
 }
 
+static struct perBaseWig *perBaseWigLoadHugeContinue(struct metaBig *mb, struct perBaseWig *big_pbw, int *big_offset, struct bed *section)
+/* Load all the regions into one perBaseWig, but with gaps filled  */
+/* in with NA value */
+{
+    struct perBaseWig *list = NULL;
+    double na = NANUM;
+    int s = section->chromStart;
+    int e = section->chromEnd;
+    if (!hashFindVal(mb->chromSizeHash, section->chrom))
+    {
+	/* if the chrom isn't in the bigWig's chrom-size hash, skip over */
+	*big_offset += e - s;
+    }
+    else
+    {
+	struct perBaseWig *pbw;
+	chromOob(mb, section->chrom, &s, &e);
+	list = perBaseWigLoadContinue(mb, section->chrom, s, e);
+	if (list)
+	{
+	    for (pbw = list; pbw != NULL; pbw = pbw->next)
+	    {
+		int j;
+		for (j = 0; j < pbw->len; j++)
+		    big_pbw->data[*big_offset + j] = pbw->data[j];
+		*big_offset += pbw->len;
+	    }
+	    perBaseWigFreeList(&list);
+	}
+    }
+}
+
+struct perBaseWig *perBaseWigLoadHuge(struct metaBig *mb, struct bed *regions)
+/* Load a huge pbw, gaps removed */
+{
+    long supposed_size = 0;
+    struct bed *bed;
+    struct perBaseWig *big_pbw = NULL; 
+    int big_offset = 0;
+    for (bed = regions; bed != NULL; bed = bed->next)
+	supposed_size += bed->chromEnd - bed->chromStart;
+    if (supposed_size > powl(2,31))
+	errAbort("Requested regions sum to greater than 2^31 = 2,147,483,648 bases. The current implementation is restricted to fewer than this");
+    big_pbw = alloc_perBaseWig("various", 0, supposed_size);
+    for (bed = regions; bed != NULL; bed = bed->next)
+	perBaseWigLoadHugeContinue(mb, big_pbw, &big_offset, bed);
+    big_pbw->total_coverage = (unsigned)big_offset;
+    return big_pbw;
+}
+
 struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom, 
 						int start, int end, boolean reverse)
 /* Load all the regions into one perBaseWig, but with gaps filled  */

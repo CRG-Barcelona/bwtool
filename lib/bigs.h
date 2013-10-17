@@ -129,6 +129,9 @@ struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, i
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 
+struct perBaseWig *perBaseWigLoadHuge(struct metaBig *mb, struct bed *regions);
+/* Load a huge pbw, gaps removed */
+
 struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *regions);
 /* loading a wig matrix from a metaBig with regions all the same size.  It should be noted */
 /* that the regions may include negative and out-of-bounds coordinates.  Out-of-bounds data is */

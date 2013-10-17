@@ -69,6 +69,9 @@ void usage_paste();
 void usage_window();
 /* Explain usage of the window-tiling program and exit */
 
+void usage_extract();
+/* Explain usage and exit. */
+
 void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot, 
 		   boolean condense, char *thresh_type, char *val_or_file, char *bigfile, char *outputfile);
 /* bwtool_remove - main for removal program */
@@ -135,5 +138,9 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, 
                    char *size_s, char *bigfile);
 /* bwtool_window - main for the windowing program */
+
+void bwtool_extract(struct hash *options, char *regions, unsigned decimals, 
+		    char *style, char *bigfile, char *outputfile);
+/* bwtool_extract - main for the extract program */
 
 #endif /* BWTOOL_H */

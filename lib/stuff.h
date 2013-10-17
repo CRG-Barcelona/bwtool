@@ -17,6 +17,17 @@ double doubleWithNAMedianAlreadySorted(int num_non_na, double *array);
 /* seems stupid to have but sometimes it's convenient to have the sort and */
 /* the median separate */
 
+double doubleWithNAQuantAlreadySorted(int num_non_na, double *array, double quant);
+/* this doesn't call Median, which would be the logical thing... but Median */
+/* uses bitwise shifting to find the middle array index rather than numerically */
+/* **note that this also returns the value at the floored index after mutliplying the */
+/*   size by the quantile. For the 0.25 quantile of a size-eight array this will be */
+/*   the second value.  Note this isn't quite correct.  Like median, it should */
+/*   average the second and third one. */
+
+double doubleWithNAInvQuantAlreadySorted(int num_non_na, double *array, unsigned inv_quant, boolean first);
+/* these are special cases that should be more accurate than doubleWithNAQuantAlreadySorted */
+
 double doubleWithNAMedian(int count, double *array);
 /* Return median value in array.  This will sort
  * the array as a side effect. */

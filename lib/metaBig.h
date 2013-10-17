@@ -137,6 +137,9 @@ struct metaBigBed6Helper
 struct bed6 *readBed6(char *file);
 /* read from a file */
 
+struct bed6 *readBed6SoftAndSize(char *file, int *orig_size);
+/* read from a file.  If it's missing fields, fill the bed */
+
 struct bed6 *readBed6Soft(char *file);
 /* read from a file.  If it's missing fields, fill the bed */
 

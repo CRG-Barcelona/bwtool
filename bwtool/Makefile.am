@@ -9,6 +9,7 @@ bwtool_SOURCES = \
 	bwtool_shared.h \
 	chromgraph.c \
 	distrib.c \
+	extract.c \
 	fill.c \
 	find.c \
 	lift.c \
