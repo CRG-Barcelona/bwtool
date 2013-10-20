@@ -34,11 +34,8 @@ errAbort(
   "options:\n"
   "   -starts          use starts of bed regions as opposed to the middles\n"
   "   -ends            use ends of bed regions as opposed to the middles\n"
-  "   -nozero          skip zero in the output i.e. -3,-2,-1,1,2,3,\n"
-  "                    this has the effect of the limits being\n"
-  "                    -size to size instead of -size to (size-1)\n"
   "   -firstbase       in this case the zero base is used so output\n"
-  "                    has 2*size+1 lines (incompatible with -nozero)\n"
+  "                    has left+right+1 lines\n"
   "   -expanded        output medians and standard deviations instead of just\n"
   "                    averages\n" 
   "   -cluster=k       cluster with k-means with given parameter (2-10 are best)\n"
@@ -336,7 +333,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
     struct slName *region_list = slNameListFromComma(region_list_s);
     struct slName *wig_list = slNameListFromComma(wig); 
     boolean firstbase = (hashFindVal(options, "firstbase") != NULL) ? TRUE : FALSE;
-    boolean nozero = (hashFindVal(options, "nozero") != NULL) ? TRUE : FALSE;
+    boolean nozero = TRUE;
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean use_start = (hashFindVal(options, "starts") != NULL) ? TRUE : FALSE;
     boolean use_end = (hashFindVal(options, "ends") != NULL) ? TRUE : FALSE;
@@ -359,8 +356,8 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
 	errAbort("k should be between 2 and 10\n");
     if ((mult_regions || mult_wigs) && clustering)
 	errAbort("with clustering just specify one region list and one bigWig");
-    if (firstbase && nozero)
-	errAbort("-firsbase and -nozero cannot be used together");
+    if (firstbase)
+	nozero = FALSE;
     if (mult_regions && mult_wigs)
 	do_long_form = TRUE;
     if (do_long_form)
