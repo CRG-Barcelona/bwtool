@@ -214,7 +214,7 @@ static struct slName *setup_labels(char *long_form, struct slName *bw_list, stru
 
 
 void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-		   char *range_s, char *bigfile, char *outputfile)
+		   double fill, char *range_s, char *bigfile, char *outputfile)
 /* bwtool_matrix - main for matrix-creation program */
 {
     boolean do_k = (hashFindVal(options, "cluster") != NULL) ? TRUE : FALSE;
@@ -246,7 +246,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     for (bw_name = bw_names; bw_name != NULL; bw_name = bw_name->next)
     {
 	struct metaBig *mb = metaBigOpen(bw_name->name, NULL);
-	struct perBaseMatrix *one_pbm = (do_tile) ? load_ave_perBaseMatrix(mb, regs, tile) : load_perBaseMatrix(mb, regs);
+	struct perBaseMatrix *one_pbm = (do_tile) ? load_ave_perBaseMatrix(mb, regs, tile, fill) : load_perBaseMatrix(mb, regs, fill);
 	fuse_pbm(&pbm, &one_pbm);
 	metaBigClose(&mb);
     }

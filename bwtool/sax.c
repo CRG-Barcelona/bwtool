@@ -140,11 +140,16 @@ void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned d
     unsigned itStart = sqlUnsigned((char *)hashOptionalVal(options, "iterate-start", (alpha_s != NULL) ? alpha_s : "8"));
     unsigned itEnd = sqlUnsigned((char *)hashOptionalVal(options, "iterate-end", (alpha_s != NULL) ? alpha_s : "8"));
     unsigned window = sqlUnsigned((char *)hashOptionalVal(options, "sax-window", "0"));
-    char *mean_s = (char *)hashOptionalVal(options, "mean", "mean");
-    double mean = -DBL_MAX;
-    if (!sameString(mean_s, "mean"))
+    char *mean_s = (char *)hashOptionalVal(options, "mean", NULL);
+    char *std_s = (char *)hashOptionalVal(options, "std", NULL);
+    if (mb->type != isaBigWig)
+	errAbort("%s doesn't seem to be a bigWig", bigfile);
+    double mean = bigWigMean(mb->big.bbi);
+    double std = bigWigStd(mb->big.bbi);
+    if (mean_s)
 	mean = sqlDouble(mean_s);
-    double std = sqlDouble((char *)hashOptionalVal(options, "std", "0"));
+    if (std_s)
+	std = sqlDouble(std_s);
     FILE *out;
     boolean do_std = (hashLookup(options, "std") != NULL);
     boolean do_mean = (hashLookup(options, "mean") != NULL);

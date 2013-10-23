@@ -17,7 +17,7 @@ struct cluster_bed_matrix
 struct cluster_bed_matrix *init_cbm_from_pbm(struct perBaseMatrix *pbm, int k);
 /* initialize the cluster struct froma matrix */
 
-struct cluster_bed_matrix *init_cbm(struct metaBig *mb, struct bed6 *regions, int k);
+struct cluster_bed_matrix *init_cbm(struct metaBig *mb, struct bed6 *regions, int k, double fill);
 /* initialize the cluster struct */
 
 void free_cbm(struct cluster_bed_matrix **pCbm);

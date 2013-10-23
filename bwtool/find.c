@@ -47,7 +47,7 @@ static enum ex_removal get_removal(struct hash *options)
     return no_removal;
 }
 
-void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, unsigned decimals, char *bigfile, char *outputfile)
+void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, char *bigfile, char *outputfile)
 /* find local extrema */
 {
     unsigned min_sep = sqlUnsigned((char *)hashOptionalVal(options, "min-sep", "0"));
@@ -144,7 +144,7 @@ static boolean fit_thresh(double val, double thresh, enum bw_op_type op)
     return ret;
 }
 
-void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, 
+void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, double fill,  
 			char *thresh_type, char *thresh_s, char *bigfile, char *outputfile)
 /* the other kind of finding, based on thresholding. */
 {

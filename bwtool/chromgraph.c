@@ -23,7 +23,7 @@ errAbort(
 }
 
 void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, unsigned decimals,
-		    char *bigfile, char *outputfile)
+		       double fill, char *bigfile, char *outputfile)
 /* bwtool_chromgraph - main for making the chromgraph file */
 {
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
@@ -41,7 +41,7 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 	int numBases = 0;
 	double sum = 0;
 	int windowPos;
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, section->chromEnd, FALSE);
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, section->chromEnd, FALSE, fill);
 
 	windowPos = pbw->chromStart;
 	while (windowPos < pbw->chromEnd)

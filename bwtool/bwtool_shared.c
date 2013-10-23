@@ -3,6 +3,8 @@
 #include "bigs.h"
 #include "bwtool_shared.h"
 
+#include <math.h>
+
 struct bed6 *load_and_recalculate_coords(char *list_file, int left, int right, boolean firstbase, boolean starts, boolean ends)
 /* do the coordinate recalculation */
 {
@@ -11,18 +13,47 @@ struct bed6 *load_and_recalculate_coords(char *list_file, int left, int right, b
     for (bed = list; bed != NULL; bed = bed->next)
     {
 	boolean rev = (bed->strand[0] == '-');
-	int l = (rev) ? right : left;
-	int size = left + right + (firstbase ? 1 : 0);
-	int center = bed->chromStart + ((bed->chromEnd - bed->chromStart) / 2);
-	if (starts || ends)
+	int reg_size = bed->chromEnd - bed->chromStart;
+	boolean odd_sized = (reg_size % 2 == 1);
+	int center = 0;
+	if (!rev)
 	{
-	if ((starts && !rev) || (ends && rev))
-	    center = bed->chromStart;
-	else if ((ends && !rev) || (starts && rev))
-	    center = bed->chromEnd;
+	    if (starts)
+		center = bed->chromStart;
+	    else if (ends)
+		center = bed->chromEnd;
+	    else 
+		center = bed->chromStart + (reg_size/2);
+	    bed->chromStart = center - left;
+	    bed->chromEnd = center + right;
+	    if (firstbase)
+	    {
+		if (ends)
+		    bed->chromStart--;
+		else
+		    bed->chromEnd++;
+	    }
 	}
-	bed->chromStart = center - l;
-	bed->chromEnd = bed->chromStart + size;
+	else
+	{
+	    if (starts)
+		center = bed->chromEnd;
+	    else if (ends)
+		center = bed->chromStart;
+	    else if (!odd_sized)
+		center = bed->chromStart + (reg_size/2);
+	    else
+		center = bed->chromStart + (reg_size/2) + 1;
+	    bed->chromStart = center - right;
+	    bed->chromEnd = center + left;
+	    if (firstbase)
+	    {
+		if (ends)
+		    bed->chromEnd++;
+		else
+		    bed->chromStart--;
+	    }		
+	}
     }
     return list;
 }

@@ -79,8 +79,8 @@ void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot,
     }
 }
 
-void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
-		   struct slName **p_files)
+void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, 
+		  enum wigOutType wot, struct slName **p_files)
 /* bwtool_paste - main for paste program */
 {
     struct metaBig *mb;
@@ -90,6 +90,8 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     int num_sections = 0;
     int i = 0;
     boolean skip_na = (hashFindVal(options, "skip-NA") != NULL) ? TRUE : FALSE;
+    if (!isnan(fill) && skip_na)
+	errAbort("cannot use -skip_na with -fill");
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean verbose = (hashFindVal(options, "verbose") != NULL) ? TRUE : FALSE;
     struct slName *labels = NULL;
@@ -126,7 +128,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	    fprintf(stderr, "section %d / %d: %s:%d-%d\n", i++, num_sections, bed->chrom, bed->chromStart, bed->chromEnd);
 	for (mb = mb_list; mb != NULL; mb = mb->next)
 	{
-	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE);
+	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE, fill);
 	    /* if the load returns null then NA the whole thing. */
 	    /* this isn't very efficient but it's the easy way out. */
 	    if (!pbw)

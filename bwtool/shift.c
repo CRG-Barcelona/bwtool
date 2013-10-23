@@ -49,7 +49,7 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
     for (section = mb->sections; section != NULL; section = section->next)
     {
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
-							      section->chromEnd, FALSE);
+							      section->chromEnd, FALSE, na);
 	int i;
 	/* if the shift size is bigger than the section, NA the entire thing */
 	int size = pbw->len;

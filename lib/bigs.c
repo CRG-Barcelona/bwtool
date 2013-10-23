@@ -13,6 +13,7 @@
 #include "basicBed.h"
 #include "bigBed.h"
 #include "bigWig.h"
+#include "hmmstats.h"
 #include "bigs.h"
 
 #include <limits.h>
@@ -46,6 +47,17 @@ double bigWigMean(struct bbiFile *bw)
 	return na;
     else
 	return bbs.sumData/bbs.validCount;
+}
+
+double bigWigStd(struct bbiFile *bw)
+/* return the mean value of a bigWig */
+{
+    double na = NANUM;
+    struct bbiSummaryElement bbs = bbiTotalSummary(bw);
+    if (bbs.validCount == 0)
+	return na;
+    else
+	return calcStdFromSums(bbs.sumData, bbs.sumSquares, bbs.validCount);
 }
 
 int perBaseWigLabelCmp(const void *a, const void *b)
@@ -93,6 +105,19 @@ struct perBaseWig *alloc_zero_perBaseWig(char *chrom, int start, int end)
     for (i = 0; i < pbw->len; i++)
 	pbw->data[i] = 0;
     return pbw;
+}
+
+struct perBaseWig *alloc_fill_perBaseWig(char *chrom, int start, int end, double fill)
+/* fill the pbw with a given value instead of NA */
+{
+    struct perBaseWig *pbw = alloc_perBaseWig(chrom, start, end);
+    if (!isnan(fill))
+    {
+	int i;
+	for (i = 0; i < pbw->len; i++)
+	    pbw->data[i] = fill;
+    }
+    return pbw;    
 }
 
 struct perBaseWig *perBaseWigClone(struct perBaseWig *pbw)
@@ -196,10 +221,10 @@ struct perBaseWig *alloc_perBaseWig_matchingSequence(struct dnaSeq *seq, boolean
 {
     struct perBaseWig *pbw;
     int size = seq->size;
-    int chromStart;
-    int chromEnd;
+    unsigned chromStart;
+    unsigned chromEnd;
     char *chrom = seq_name_disassemble(seq, &chromStart, &chromEnd);
-    pbw = alloc_perBaseWig(chrom, chromStart, chromEnd);
+    pbw = alloc_perBaseWig(chrom, (int)chromStart, (int)chromEnd);
     pbw->subsections = seq_subsection_list(seq, skipN);
     AllocArray(pbw->data, size);
     return pbw;
@@ -285,7 +310,7 @@ static void chromOob(struct metaBig *mb, char *chrom, int *start, int *end)
 	*end = csize;
 }
 
-static struct perBaseWig *perBaseWigLoadHugeContinue(struct metaBig *mb, struct perBaseWig *big_pbw, int *big_offset, struct bed *section)
+static void perBaseWigLoadHugeContinue(struct metaBig *mb, struct perBaseWig *big_pbw, int *big_offset, struct bed *section)
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 {
@@ -336,7 +361,7 @@ struct perBaseWig *perBaseWigLoadHuge(struct metaBig *mb, struct bed *regions)
 }
 
 struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom, 
-						int start, int end, boolean reverse)
+						int start, int end, boolean reverse, double fill)
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 {
@@ -352,12 +377,12 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
     if (!hashFindVal(mb->chromSizeHash, chrom))
     {
 	/* if the chrom isn't in the bigWig's chrom-size hash, return values of NA */
-	wholething = alloc_perBaseWig(chrom, start, end);
+	wholething = alloc_fill_perBaseWig(chrom, start, end, fill);
 	return wholething;
     }
     chromOob(mb, chrom, &s, &e);
     list = perBaseWigLoadContinue(mb, chrom, s, e);
-    wholething = alloc_perBaseWig(chrom, start, end);
+    wholething = alloc_fill_perBaseWig(chrom, start, end, fill);
     if (list)
     {
 	for (region = list; region != NULL; region = region->next)
@@ -382,7 +407,7 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
     return wholething;
 }
 
-struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, int end, boolean reverse)
+struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, int end, boolean reverse, double fill)
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 {
@@ -393,12 +418,12 @@ struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, i
 	return NULL;
     }
     struct perBaseWig *list;
-    list = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse);
+    list = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse, fill);
     metaBigClose(&mb);
     return list;
 }
 
-struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *regions)
+struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, double fill)
 /* loading a wig matrix from a metaBig with regions all the same size.  It should be noted */
 /* that the regions may include negative and out-of-bounds coordinates.  Out-of-bounds data is */
 /* NA in the matrix. */ 
@@ -419,7 +444,7 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
     for (i = 0; (i < pmat->nrow) && (item != NULL); i++, item = item->next)
     {
 	struct perBaseWig *pbw;
-	pbw = perBaseWigLoadSingleContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-');
+	pbw = perBaseWigLoadSingleContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-', fill);
 	pbw->name = cloneString(item->name);
 	pbw->score = item->score;
 	pbw->len = pmat->ncol;
@@ -430,7 +455,7 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
     return pmat;
 }
 
-struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size)
+struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size, double fill)
 /* the matrix is tiled averages instead the values at each base */
 {
     struct perBaseMatrix *pmat;
@@ -451,9 +476,9 @@ struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *re
     for (i = 0; (i < pmat->nrow) && (item != NULL); i++, item = item->next)
     {
 	struct perBaseWig *pbw;
-	struct perBaseWig *small = alloc_perBaseWig(item->chrom, item->chromStart, item->chromStart + pmat->ncol);
+	struct perBaseWig *small = alloc_fill_perBaseWig(item->chrom, item->chromStart, item->chromStart + pmat->ncol, fill);
 	small->chromEnd = item->chromEnd;
-	pbw = perBaseWigLoadSingleContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-');
+	pbw = perBaseWigLoadSingleContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-', fill);
 	for (j = 0; j < pmat->ncol; j++)
 	{
 	    double sum = 0, ave;

@@ -49,9 +49,9 @@ enum style_type
 };
 
 void extractOutBed(FILE *out, struct bed6 *section, int orig_size, unsigned decimals, struct perBaseWig *pbw, boolean tabs)
-/* Do the output like: */
-/*    chr1   2   4   2   3.00,4.00
-/*    chr1   8   12  4   9.00,10.00,11.00,12.00    */
+/* Do the output like: 
+   chr1   2   4   2   3.00,4.00
+   chr1   8   12  4   9.00,10.00,11.00,12.00    */
 {
     int i;
     fprintf(out, "%s\t%d\t%d\t", section->chrom, section->chromStart, section->chromEnd);
@@ -64,7 +64,7 @@ void extractOutBed(FILE *out, struct bed6 *section, int orig_size, unsigned deci
     fprintf(out, "%d\t", pbw->len);
     for (i = 0; i < pbw->len-1; i++)
 	if (isnan(pbw->data[i]))
-	    fprintf(out, "NA,%c", decimals, pbw->data[i], (tabs) ? '\t' : ',');
+	    fprintf(out, "NA,%c", (tabs) ? '\t' : ',');
 	else
 	    fprintf(out, "%0.*f%c", decimals, pbw->data[i], (tabs) ? '\t' : ',');
     if (isnan(pbw->data[pbw->len-1]))
@@ -74,26 +74,26 @@ void extractOutBed(FILE *out, struct bed6 *section, int orig_size, unsigned deci
 }
 
 void extractOutJsp(FILE *out, struct bed6 *section, unsigned decimals, struct perBaseWig *pbw)
-/* Do the output like: */
-/*   # region_1
-/*   3.00
-/*   4.00
-/*   # region_2
-/*   12.00
-/*   11.00
-/*   10.00
-/*   9.00              */
+/* Do the output like:
+   # region_1
+   3.00
+   4.00
+   # region_2
+   12.00
+   11.00
+   10.00
+   9.00              */
 {
     int i;
     fprintf(out, "# %s\n", section->name);
     for (i = 0; i < pbw->len; i++)
 	if (isnan(pbw->data[i]))
-	    fprintf(out, "NA\n", decimals, pbw->data[i]);
+	    fprintf(out, "NA\n");
 	else
 	    fprintf(out, "%0.*f\n", decimals, pbw->data[i]);
 }
 
-void bwtool_extract(struct hash *options, char *regions, unsigned decimals, 
+void bwtool_extract(struct hash *options, char *regions, unsigned decimals, double fill,
 		  char *style_s, char *bigfile, char *outputfile)
 /* bwtool_extract - main for the extract program */
 {
@@ -118,7 +118,7 @@ void bwtool_extract(struct hash *options, char *regions, unsigned decimals,
     for (section = region_list; section != NULL; section = section->next)
     {
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
-							      section->chromEnd, (section->strand[0] == '-') ? TRUE : FALSE);
+							      section->chromEnd, (section->strand[0] == '-') ? TRUE : FALSE, fill);
 	if (style == bed)
 	    /* for bed there is no name manipulation */
 	    extractOutBed(out, section, orig_size, decimals, pbw, tabs);

@@ -112,10 +112,10 @@ struct cluster_bed_matrix *init_cbm_from_pbm(struct perBaseMatrix *pbm, int k)
     return cbm;
 }
 
-struct cluster_bed_matrix *init_cbm(struct metaBig *mb, struct bed6 *regions, int k)
+struct cluster_bed_matrix *init_cbm(struct metaBig *mb, struct bed6 *regions, int k, double fill)
 /* initialize the cluster struct */
 {
-    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
+    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
     return init_cbm_from_pbm(pbm, k);
 }
 

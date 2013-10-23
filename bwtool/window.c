@@ -33,11 +33,13 @@ errAbort(
 }
 
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-                   char *size_s, char *bigfile)
+                   double fill, char *size_s, char *bigfile)
 /* bwtool_window - main for the windowing program */
 {
     struct metaBig *mb = metaBigOpen(bigfile, regions);
     boolean skip_na = (hashFindVal(options, "skip-NA") != NULL) ? TRUE : FALSE;
+    if (!isnan(fill) && skip_na)
+	errAbort("cannot use -skip_na with -fill");
     boolean center = (hashFindVal(options, "center") != NULL) ? TRUE : FALSE;
     int step = (int)sqlUnsigned((char *)hashOptionalVal(options, "step", "1"));
     int size = sqlSigned(size_s);
@@ -49,7 +51,7 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
 	if (size <= section->chromEnd - section->chromStart)
 	{
 	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart,
-								  section->chromEnd, FALSE);
+								  section->chromEnd, FALSE, fill);
 	    int i, j;
 	    for (i = 0; i <= pbw->len - size; i += step)
 	    {

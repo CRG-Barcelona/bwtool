@@ -51,7 +51,7 @@ struct bed *random_bed(struct random_coord *rc, int size, int rand_coord);
 /* rsulting bed is out of range, encloses a boundary, or overlaps a blacklisted range */
 
 struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double NA_perc, 
-				   double NA, struct bed *blacklist);
+				   double fill, struct bed *blacklist);
 /* retrieve a list random regions' data from a bigBed */
 
 struct bed *random_bed_list(int size, int N, struct metaBig *mb, double NA_perc, 

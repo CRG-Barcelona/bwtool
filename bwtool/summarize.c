@@ -26,23 +26,17 @@ errAbort(
   "   -\"loci\" corresponds to either (a) a bed file with regions to summarize or\n"
   "    (b) a size of interval to summarize genome-wide.\n"
   "options:\n"
-  "   -zero-fill       treat NA regions as zero\n"
   "   -with-quantiles  output 10%%/25%%/75%%/90%% quantiles as well surrounding the\n"
   "                    median.  With -total, this essentially provides a boxplot.\n"
+  "   -with-sum-of-squares\n"
+  "                    output sum of squared deviations from the mean along with \n"
+  "                    the other fields\n"
+  "   -with-sum        output sum, also\n"
   "   -keep-bed        if the loci bed is given, keep as many bed file\n"
   "   -total           only output a summary as if all of the regions are pasted\n"
   "                    together\n"
   "   -header          put in a header (fields are easy to forget)\n"
   );
-}
-
-void fill_zeros(double *data, int size)
-/* with the -zero-fill option, add zeroes */
-{
-    int i;
-    for (i = 0; i < size; i++)
-	if (isnan(data[i]))
-	    data[i] = 0;
 }
 
 void fill_na(double *data, int size, unsigned decimals)
@@ -57,15 +51,22 @@ void fill_na(double *data, int size, unsigned decimals)
     }
 }
 
-void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct bed *section, int bed_size, boolean use_rgb, boolean zero_fill, boolean zero_remove, boolean with_quants)
+double sumOfSquares(int num_data, double *vector, double mean)
+/* return sum of squares */
+{
+    int i;
+    double ret = 0;
+    for (i = 0; i < num_data; i++)
+	ret += pow(vector[i] - mean, 2);
+    return ret;
+}
+
+void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct bed *section, int bed_size, boolean use_rgb, boolean zero_remove, boolean with_quants, boolean with_sos, boolean with_sum)
 /* at each iteration of */
 {
     int i;
     int size = pbw->chromEnd - pbw->chromStart;
     double *vector = pbw->data;
-    if (zero_fill)
-	fill_zeros(vector, size);
-    uglyf("zero_remove == %s\n", (zero_remove) ? "TRUE" : "FALSE");
     if (zero_remove)
 	fill_na(vector, size, decimals);
     unsigned num_data = doubleWithNASort(size, vector);
@@ -80,6 +81,7 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 	double first_quart = -1;
 	double third_quart = -1;
 	double last_10p = -1;
+	double sos = -1;
 	if (with_quants)
 	{
 	    first_10p = doubleWithNAInvQuantAlreadySorted(num_data, vector, 10, TRUE);
@@ -96,25 +98,37 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 		min = vector[i];
 	}
 	mean = sum/num_data;
+	if (with_sos)
+	    sos = sumOfSquares(num_data, vector, mean);
 	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
 	if (with_quants)
-	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\n", size, 
+	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size, 
 		    num_data, decimals, min, decimals, max, decimals, mean, decimals, first_10p, decimals, first_quart, decimals, median, decimals, third_quart, decimals, last_10p);
 	else
-	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\n", size, 
+	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size, 
 		num_data, decimals, min, decimals, max, decimals, mean, decimals, median);
+	if (with_sos)
+	    fprintf(out, "\t%0.*f", decimals, sos);
+	if (with_sum)
+	    fprintf(out, "\t%0.*f", decimals, sum);
+	fprintf(out, "\n");
     }
     else
     {
 	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
 	if (with_quants)
-	    fprintf(out, "0\tna\tna\tna\tna\tna\tna\tna\tna\tna\n");
+	    fprintf(out, "0\tna\tna\tna\tna\tna\tna\tna\tna\tna");
 	else
-	    fprintf(out, "0\tna\tna\tna\tna\tna\n");
+	    fprintf(out, "0\tna\tna\tna\tna\tna");
+	if (with_sos)
+	    fprintf(out, "\tna");
+	if (with_sum)
+	    fprintf(out, "\tna");
+	fprintf(out, "\n");
     }
 }
 
-void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_list, int bed_size, boolean use_rgb, FILE *out, boolean zero_fill, boolean zero_remove, boolean with_quants, boolean total)
+void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_list, int bed_size, boolean use_rgb, FILE *out, double fill, boolean zero_remove, boolean with_quants, boolean with_sos, boolean with_sum, boolean total)
 /* if the "loci" ends up being a bed file */
 {
     if (total)
@@ -125,7 +139,7 @@ void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_l
 	big_bed->chrom = cloneString(big_pbw->chrom);
 	big_bed->chromStart = big_pbw->chromStart;
 	big_bed->chromEnd = big_pbw->chromEnd;
-	summary_loop(big_pbw, decimals, out, big_bed, 3, FALSE, zero_fill, zero_remove, with_quants);
+	summary_loop(big_pbw, decimals, out, big_bed, 3, FALSE, zero_remove, with_quants, with_sos, with_sum);
 	bedFree(&big_bed);
     }
     else
@@ -133,25 +147,29 @@ void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_l
 	struct bed *section;
 	for (section = bed_list; section != NULL; section = section->next)
 	{
-	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, section->chromEnd, FALSE);
-	    summary_loop(pbw, decimals, out, section, bed_size, use_rgb, zero_fill, zero_remove, with_quants);
+	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, section->chromEnd, FALSE, fill);
+	    summary_loop(pbw, decimals, out, section, bed_size, use_rgb, zero_remove, with_quants, with_sos, with_sum);
 	    perBaseWigFreeList(&pbw);
 	}
     }
 }
 
 void bwtool_summary(struct hash *options, char *favorites, char *regions, unsigned decimals,
-		    char *loci_s, char *bigfile, char *outputfile)
+		    double fill, char *loci_s, char *bigfile, char *outputfile)
 /* bwtool_summary - main for the summarize program */
 {
-    boolean zero_fill = (hashFindVal(options, "zero-fill") != NULL) ? TRUE : FALSE;
     boolean zero_remove = (hashFindVal(options, "zero-remove") != NULL) ? TRUE : FALSE;
     boolean keep_bed = (hashFindVal(options, "keep-bed") != NULL) ? TRUE : FALSE;
     boolean with_quants = (hashFindVal(options, "with-quantiles") != NULL) ? TRUE : FALSE;
+    boolean with_sos = (hashFindVal(options, "with-sum-of-squares") != NULL) ? TRUE : FALSE;
+    boolean with_sum = (hashFindVal(options, "with-sum") != NULL) ? TRUE : FALSE;
     boolean total = (hashFindVal(options, "total") != NULL) ? TRUE : FALSE;
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
-    if (zero_fill && total)
+    double filll = (hashFindVal(options, "zero-fill") != NULL) ? 0 : fill;
+    if ((fill == 0) && total)
 	errAbort("-total incompatible with -zero-fill");
+    else if (!isnan(filll) && total)
+	errAbort("-total incompatible with -fill");
     if (total && keep_bed)
 	warn("-keep-bed useless with -total");
     if (mb->type != isaBigWig)
@@ -197,11 +215,16 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
 	for (i = 12; i < bed_size; i++)
 	    fprintf(out, "\tunknown_field");
 	if (with_quants)
-	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tfirst_10%%\t1st_quart\tmedian\t3rd_quart\tlast_10%%\n");
+	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tfirst_10%%\t1st_quart\tmedian\t3rd_quart\tlast_10%%");
 	else
-	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tmedian\n");
+	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tmedian");
+	if (with_sos)
+	    fprintf(out, "\tsum_of_squares");
+	if (with_sum)
+	    fprintf(out, "\tsum");
+	fprintf(out, "\n");
     }
-    bwtool_summary_bed(mb, decimals, bed_list, bed_size, use_rgb, out, zero_fill, zero_remove, with_quants, total);
+    bwtool_summary_bed(mb, decimals, bed_list, bed_size, use_rgb, out, fill, zero_remove, with_quants, with_sos, with_sum, total);
     bedFreeList(&bed_list);
     carefulClose(&out);
     metaBigClose(&mb);

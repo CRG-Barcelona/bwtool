@@ -46,7 +46,6 @@ errAbort(
   "                    output \"long form\" where each line is just the position\n"
   "                    and one of the values and the first column is the name of\n"
   "                    the file.\n"
-  "   -verbose=n       output some progress info every n regions loaded\n"
   );
 }
 
@@ -325,7 +324,7 @@ static struct slName *setup_labels(char *long_form, boolean clustering, int k, s
     return lf_labels;
 }
 
-void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, 
+void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, double fill,
 		       char *size_s, char *region_list_s, char *wig, char *output_file)
 /* aggregate - main */
 {
@@ -386,7 +385,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
 	    struct slName *wig_name;
 	    for (mb = mbList; mb != NULL; mb = mb->next)
 	    {
-		struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
+		struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
 		do_summary(pbm, agg, expanded, offset); 
 		offset += (expanded) ? 4 : 1;
 		free_perBaseMatrix(&pbm);
@@ -404,7 +403,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals,
 	struct metaBig *mb = metaBigOpen(wig_list->name, NULL);
 	struct bed6 *regions = load_and_recalculate_coords(region_list->name, left, right, firstbase, use_start, use_end);
 	struct bed6 *orig_regions = readBed6Soft(region_list->name);
-	struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions);
+	struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
 	if (cluster_sets)
 	    perBaseMatrixAddOrigRegions(pbm, orig_regions);
 	struct cluster_bed_matrix *cbm = init_cbm_from_pbm(pbm, k);

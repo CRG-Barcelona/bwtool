@@ -85,6 +85,9 @@ enum wigOutType get_wig_out_type(char *option);
 double bigWigMean(struct bbiFile *bw);
 /* return the mean value of a bigWig */
 
+double bigWigStd(struct bbiFile *bw);
+/* return the std value of a bigWig */
+
 int perBaseWigLabelCmp(const void *a, const void *b);
 /* for sorting after clustering */
 
@@ -95,6 +98,9 @@ struct perBaseWig *alloc_perBaseWig(char *chrom, int start, int end);
 struct perBaseWig *alloc_zero_perBaseWig(char *chrom, int start, int end);
 /* simply allocate the perBaseWig. this is filled with zeros */
 /* it may be best to call this one before writing a wig */
+
+struct perBaseWig *alloc_fill_perBaseWig(char *chrom, int start, int end, double fill);
+/* fill the pbw with a given value instead of NA */
 
 struct perBaseWig *alloc_perBaseWig_matchingSequence(struct dnaSeq *seq, boolean skipN);
 /* allocate a perBaseWig to match the length of the dnaSeq.  Optionally choose to skip */
@@ -121,23 +127,23 @@ struct perBaseWig *perBaseWigLoad(char *wigFile, char *chrom, int start, int end
 
 
 struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom, 
-						int start, int end, boolean reverse);
+						int start, int end, boolean reverse, double fill);
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 
-struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, int end, boolean reverse);
+struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, int end, boolean reverse, double fill);
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 
 struct perBaseWig *perBaseWigLoadHuge(struct metaBig *mb, struct bed *regions);
 /* Load a huge pbw, gaps removed */
 
-struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *regions);
+struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, double fill);
 /* loading a wig matrix from a metaBig with regions all the same size.  It should be noted */
 /* that the regions may include negative and out-of-bounds coordinates.  Out-of-bounds data is */
 /* NA in the matrix. */ 
 
-struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size);
+struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size, double fill);
 /* the matrix is tiled averages instead the values at each base */
 
 void perBaseMatrixAddOrigRegions(struct perBaseMatrix *pbm, struct bed6 *orig_regions);

@@ -10,6 +10,8 @@
 #include "bigs.h"
 #include "bwtool.h"
 
+#define NANUM sqrt(-1)
+
 void usage()
 /* Explain usage and exit. */
 {
@@ -47,6 +49,8 @@ errAbort(
   " -regions=bed             use specific regions\n"
   " -condense                condense output, particularly bedGraphs\n"
   " -decimals=n              output specified number of decimals (default 2)\n"
+  " -fill=val                some programs allow filling missing parts of the bigWig\n"
+  "                          with a specified value prior to using data."
   );
 }
 
@@ -108,6 +112,11 @@ char *favorites = (char *)hashOptionalVal(options, "favorites", NULL);
 unsigned decimals = sqlUnsigned((char *)hashOptionalVal(options, "decimals", "2"));
 enum wigOutType wot = get_wig_out_type((char *)hashOptionalVal(options, "wigtype", "fix"));
 boolean condense = (hashFindVal(options, "condense") != NULL) ? TRUE : FALSE;
+char *fill_s = hashFindVal(options, "fill"); 
+double na = NANUM;
+double fill = na;
+if (fill_s)
+    fill = sqlDouble(hashFindVal(options, "fill"));
 if (argc <= 1)
     usage();
 if (sameString(argv[1], "remove"))
@@ -140,7 +149,7 @@ else if (sameString(argv[1], "find"))
 	if (argc != 5)
 	    usage_find();
 	else
-	    bwtool_find_extrema(options, favorites, regions, decimals, argv[3], argv[4]);
+	    bwtool_find_extrema(options, favorites, regions, decimals, fill, argv[3], argv[4]);
     }
     else if (sameString(argv[2], "less") || sameString(argv[2], "less-equal") || sameString(argv[2], "more") ||
 	     sameString(argv[2], "more-equal") || sameString(argv[2], "equal") || sameString(argv[2], "not"))
@@ -148,7 +157,7 @@ else if (sameString(argv[1], "find"))
 	if (argc != 6)
 	    usage_find();
 	else
-	    bwtool_find_thresh(options, favorites, regions, argv[2], argv[3], argv[4], argv[5]);
+	    bwtool_find_thresh(options, favorites, regions, fill, argv[2], argv[3], argv[4], argv[5]);
     }
 }
 else if (sameString(argv[1], "matrix"))
@@ -156,7 +165,7 @@ else if (sameString(argv[1], "matrix"))
     if (argc != 6)
 	usage_matrix();
     else
-	bwtool_matrix(options, favorites, argv[3], decimals, argv[2], argv[4], argv[5]);
+	bwtool_matrix(options, favorites, argv[3], decimals, fill, argv[2], argv[4], argv[5]);
 }
 else if (sameString(argv[1], "distribution") || sameString(argv[1], "dist"))
 {
@@ -170,7 +179,7 @@ else if (sameString(argv[1], "random"))
     if (argc != 6)
 	usage_random();
     else
-	bwtool_random(options, favorites, regions, decimals, argv[2], argv[3], argv[4], argv[5]);
+	bwtool_random(options, favorites, regions, decimals, fill, argv[2], argv[3], argv[4], argv[5]);
 }
 else if (sameString(argv[1], "aggregate") || sameString(argv[1], "agg"))
 {
@@ -178,14 +187,14 @@ else if (sameString(argv[1], "aggregate") || sameString(argv[1], "agg"))
     if (argc != 6)
 	usage_aggregate();
     else
-	bwtool_aggregate(options, regions, decimals, argv[2], argv[3], argv[4], argv[5]);
+	bwtool_aggregate(options, regions, decimals, fill, argv[2], argv[3], argv[4], argv[5]);
 }
 else if (sameString(argv[1], "chromgraph") || sameString(argv[1], "cg"))
 {
     if (argc != 4)
 	usage_chromgraph();
     else
-	bwtool_chromgraph(options, favorites, regions, decimals, argv[2], argv[3]);
+	bwtool_chromgraph(options, favorites, regions, decimals, fill, argv[2], argv[3]);
 }
 else if (sameString(argv[1], "paste"))
 {
@@ -203,7 +212,7 @@ else if (sameString(argv[1], "paste"))
 	    slAddHead(&list, name);
 	}
 	slReverse(&list);
-	bwtool_paste(options, favorites, regions, decimals, wot, &list);
+	bwtool_paste(options, favorites, regions, decimals, fill, wot, &list);
     }
 }
 else if (sameString(argv[1], "lift"))
@@ -218,7 +227,7 @@ else if (sameString(argv[1], "summary"))
     if (argc != 5)
 	usage_summary();
     else
-	bwtool_summary(options, favorites, regions, decimals, argv[2], argv[3], argv[4]);
+	bwtool_summary(options, favorites, regions, decimals, fill, argv[2], argv[3], argv[4]);
 }
 else if (sameString(argv[1], "sax"))
 {
@@ -239,14 +248,14 @@ else if (sameString(argv[1], "window") || sameString(argv[1], "win"))
     if (argc != 4)
 	usage_window();
     else
-	bwtool_window(options, favorites, regions, decimals, argv[2], argv[3]);
+	bwtool_window(options, favorites, regions, decimals, fill, argv[2], argv[3]);
 }
 else if (sameString(argv[1], "extract") || sameString(argv[1], "ex"))
 {
     if (argc != 6)
 	usage_extract();
     else
-	bwtool_extract(options, argv[3], decimals, argv[2], argv[4], argv[5]);
+	bwtool_extract(options, argv[3], decimals, fill, argv[2], argv[4], argv[5]);
 }
 else 
     usage();

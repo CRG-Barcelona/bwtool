@@ -33,10 +33,7 @@ void bwtool_fill(struct hash *options, char *favorites, char *regions, unsigned 
     for (section = mb->sections; section != NULL; section = section->next)
     {
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
-							      section->chromEnd, FALSE);
-	for (i = 0; i < pbw->len; i++)
-	    if (isnan(pbw->data[i]))
-		pbw->data[i] = val;
+							      section->chromEnd, FALSE, val);
 	perBaseWigOutput(pbw, out, wot, decimals, NULL, FALSE, condense);
 	perBaseWigFree(&pbw);
     }

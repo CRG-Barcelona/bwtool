@@ -31,7 +31,7 @@ errAbort(
 }
 
 void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-		   char *num_s, char *size_s, char *bigfile, char *output_file)
+		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
@@ -60,20 +60,28 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
 	    unsigned long rand = random_in_range(0, max);
 	    bed = random_bed(rc, size, rand);
 	}
-	pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE);
+	pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE, fill);
 	int size_pbw = pbw->chromEnd - pbw->chromStart;
 	int count_NA = 0;
 	int i;
-	for (i = 0; i < size_pbw; i++)
+	if (isnan(fill))
 	{
-	    if (isnan(pbw->data[i]))
-		count_NA++;
+	    for (i = 0; i < size_pbw; i++)
+	    {
+		if (isnan(pbw->data[i]))
+		    count_NA++;
+	    }
+	    if ((double)count_NA/size_pbw <= NA_perc)
+	    {
+		slAddHead(&pbwList, pbw);
+		kept++;
+	    }
 	}
-	if ((double)count_NA/size_pbw <= NA_perc)
+	else
 	{
 	    slAddHead(&pbwList, pbw);
 	    kept++;
-	}
+	}	    
     }
     slSort(&pbwList, bedCmp);
     /* output either the bed or a tab-separated list of vals*/ 

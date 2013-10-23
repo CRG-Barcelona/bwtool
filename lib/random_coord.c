@@ -161,7 +161,7 @@ int random_in_range(unsigned long min, unsigned long max)
 
 
 struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double NA_perc, 
-				   double NA, struct bed *blacklist)
+				   double fill, struct bed *blacklist)
 /* retrieve a list random regions' data from a bigWig */
 {
     struct perBaseWig *pbwList = NULL;
@@ -179,16 +179,24 @@ struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double N
 	    unsigned long rand = random_in_range(0, max);
 	    bed = random_bed(rc, size, rand);
 	}
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE);
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE, fill);
 	int size_pbw = pbw->chromEnd - pbw->chromStart;
 	int count_NA = 0;
 	int i;
-	for (i = 0; i < size_pbw; i++)
+	if (isnan(fill))
 	{
-	    if (isnan(pbw->data[i]))
-		count_NA++;
+	    for (i = 0; i < size_pbw; i++)
+	    {
+		if (isnan(pbw->data[i]))
+		    count_NA++;
+	    }
+	    if ((double)count_NA/size_pbw <= NA_perc)
+	    {
+		slAddHead(&pbwList, pbw);
+		kept++;
+	    }
 	}
-	if ((double)count_NA/size_pbw <= NA_perc)
+	else 
 	{
 	    slAddHead(&pbwList, pbw);
 	    kept++;
