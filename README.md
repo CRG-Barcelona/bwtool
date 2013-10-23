@@ -1,5 +1,3 @@
-public branch 
-----
-include/      Library headers
-lib/          Library source
-bwtool/       Program source
+Getting started
+==============
+See the [wiki](https://github.com/andypohl/bwtool).
