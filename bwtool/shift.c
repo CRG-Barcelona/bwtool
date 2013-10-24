@@ -9,6 +9,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 #include <math.h>
 
@@ -21,7 +22,7 @@ errAbort(
   "bwtool shift - move the data on the chromosome by N number of bases\n"
   "   where N can be negative.\n"
   "usage:\n"
-  "   bwtool shift <up|down> N input.bw[:chr:start-end] output.wig\n" 
+  "   bwtool shift <up|down> N input.bw[:chr:start-end] output.bw\n" 
   );
 }
 
@@ -35,7 +36,9 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
     if (!mb)
 	errAbort("problem opening %s", bigfile);
-    FILE *out = mustOpen(outputfile, "w");
+    char wigfile[512];
+    safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
+    FILE *out = mustOpen(wigfile, "w");
     struct bed *section;
     boolean up = TRUE;
     if (up_s && sameString("up", up_s))
@@ -76,6 +79,8 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
 	perBaseWigOutputNASkip(pbw, out, wot, decimals, NULL, FALSE, condense);
 	perBaseWigFree(&pbw);
     }
-    metaBigClose(&mb);
     carefulClose(&out);
+    writeBw(wigfile, outputfile, mb->chromSizeHash);
+    remove(wigfile);
+    metaBigClose(&mb);
 }

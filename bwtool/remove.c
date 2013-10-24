@@ -10,6 +10,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 #define NANUM sqrt(-1)
 
@@ -19,7 +20,7 @@ void usage_remove()
 errAbort(
   "bwtool - Data operations on bigWig files\n"
   "usage:\n"
-  "   bwtool remove <operator> <value|mask.bed> input.bw[:chr:start-end] output.wig\n" 
+  "   bwtool remove <operator> <value|mask.bed> input.bw[:chr:start-end] output.bw\n" 
   "where:\n"
   "   operator is one of the following: \"less\", \"less-equal\", \"more\", \"more-equal\",\n"
   "   \"equal\", \"not-equal\", or \"mask\".  In the case of \"mask\", the next parameter is\n"
@@ -59,7 +60,9 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
                                  boolean condense)
 /* deal with the thresholding type of removal. */
 {
-    FILE *out = mustOpen(outputfile, "w");
+    char wigfile[512];
+    safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
+    FILE *out = mustOpen(wigfile, "w");
     double val = (double)((float)sqlDouble(val_s));
     struct bed *section;
     const double na = NANUM;
@@ -123,6 +126,8 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 	    perBaseWigFreeList(&pbwList);
 	}
     }
+    writeBw(wigfile, outputfile, mb->chromSizeHash);
+    remove(wigfile);
     carefulClose(&out);
 }  
 
@@ -130,7 +135,9 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 			       unsigned decimals, boolean condense, boolean inverse)
 /* masking */
 {
-    FILE *out = mustOpen(outputfile, "w");
+    char wigfile[512];
+    safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
+    FILE *out = mustOpen(wigfile, "w");
     struct hash *rt_hash = load_range_tree(mask_file);
     struct bed *section;
     const double na = NANUM;
@@ -156,6 +163,8 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 	perBaseWigFreeList(&pbwList);	
     }
     carefulClose(&out);
+    writeBw(wigfile, outputfile, mb->chromSizeHash);
+    remove(wigfile);
     hashFree(&rt_hash);    
 }
 

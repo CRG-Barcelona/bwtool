@@ -15,4 +15,7 @@ int check_for_list_files(struct slName **pList, struct slName **lf_list_labels);
 void parse_left_right(char *size_s, unsigned *pleft, unsigned *pright);
 /* parse the "left:right" from the command */
 
+void writeBw(char *inName, char *outName, struct hash *chromSizeHash);
+/* shared func */
+
 #endif /* BWTOOL_SHARED_H */

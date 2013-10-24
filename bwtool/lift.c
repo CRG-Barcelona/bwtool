@@ -12,6 +12,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 #define NANUM sqrt(-1)
 
@@ -29,7 +30,7 @@ errAbort(
   "bwtool lift - project data base-by-base into a new assembly using\n"
   "   a liftOver chain file from UCSC.\n"
   "usage:\n"
-  "   bwtool lift old.bw[:chr:start-end] oldToNew.liftOver.chain.gz new.wig\n" 
+  "   bwtool lift old.bw[:chr:start-end] oldToNew.liftOver.chain.gz new.bw\n" 
   "options:\n"
   "   -sizes=new.sizes  if set use the chrom.sizes file specified instead of\n"
   "                     gathering the size information from the chain.\n"
@@ -341,7 +342,9 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
 	sizeHash = qSizeHash(chainfile);
     gpbw = genomePbw(sizeHash);
     struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
-    FILE *out = mustOpen(outputfile, "w");
+    char wigfile[512];
+    safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
+    FILE *out = mustOpen(wigfile, "w");
     struct hashEl *elList = hashElListHash(gpbw);
     struct hashEl *el;
     verbose(2,"starting first pass\n");
@@ -358,8 +361,10 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
     }
     hashElFreeList(&elList);
     carefulClose(&out);
-    metaBigClose(&mb);
     hashFree(&sizeHash);
     hashFreeWithVals(&chainHash, freeChainHashMap);
     hashFreeWithVals(&gpbw, perBaseWigFree);
+    writeBw(wigfile, outputfile, mb->chromSizeHash);
+    remove(wigfile);
+    metaBigClose(&mb);
 }

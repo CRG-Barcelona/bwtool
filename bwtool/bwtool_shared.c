@@ -1,6 +1,9 @@
 #include "common.h"
+#include "sqlNum.h"
 #include "metaBig.h"
 #include "bigs.h"
+#include "bigWig.h"
+#include "bwgInternal.h"
 #include "bwtool_shared.h"
 
 #include <math.h>
@@ -159,4 +162,15 @@ void parse_left_right(char *size_s, unsigned *pleft, unsigned *pright)
     *pleft = left;
     *pright = right;
     freeMem(tmp_s);
+}
+
+void writeBw(char *inName, char *outName, struct hash *chromSizeHash)
+/* shared func */
+{
+    struct lm *lm = lmInit(0);
+    struct bwgSection *sectionList = bwgParseWig(inName, TRUE, chromSizeHash, 1024, lm);
+    if (sectionList == NULL)
+	errAbort("%s is empty of data", inName);
+    bwgCreate(sectionList, chromSizeHash, 256, 1024, FALSE, outName);
+    lmCleanup(&lm);
 }
