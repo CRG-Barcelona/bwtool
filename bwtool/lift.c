@@ -361,10 +361,10 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
     }
     hashElFreeList(&elList);
     carefulClose(&out);
-    hashFree(&sizeHash);
     hashFreeWithVals(&chainHash, freeChainHashMap);
     hashFreeWithVals(&gpbw, perBaseWigFree);
-    writeBw(wigfile, outputfile, mb->chromSizeHash);
+    writeBw(wigfile, outputfile, sizeHash);
+    hashFree(&sizeHash);
     remove(wigfile);
     metaBigClose(&mb);
 }
