@@ -90,9 +90,12 @@ struct perBaseWig *alloc_perBaseWig(char *chrom, int start, int end)
     pbw->chromStart = start;
     pbw->chromEnd = end;
     pbw->len = size;
-    AllocArray(pbw->data, size);
-    for (i = 0; i < size; i++)
-	pbw->data[i] = na;
+    if (size > 0)
+    {
+	AllocArray(pbw->data, size);
+	for (i = 0; i < size; i++)
+	    pbw->data[i] = na;
+    }
     return pbw;
 }
 
