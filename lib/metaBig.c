@@ -379,7 +379,8 @@ static struct bed *parseSectionString(char *sectionString, struct hash *chromSiz
 	int numSections = 0;
 	int i;
 	char *s = cloneString(sectionString);
-	numSections = chopString(s, ",", sections, ArraySize(sections));
+	stripChar(s, ',');
+	numSections = chopString(s, ";", sections, ArraySize(sections));
 	for (i = 0; i < numSections; i++)
 	{
 	    struct bed *sec = sectionToBed(sections[i], chromSizes);
