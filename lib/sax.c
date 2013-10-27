@@ -7,6 +7,7 @@
 #include "common.h"
 #include "linefile.h"
 #include "hash.h"
+#include "sax.h"
 
 static double *sax_make_cut_points_array(int alphabet_size)
 /* Incredibly pathetic function to make the all-important array. */
@@ -354,7 +355,7 @@ char *sax_from_array_force_window(double *array, size_t length, size_t alphabet_
 /* make a new version of the array that is the SAX symbolic version. this one also allows the */
 /* window size to be fixed */
 {
-    char *alphabet = "ACGTVLIMFWPSYNQDEKRHX";
+    char *alphabet = SAX_ALPHABET;
     char *sax;
     double *cut_points = sax_make_cut_points_array(alphabet_size);
     int *sax_array;

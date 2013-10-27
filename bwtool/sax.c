@@ -21,13 +21,7 @@ errAbort(
   "where:\n"
   "   alphabet-size is from 2-20\n"
   "options:\n"
-  "   -iterate-start=m\n"
-  "   -iterate-end=n         run SAX algorithm with varying alphabet sizes\n"
-  "                          ranging from m to n (inclusive).\n"
-  "   -sax-window=n          run SAX using a window size of n.  n should be\n"
-  "                          a power of 2 e.g. 16, 32, 1024, etc.\n"
-  "   -force-bed4            when set, disable the FASTA output in favor of\n"
-  "                          BED4 in the case of a single alphabet size\n"
+  "   -bed4                  when set, disable the FASTA output in favor of BED4\n"
   "   -add-wig-out           in the case of BED4 output, add an additional\n"
   "                          column that shows the original data\n"
   "   -mean=val              force z-normalization to use fixed mean\n"
@@ -80,7 +74,7 @@ static struct bed *make_initial_bed_list(struct perBaseWig *pbw, int name_size)
     return bedList;
 }
 
-void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alphaS, int alphaE, int window, double mean, double std)
+void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alpha, int window, double mean, double std, boolean wig_out)
 /* output the bed4 style when it's being run over an interval */
 {
     struct bed *outBedList = NULL;
@@ -89,7 +83,9 @@ void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alphaS, 
     struct perBaseWig *pbw;
     struct slDouble *datList = NULL;
     struct slDouble *oneDub;
-    boolean outWig = optionExists("addWigOut");
+    /* Maybe sometime I'll put back the option to use multiple alphabets at a time. */
+    int alphaS = alpha;
+    int alphaE = alpha;
     for (pbw = wigList; pbw != NULL; pbw = pbw->next)
     {
 	struct bed *bedList = make_initial_bed_list(pbw, alphaE - alphaS + 2);
@@ -102,7 +98,7 @@ void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alphaS, 
 		bed->name[i-alphaS] = sax[j];
 	    freeMem(sax);
 	}
-	if (outWig)
+	if (wig_out)
 	    for (j = 0; j < data_len; j++)
 	    {
 		struct slDouble *dub = newSlDouble(pbw->data[j]);
@@ -117,8 +113,8 @@ void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alphaS, 
     oneDub = datList;
     for (bed = outBedList; bed != NULL; bed = bed->next)
     {
-	bedOutputN(bed, 4, out, '\t', (outWig) ? '\t' : '\n');
-	if (outWig)
+	bedOutputN(bed, 4, out, '\t', (wig_out) ? '\t' : '\n');
+	if (wig_out)
 	{
 	    if (oneDub == NULL)
 		errAbort("data inconsistency. programmer error\n");
@@ -153,7 +149,8 @@ void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned d
     FILE *out;
     boolean do_std = (hashLookup(options, "std") != NULL);
     boolean do_mean = (hashLookup(options, "mean") != NULL);
-    boolean force_bed4 = (hashLookup(options, "force-bed4") != NULL);
+    boolean bed4 = (hashLookup(options, "bed4") != NULL);
+    boolean wig_out = (hashLookup(options, "add-wig-out") != NULL);
     if (do_mean || do_std)
     {
 	if (!do_std || !do_mean)
@@ -165,9 +162,7 @@ void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned d
     for (bed = mb->sections; bed != NULL; bed = bed->next)
     {
 	/* print a header */
-	if (bed == mb->sections)
-	    fprintf(out, "# created using wigsax version Sept2011.\n");
-	if ((itStart == itEnd) && !force_bed4)
+	if ((itStart == itEnd) && !bed4)
 	{
 	    if (bed == mb->sections)
 		fprintf(out, "# alphabet size = %d\n", alpha);
@@ -176,8 +171,8 @@ void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned d
 	else
 	{
 	    if (bed == mb->sections)
-		fprintf(out, "# alphabet size = %d-%d\n", itStart, itEnd);
-	    wigsax_bed4(out, mb, bed, itStart, itEnd, window, mean, std);
+		fprintf(out, "# alphabet size = %d\n", alpha);
+	    wigsax_bed4(out, mb, bed, alpha, window, mean, std, wig_out);
 	}
     }
     metaBigClose(&mb);
