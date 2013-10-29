@@ -22,11 +22,10 @@ errAbort(
   "usage:\n"
   "   bwtool remove <operator> <value|mask.bed> input.bw[:chr:start-end] output.bw\n" 
   "where:\n"
-  "   operator is one of the following: \"less\", \"less-equal\", \"more\", \"more-equal\",\n"
-  "   \"equal\", \"not-equal\", or \"mask\".  In the case of \"mask\", the next parameter is\n"
-  "   a bed file containing the regions to remove.  If the operator is not \"mask\", it\n"
-  "   is a typical binary operator for a thresholding operation using the value\n"
-  "   parameter.\n"
+  "   operator is one of the following: \"less\", \"more\", or \"mask\".  In the case\n"
+  "   of \"mask\", the next parameter is a bed file containing the regions to remove.\n"
+  "   If the operator is not \"mask\", it is a typical binary operator for a thresholding\n"
+  "   operation using the value parameter.\n"
   "options:\n"
   "   -inverse   remove the data NOT specified in the operation\n"
   );
@@ -72,7 +71,7 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	{
-	    int size = pbw->chromEnd - pbw->chromStart;
+	    int size = pbw->len;
 	    int i;
 	    for (i = 0; i < size; i++)
 	    {
@@ -122,9 +121,9 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 		}
 		}
 	    }
-	    perBaseWigOutputNASkip(pbwList, out, wot, decimals, NULL, FALSE, condense);
-	    perBaseWigFreeList(&pbwList);
 	}
+	perBaseWigOutputNASkip(pbwList, out, wot, decimals, NULL, FALSE, condense);
+	perBaseWigFreeList(&pbwList);
     }
     carefulClose(&out);
     writeBw(wigfile, outputfile, mb->chromSizeHash);
