@@ -19,7 +19,7 @@ else if (differentString(primaryRow->chrom, self->prevPChrom))
     self->prevPChrom = cloneString(primaryRow->chrom);
     }
 else if (primaryRow->start < self->prevPStart)
-    errAbort("annoGrator %s:Unsorted input from primary source (%s, %u < %u)",
+    errAbort("annoGrator %s: Unsorted input from primary source (%s, %u < %u)",
 	     self->streamer.name, primaryRow->chrom, primaryRow->start, self->prevPStart);
 self->prevPStart = primaryRow->start;
 }
@@ -51,6 +51,7 @@ if (self->qHead == NULL)
     // Queue is empty - clean up lm
     lmCleanup(&(self->qLm));
     self->qLm = lmInit(0);
+    self->qSkippedCount = 0;
     }
 }
 
@@ -70,14 +71,15 @@ if (self->qTail != NULL)
     }
 }
 
-INLINE void agFetchToEnd(struct annoGrator *self, char *chrom, uint end)
+INLINE void agFetchToEnd(struct annoGrator *self, char *chrom, uint start, uint end)
 /* Fetch rows until we are sure we have all items that start to the left of end,
  * i.e. we have an item that starts at/after end or we hit eof. */
 {
 while (!self->eof &&
-       (self->qTail == NULL || strcmp(self->qTail->chrom, chrom) < 0 || self->qTail->start < end))
+       (self->qTail == NULL || strcmp(self->qTail->chrom, chrom) < 0 ||
+	(sameString(self->qTail->chrom, chrom) && self->qTail->start < end)))
     {
-    struct annoRow *newRow = self->mySource->nextRow(self->mySource, self->qLm);
+    struct annoRow *newRow = self->mySource->nextRow(self->mySource, chrom, start, self->qLm);
     if (newRow == NULL)
 	self->eof = TRUE;
     else
@@ -103,6 +105,17 @@ while (!self->eof &&
 		// newRow->chrom comes after chrom; we're done for now
 		break;
 	    }
+	// If we're skipping past large regions, keep qLm size under control:
+	else
+	    {
+	    self->qSkippedCount++;
+	    if (self->qSkippedCount > 1024 && self->qHead == NULL && self->qTail == NULL)
+		{
+		lmCleanup(&(self->qLm));
+		self->qLm = lmInit(0);
+		self->qSkippedCount = 0;
+		}
+	    }
 	}
     }
 }
@@ -120,16 +133,24 @@ struct annoRow *annoGratorIntegrate(struct annoGrator *self, struct annoStreamRo
 struct annoRow *primaryRow = primaryData->rowList;
 struct annoRow *rowList = NULL;
 agCheckPrimarySorting(self, primaryRow);
-agTrimToStart(self, primaryRow->chrom, primaryRow->start);
-agFetchToEnd(self, primaryRow->chrom, primaryRow->end);
+// In order to catch the intersection of two 0-length elements (i.e. two insertions),
+// we have to broaden our search a little:
+int pStart = primaryRow->start, pEnd = primaryRow->end;
+if (pStart == pEnd)
+    {
+    pStart--;
+    pEnd++;
+    }
+char *pChrom = primaryRow->chrom;
+agTrimToStart(self, pChrom, pStart);
+agFetchToEnd(self, pChrom, pStart, pEnd);
 boolean rjFailHard = (retRJFilterFailed != NULL);
 if (rjFailHard)
     *retRJFilterFailed = FALSE;
 struct annoRow *qRow;
 for (qRow = self->qHead;  qRow != NULL;  qRow = qRow->next)
     {
-    if (qRow->start < primaryRow->end && qRow->end > primaryRow->start &&
-	sameString(qRow->chrom, primaryRow->chrom))
+    if (qRow->start < pEnd && qRow->end > pStart && sameString(qRow->chrom, pChrom))
 	{
 	int numCols = self->mySource->numCols;
 	enum annoRowType rowType = self->mySource->rowType;
@@ -164,7 +185,8 @@ freeMem(self->prevPChrom);
 freez(pSelf);
 }
 
-static struct annoRow *noNextRow(struct annoStreamer *self, struct lm *callerLm)
+static struct annoRow *noNextRow(struct annoStreamer *self, char *minChrom, uint minEnd,
+				 struct lm *callerLm)
 /* nextRow() is N/A for annoGrator, which needs caller to use integrate() instead. */
 {
 errAbort("annoGrator %s: nextRow() called, but integrate() should be called instead",
@@ -181,6 +203,7 @@ self->eof = FALSE;
 lmCleanup(&(self->qLm));
 self->qLm = lmInit(0);
 self->qHead = self->qTail = NULL;
+self->qSkippedCount = 0;
 }
 
 static boolean filtersHaveRJInclude(struct annoFilter *filters)

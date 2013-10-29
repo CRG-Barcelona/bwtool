@@ -148,7 +148,7 @@ testName=getFileNameFromHdrSig(testbytes);
 freez(&testbytes);
 if (!testName)
     return NULL;  /* avoid error from pipeline */
-pl = pipelineOpen1(getDecompressor(fileName), pipelineRead, fileName, NULL);
+pl = pipelineOpen1(getDecompressor(fileName), pipelineRead|pipelineSigpipe, fileName, NULL);
 lf = lineFileAttach(fileName, zTerm, pipelineFd(pl));
 lf->pl = pl;
 return lf;
@@ -159,7 +159,7 @@ struct lineFile *lineFileDecompressFd(char *name, bool zTerm, int fd)
 {
 struct pipeline *pl;
 struct lineFile *lf;
-pl = pipelineOpenFd1(getDecompressor(name), pipelineRead, fd, STDERR_FILENO);
+pl = pipelineOpenFd1(getDecompressor(name), pipelineRead|pipelineSigpipe, fd, STDERR_FILENO);
 lf = lineFileAttach(name, zTerm, pipelineFd(pl));
 lf->pl = pl;
 return lf;
@@ -175,7 +175,7 @@ struct lineFile *lf;
 char *fileName = getFileNameFromHdrSig(mem);
 if (fileName==NULL)
   return NULL;
-pl = pipelineOpenMem1(getDecompressor(fileName), pipelineRead, mem, size, STDERR_FILENO);
+pl = pipelineOpenMem1(getDecompressor(fileName), pipelineRead|pipelineSigpipe, mem, size, STDERR_FILENO);
 lf = lineFileAttach(fileName, zTerm, pipelineFd(pl));
 lf->pl = pl;
 return lf;
@@ -653,9 +653,10 @@ void lineFileClose(struct lineFile **pLf)
 struct lineFile *lf;
 if ((lf = *pLf) != NULL)
     {
-    if (lf->pl != NULL)
+    struct pipeline *pl = lf->pl;
+    if (pl != NULL)
         {
-        pipelineWait(lf->pl);
+        pipelineWait(pl);
         pipelineFree(&lf->pl);
         }
     else if (lf->fd > 0 && lf->fd != fileno(stdin))
@@ -827,12 +828,12 @@ while (lineFileNext(lf, &line, NULL))
 return FALSE;
 }
 
-boolean lineFileNextReal(struct lineFile *lf, char **retStart)
+boolean lineFileNextRealWithSize(struct lineFile *lf, char **retStart, int *retSize)
 /* Fetch next line from file that is not blank and
- * does not start with a '#'. */
+ * does not start with a '#'. Return size of line. */
 {
 char *s, c;
-while (lineFileNext(lf, retStart, NULL))
+while (lineFileNext(lf, retStart, retSize))
     {
     s = skipLeadingSpaces(*retStart);
     c = s[0];
@@ -840,6 +841,13 @@ while (lineFileNext(lf, retStart, NULL))
         return TRUE;
     }
 return FALSE;
+}
+
+boolean lineFileNextReal(struct lineFile *lf, char **retStart)
+/* Fetch next line from file that is not blank and
+ * does not start with a '#'. */
+{
+return lineFileNextRealWithSize(lf, retStart, NULL);
 }
 
 boolean lineFileNextFullReal(struct lineFile *lf, char **retStart)

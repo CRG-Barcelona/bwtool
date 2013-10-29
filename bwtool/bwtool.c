@@ -1,5 +1,9 @@
 /* bwtool - a bigWig manipulation tool */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "common.h"
 #include "linefile.h"
 #include "hash.h"
@@ -105,7 +109,7 @@ enum bw_op_type get_bw_op_type(char *thresh_type, boolean inverse)
 int main(int argc, char *argv[])
 /* Process command line. */
 {
-struct hash *options = optionParseIntoHash(&argc, argv, FALSE);
+struct hash *options = optionParseIntoHashExceptNumbers(&argc, argv, FALSE);
 /* common options */
 char *regions = (char *)hashOptionalVal(options, "regions", NULL);
 char *favorites = (char *)hashOptionalVal(options, "favorites", NULL);
@@ -135,10 +139,10 @@ else if (sameString(argv[1], "fill"))
 }
 else if (sameString(argv[1], "shift"))
 {
-    if (argc != 6) 
+    if (argc != 5) 
 	usage_shift();
     else
-	bwtool_shift(options, favorites, regions, decimals, wot, condense, argv[3], argv[2], argv[4], argv[5]);
+	bwtool_shift(options, favorites, regions, decimals, wot, condense, argv[2], argv[3], argv[4]);
 }
 else if (sameString(argv[1], "find"))
 {

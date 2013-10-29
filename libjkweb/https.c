@@ -1,10 +1,10 @@
 /* Connect via https. */
 
+#ifdef USE_SSL
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#ifdef USE_SSL
 
 #include "openssl/ssl.h"
 #include "openssl/err.h"

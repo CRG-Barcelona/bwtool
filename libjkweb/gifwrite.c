@@ -1,10 +1,10 @@
 /* writegif.c - stuff to write out a GIF file.  See also comprs.c */
 
+#ifndef USE_PNG
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#ifndef USE_PNG
 #include "common.h"
 #include "memgfx.h"
 #include "gifcodes.h"

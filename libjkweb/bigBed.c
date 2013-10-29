@@ -53,6 +53,7 @@ char *uncompressBuf = NULL;
 if (bbi->uncompressBufSize > 0)
     uncompressBuf = needLargeMem(bbi->uncompressBufSize);
 
+char *mergedBuf = NULL;
 for (block = blockList; block != NULL; )
     {
     /* Find contigious blocks and read them into mergedBuf. */
@@ -60,7 +61,7 @@ for (block = blockList; block != NULL; )
     bits64 mergedOffset = block->offset;
     bits64 mergedSize = beforeGap->offset + beforeGap->size - mergedOffset;
     udcSeek(udc, mergedOffset);
-    char *mergedBuf = needLargeMem(mergedSize);
+    mergedBuf = needLargeMem(mergedSize);
     udcMustRead(udc, mergedBuf, mergedSize);
     char *blockBuf = mergedBuf;
 
@@ -118,6 +119,7 @@ for (block = blockList; block != NULL; )
         break;
     freez(&mergedBuf);
     }
+freez(&mergedBuf);
 freeMem(uncompressBuf);
 slFreeList(&blockList);
 slReverse(&list);

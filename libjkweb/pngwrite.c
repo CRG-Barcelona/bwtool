@@ -8,8 +8,6 @@
 #include "config.h"
 #endif
 
-#ifdef USE_PNG
-
 #include "png.h"   // MUST come before common.h, due to setjmp checking  in pngconf.h 
 #include "common.h"
 #include "memgfx.h"
@@ -119,16 +117,3 @@ if (!mgSaveToPng(pngFile, mg, useTransparency))
 if (fclose(pngFile) != 0)
     errnoAbort("fclose failed");
 }
-
-#else // USE_PNG
-
-#include "common.h"
-#include "memgfx.h"
-
-void mgSavePng(struct memGfx *mg, char *filename, boolean useTransparency)
-/* Save memory bitmap to filename as a PNG. */
-{
-return NULL;
-}
-
-#endif // USE_PNG

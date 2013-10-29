@@ -109,7 +109,7 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
 /* bwtool_summary - main for the summarize program */
 
 void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
-		  boolean condense, char *val_s, char *up_s, char *bigfile, char *outputfile);
+		  boolean condense, char *val_s, char *bigfile, char *outputfile);
 /* bwtool_shift - main for shifting program */
 
 void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfile, char *outputfile);

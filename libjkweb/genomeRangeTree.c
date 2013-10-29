@@ -55,15 +55,13 @@ freez(pTree);                /* free this */
 }
 
 struct rbTree *genomeRangeTreeFindRangeTree(struct genomeRangeTree *tree, char *chrom)
-/* Find the rangeTree for this chromosome, if any. Returns NULL if chrom not found.
- * Free with genomeRangeTreeFree. */
+/* Find the rangeTree for this chromosome, if any. Returns NULL if chrom not found. */
 {
 return hashFindVal(tree->hash, chrom);
 }
 
 struct rbTree *genomeRangeTreeFindOrAddRangeTree(struct genomeRangeTree *tree, char *chrom)
-/* Find the rangeTree for this chromosome, or add new chrom and empty rangeTree if not found.
- * Free with genomeRangeTreeFree. */
+/* Find the rangeTree for this chromosome, or add new chrom and empty rangeTree if not found. */
 {
 struct hashEl *hel;
 hel = hashStore(tree->hash, chrom);
@@ -185,5 +183,16 @@ for (chrom = chromList ; chrom ; chrom = chrom->next)
 dyStringAppend(tmpTreeToString, "]");
 hashElFreeList(&chromList);
 return tmpTreeToString;
+}
+
+long long genomeRangeTreeSumRanges(struct genomeRangeTree *grt)
+/* Sum up all ranges in tree. */
+{
+long long sum = 0;
+struct hashEl *chrom, *chromList = hashElListHash(grt->hash);
+for (chrom = chromList; chrom != NULL; chrom = chrom->next)
+    rbTreeTraverseWithContext(chrom->val, rangeTreeSumRangeCallback, &sum);
+hashElFreeList(&chromList);
+return sum;
 }
 

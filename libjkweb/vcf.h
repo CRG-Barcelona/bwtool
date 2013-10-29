@@ -272,7 +272,8 @@ struct asObject *vcfAsObj();
 // Return asObject describing fields of VCF
 
 char *vcfGetSlashSepAllelesFromWords(char **words, struct dyString *dy);
-/* Overwrite dy with a /-separated allele string from VCF words;
- * return dy->string for convenience. */
+/* Overwrite dy with a /-separated allele string from VCF words,
+ * skipping the extra initial base that VCF requires for indel alleles if necessary.
+ * Return dy->string for convenience. */
 
 #endif // vcf_h

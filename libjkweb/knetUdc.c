@@ -1,11 +1,11 @@
 /* knetUdc -- install udc i/o functions in knetfile interface in samtools. */
 /* As of 2/23/10, the KNETFILE_HOOKS extension is a UCSC-local modification of samtools. */
 
+#if ((defined USE_BAM || defined USE_TABIX) && defined KNETFILE_HOOKS)
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#if ((defined USE_BAM || defined USE_TABIX) && defined KNETFILE_HOOKS)
 
 #include "common.h"
 #include "udc.h"

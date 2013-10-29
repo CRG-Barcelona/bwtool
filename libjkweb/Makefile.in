@@ -98,27 +98,28 @@ am_libjkweb_a_OBJECTS = aliType.$(OBJEXT) annoAssembly.$(OBJEXT) \
 	net.$(OBJEXT) nib.$(OBJEXT) nibTwo.$(OBJEXT) nt4.$(OBJEXT) \
 	numObscure.$(OBJEXT) obscure.$(OBJEXT) oldGff.$(OBJEXT) \
 	oligoTm.$(OBJEXT) options.$(OBJEXT) osunix.$(OBJEXT) \
-	pairHmm.$(OBJEXT) peakCluster.$(OBJEXT) phyloTree.$(OBJEXT) \
-	pipeline.$(OBJEXT) pngwrite.$(OBJEXT) portimpl.$(OBJEXT) \
-	psGfx.$(OBJEXT) psPoly.$(OBJEXT) pscmGfx.$(OBJEXT) \
-	psl.$(OBJEXT) pslGenoShow.$(OBJEXT) pslShow.$(OBJEXT) \
-	pslTbl.$(OBJEXT) pslTransMap.$(OBJEXT) pthreadWrap.$(OBJEXT) \
-	qa.$(OBJEXT) quickHeap.$(OBJEXT) quotedP.$(OBJEXT) \
-	ra.$(OBJEXT) rainbow.$(OBJEXT) rangeTree.$(OBJEXT) \
-	rbTree.$(OBJEXT) regexHelper.$(OBJEXT) repMask.$(OBJEXT) \
-	rle.$(OBJEXT) rnautil.$(OBJEXT) rqlEval.$(OBJEXT) \
-	rqlParse.$(OBJEXT) rudp.$(OBJEXT) scoreWindow.$(OBJEXT) \
-	seg.$(OBJEXT) seqOut.$(OBJEXT) seqStats.$(OBJEXT) \
-	servBrcMcw.$(OBJEXT) servCrunx.$(OBJEXT) servcis.$(OBJEXT) \
-	servcl.$(OBJEXT) servmsII.$(OBJEXT) servpws.$(OBJEXT) \
-	shaRes.$(OBJEXT) slog.$(OBJEXT) snof.$(OBJEXT) \
-	snofmake.$(OBJEXT) snofsig.$(OBJEXT) spaceSaver.$(OBJEXT) \
-	spacedColumn.$(OBJEXT) spacedSeed.$(OBJEXT) splatAli.$(OBJEXT) \
-	sqlList.$(OBJEXT) sqlNum.$(OBJEXT) subText.$(OBJEXT) \
-	sufa.$(OBJEXT) sufx.$(OBJEXT) synQueue.$(OBJEXT) \
-	tabRow.$(OBJEXT) textOut.$(OBJEXT) tokenizer.$(OBJEXT) \
-	trix.$(OBJEXT) twoBit.$(OBJEXT) udc.$(OBJEXT) vGfx.$(OBJEXT) \
-	vGif.$(OBJEXT) vPng.$(OBJEXT) vcf.$(OBJEXT) vcfBits.$(OBJEXT) \
+	pairHmm.$(OBJEXT) paraFetch.$(OBJEXT) peakCluster.$(OBJEXT) \
+	phyloTree.$(OBJEXT) pipeline.$(OBJEXT) pngwrite.$(OBJEXT) \
+	portimpl.$(OBJEXT) psGfx.$(OBJEXT) psPoly.$(OBJEXT) \
+	pscmGfx.$(OBJEXT) psl.$(OBJEXT) pslGenoShow.$(OBJEXT) \
+	pslShow.$(OBJEXT) pslTbl.$(OBJEXT) pslTransMap.$(OBJEXT) \
+	pthreadWrap.$(OBJEXT) qa.$(OBJEXT) quickHeap.$(OBJEXT) \
+	quotedP.$(OBJEXT) ra.$(OBJEXT) rainbow.$(OBJEXT) \
+	rangeTree.$(OBJEXT) raToStruct.$(OBJEXT) rbTree.$(OBJEXT) \
+	regexHelper.$(OBJEXT) repMask.$(OBJEXT) rle.$(OBJEXT) \
+	rnautil.$(OBJEXT) rqlEval.$(OBJEXT) rqlParse.$(OBJEXT) \
+	rudp.$(OBJEXT) scoreWindow.$(OBJEXT) seg.$(OBJEXT) \
+	seqOut.$(OBJEXT) seqStats.$(OBJEXT) servBrcMcw.$(OBJEXT) \
+	servCrunx.$(OBJEXT) servcis.$(OBJEXT) servcl.$(OBJEXT) \
+	servmsII.$(OBJEXT) servpws.$(OBJEXT) shaRes.$(OBJEXT) \
+	slog.$(OBJEXT) snof.$(OBJEXT) snofmake.$(OBJEXT) \
+	snofsig.$(OBJEXT) spaceSaver.$(OBJEXT) spacedColumn.$(OBJEXT) \
+	spacedSeed.$(OBJEXT) splatAli.$(OBJEXT) sqlList.$(OBJEXT) \
+	sqlNum.$(OBJEXT) subText.$(OBJEXT) sufa.$(OBJEXT) \
+	sufx.$(OBJEXT) synQueue.$(OBJEXT) tabRow.$(OBJEXT) \
+	textOut.$(OBJEXT) tokenizer.$(OBJEXT) trix.$(OBJEXT) \
+	twoBit.$(OBJEXT) udc.$(OBJEXT) vGfx.$(OBJEXT) vGif.$(OBJEXT) \
+	vPng.$(OBJEXT) vcf.$(OBJEXT) vcfBits.$(OBJEXT) \
 	verbose.$(OBJEXT) wildcmp.$(OBJEXT) wormdna.$(OBJEXT) \
 	xAli.$(OBJEXT) xa.$(OBJEXT) xap.$(OBJEXT) xenshow.$(OBJEXT) \
 	xmlEscape.$(OBJEXT) xp.$(OBJEXT) zlibFace.$(OBJEXT)
@@ -495,6 +496,8 @@ libjkweb_a_SOURCES = \
 	osunix.c \
 	pairHmm.c \
 	pairHmm.h \
+	paraFetch.c \
+	paraFetch.h \
 	patSpace.h \
 	peakCluster.c \
 	peakCluster.h \
@@ -534,6 +537,8 @@ libjkweb_a_SOURCES = \
 	rainbow.h \
 	rangeTree.c \
 	rangeTree.h \
+	raToStruct.c \
+	raToStruct.h \
 	rbTree.c \
 	rbTree.h \
 	regexHelper.c \
@@ -821,6 +826,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/osunix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pairHmm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paraFetch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peakCluster.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phyloTree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pipeline.Po@am__quote@
@@ -839,6 +845,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quickHeap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quotedP.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ra.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/raToStruct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rainbow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rangeTree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rbTree.Po@am__quote@

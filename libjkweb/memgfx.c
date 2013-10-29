@@ -334,6 +334,15 @@ if (x < mg->clipMinX)
     x = mg->clipMinX;
 if (y < mg->clipMinY)
     y = mg->clipMinY;
+if (x2 < mg->clipMinX)
+    x2 = mg->clipMinX;
+if (y2 < mg->clipMinY)
+    y2 = mg->clipMinY;
+
+if (x > mg->clipMaxX)
+    x = mg->clipMaxX;
+if (y > mg->clipMaxY)
+    y = mg->clipMaxY;
 if (x2 > mg->clipMaxX)
     x2 = mg->clipMaxX;
 if (y2 > mg->clipMaxY)
@@ -411,6 +420,9 @@ inline void mixDot(struct memGfx *img, int x, int y,  float frac, Color col)
 /* Puts a single dot on the image, mixing it with what is already there
  * based on the frac argument. */
 {
+if ((x < img->clipMinX) || (x > img->clipMaxX) || (y < img->clipMinY) || (y > img->clipMaxY))
+    return;
+
 Color *pt = _mgPixAdr(img,x,y);
 float invFrac = 1 - frac;
 

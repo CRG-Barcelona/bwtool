@@ -20,20 +20,19 @@ void usage_shift()
 {
 errAbort(
   "bwtool shift - move the data on the chromosome by N number of bases\n"
-  "   where N can be negative.\n"
   "usage:\n"
-  "   bwtool shift <up|down> N input.bw[:chr:start-end] output.bw\n" 
+  "   bwtool shift N input.bw[:chr:start-end] output.bw\n" 
   );
 }
 
 void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
-		  boolean condense, char *val_s, char *up_s, char *bigfile, char *outputfile)
+		  boolean condense, char *val_s, char *bigfile, char *outputfile)
 /* bwtool_shift - main for shifting program */
 {
     const double na = NANUM;
     int shft = sqlSigned(val_s);
     int abs_shft = abs(shft);
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     if (!mb)
 	errAbort("problem opening %s", bigfile);
     char wigfile[512];
@@ -41,12 +40,8 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
     FILE *out = mustOpen(wigfile, "w");
     struct bed *section;
     boolean up = TRUE;
-    if (up_s && sameString("up", up_s))
-	up = TRUE;
-    else if (up_s && sameString("down", up_s))
+    if (shft > 0)
 	up = FALSE;
-    else
-	errAbort("must choose \"up\" or \"down\" with shift function");
     if (shft == 0)
 	errAbort("it doesn't make sense to shift by zero.");
     for (section = mb->sections; section != NULL; section = section->next)

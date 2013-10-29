@@ -11,6 +11,11 @@
 #include "dystring.h"
 
 #define DEFAULTCONNECTTIMEOUTMSEC 10000  /* default connect timeout for tcp in milliseconds */
+#define DEFAULTREADWRITETTIMEOUTSEC 120  /* default read/write timeout for tcp in seconds */
+
+int setReadWriteTimeouts(int sd, int seconds);
+/* Set read and write timeouts on socket sd 
+ * Return -1 if there are any errors, 0 if successful. */
 
 /* add a failure to connFailures[]
  *  which can save time and avoid more timeouts */
@@ -45,7 +50,7 @@ FILE *netFileFromSocket(int socket);
 
 int netWaitForData(int sd, int microseconds);
 /* Wait for descriptor to have some data to read, up to given number of
- * number of microseconds.  Returns amount of data there or zero if timed out. */
+ * microseconds.  Returns amount of data there or zero if timed out. */
 
 void netBlockBrokenPipes();
 /* Make it so a broken pipe doesn't kill us. */
@@ -255,10 +260,6 @@ boolean netSkipHttpHeaderLinesHandlingRedirect(int sd, char *url, int *redirecte
 
 boolean netGetFtpInfo(char *url, long long *retSize, time_t *retTime);
 /* Return date in UTC and size of ftp url file */
-
-
-boolean parallelFetch(char *url, char *outPath, int numConnections, int numRetries, boolean newer, boolean progress);
-/* Open multiple parallel connections to URL to speed downloading */
 
 boolean hasProtocol(char *urlOrPath);
 /* Return TRUE if it looks like it has http://, ftp:// etc. */

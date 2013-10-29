@@ -4,16 +4,22 @@
 #define ANNOASSEMBLY_H
 
 #include "common.h"
+#include "hash.h"
 
 struct annoAssembly
 /* Basic information about a genome assembly. */
     {
     char *name;			// UCSC symbolic name for assembly, e.g. "hg19"
     struct twoBitFile *tbf;	// Opened twoBit sequence file for assembly
+    char *twoBitPath;		// twoBit file name
+    struct hash *seqSizes;	// cache of sequence names to sizes (twoBitSeqSize does a seek&read)
     };
 
 struct annoAssembly *annoAssemblyNew(char *name, char *twoBitPath);
 /* Return an annoAssembly with open twoBitFile. */
+
+struct slName *annoAssemblySeqNames(struct annoAssembly *aa);
+/* Return a list of sequence names in this assembly. */
 
 uint annoAssemblySeqSize(struct annoAssembly *aa, char *seqName);
 /* Return the number of bases in seq which must be in aa's twoBitFile. */

@@ -260,6 +260,8 @@ libjkweb_a_SOURCES = \
 	osunix.c \
 	pairHmm.c \
 	pairHmm.h \
+	paraFetch.c \
+	paraFetch.h \
 	patSpace.h \
 	peakCluster.c \
 	peakCluster.h \
@@ -299,6 +301,8 @@ libjkweb_a_SOURCES = \
 	rainbow.h \
 	rangeTree.c \
 	rangeTree.h \
+	raToStruct.c \
+	raToStruct.h \
 	rbTree.c \
 	rbTree.h \
 	regexHelper.c \
