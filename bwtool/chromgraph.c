@@ -9,6 +9,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 void usage_chromgraph()
 /* Explain usage of chromgraph program and exit. */
@@ -26,7 +27,7 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 		       double fill, char *bigfile, char *outputfile)
 /* bwtool_chromgraph - main for making the chromgraph file */
 {
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     FILE *output = mustOpen(outputfile, "w");
     struct bed *section;
     struct bbiSummaryElement summary;

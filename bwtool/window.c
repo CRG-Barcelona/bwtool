@@ -10,6 +10,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 #include "cluster.h"
 
 void usage_window()

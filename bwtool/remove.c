@@ -126,9 +126,9 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 	    perBaseWigFreeList(&pbwList);
 	}
     }
+    carefulClose(&out);
     writeBw(wigfile, outputfile, mb->chromSizeHash);
     remove(wigfile);
-    carefulClose(&out);
 }  
 
 static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *outputfile, enum wigOutType wot, 
@@ -176,7 +176,7 @@ void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigne
     enum bw_op_type op= get_bw_op_type(thresh_type, inverse);
     if (op == invalid)
 	usage_remove();
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     if (op == mask)
 	bwtool_remove_mask(mb, val_or_file, outputfile, wot, decimals, condense, inverse);
     else

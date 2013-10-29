@@ -18,4 +18,7 @@ void parse_left_right(char *size_s, unsigned *pleft, unsigned *pright);
 void writeBw(char *inName, char *outName, struct hash *chromSizeHash);
 /* shared func */
 
+struct metaBig *metaBigOpen_check(char *bigfile, char *regions);
+/* A wrapper for metaBigOpen that does some checking and erroring */
+
 #endif /* BWTOOL_SHARED_H */

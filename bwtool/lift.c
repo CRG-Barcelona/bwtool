@@ -341,7 +341,7 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
     else
 	sizeHash = qSizeHash(chainfile);
     gpbw = genomePbw(sizeHash);
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     char wigfile[512];
     safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
     FILE *out = mustOpen(wigfile, "w");

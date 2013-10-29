@@ -9,6 +9,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 #include "rangeTree.h"
 #include "extrema.h"
 
@@ -53,7 +54,7 @@ void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, u
     unsigned min_sep = sqlUnsigned((char *)hashOptionalVal(options, "min-sep", "0"));
     char *other_bigfile = (char *)hashOptionalVal(options, "against", NULL);
     enum ex_removal rem = get_removal(options);
-    struct metaBig *main_big = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *main_big = metaBigOpen_check(bigfile, regions);
     struct metaBig *other_big = NULL;
     struct extrema *main_list;
     struct extrema *other_list = NULL;
@@ -69,7 +70,7 @@ void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, u
 	    errAbort("must specify shift limit in -against option");
 	num = chopPrefixAt(other_bigfile, ',');
 	shift = sqlUnsigned(num);
-	other_big = metaBigOpen_favs(other_bigfile, regions, favorites);
+	other_big = metaBigOpen_check(other_bigfile, regions);
     }
     if (!main_big || (!other_big && other_bigfile))
 	errAbort("could not open bigWig file");
@@ -150,7 +151,7 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
 {
     boolean inverse = (hashFindVal(options, "inverse") != NULL) ? TRUE : FALSE;
     enum bw_op_type op= get_bw_op_type(thresh_type, inverse);
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     double thresh = sqlDouble(thresh_s);
     FILE *out = mustOpen(outputfile, "w");
     struct bed out_bed;

@@ -10,6 +10,7 @@
 #include "bigs.h"
 #include "random_coord.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 #include <stdlib.h>
 
@@ -34,7 +35,7 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
 		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     FILE *out = mustOpen(output_file, "w");
     boolean just_bed = (hashFindVal(options, "bed") != NULL) ? TRUE : FALSE;
     unsigned N = sqlUnsigned(num_s);

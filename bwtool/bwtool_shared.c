@@ -174,3 +174,34 @@ void writeBw(char *inName, char *outName, struct hash *chromSizeHash)
     bwgCreate(sectionList, chromSizeHash, 256, 1024, FALSE, outName);
     lmCleanup(&lm);
 }
+
+static boolean local_file(char *filename)
+/* return TRUE if the file is avialable locally */
+{
+    char *s = cloneString(filename);
+    char *colon = strchr(s, ':');
+    boolean ret = FALSE;
+    if (colon)
+	*colon = '\0';
+    if (fileExists(s))
+	ret = TRUE;
+    freeMem(s);
+    return ret;
+}
+
+struct metaBig *metaBigOpen_check(char *bigfile, char *regions)
+/* A wrapper for metaBigOpen that does some checking and erroring */
+{
+    struct metaBig *mb = metaBigOpen(bigfile, regions);
+    if (!mb)
+    {
+	boolean internet = (strstr(bigfile, "tp://") != 0);
+	if (!internet && !local_file(bigfile))
+	    errAbort("%s wasn't found", bigfile);
+	else if (!internet)
+	    errAbort("%s could not be opened. Perhaps it is not a valid bigWig.", bigfile);
+	else
+	    errAbort("There was a problem opening %s. Perhaps there is a problem with the internet connection.", bigfile); 
+    }
+    return mb;
+}

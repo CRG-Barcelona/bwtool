@@ -9,6 +9,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 #include "sax.h"
 
 void usage_sax()
@@ -130,7 +131,7 @@ void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned d
 		char *outputfile)
 /* bwtool_sax - main for the sax symbol program */
 {
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     struct bed *bed;
     int alpha = (alpha_s != NULL) ? sqlUnsigned(alpha_s) : 8;
     unsigned itStart = sqlUnsigned((char *)hashOptionalVal(options, "iterate-start", (alpha_s != NULL) ? alpha_s : "8"));

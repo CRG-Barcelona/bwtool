@@ -11,6 +11,7 @@
 #include "bigs.h"
 #include "stuff.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 #define NANUM sqrt(-1)
 
@@ -164,7 +165,7 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
     boolean with_sos = (hashFindVal(options, "with-sum-of-squares") != NULL) ? TRUE : FALSE;
     boolean with_sum = (hashFindVal(options, "with-sum") != NULL) ? TRUE : FALSE;
     boolean total = (hashFindVal(options, "total") != NULL) ? TRUE : FALSE;
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     double filll = (hashFindVal(options, "zero-fill") != NULL) ? 0 : fill;
     if ((fill == 0) && total)
 	errAbort("-total incompatible with -zero-fill");

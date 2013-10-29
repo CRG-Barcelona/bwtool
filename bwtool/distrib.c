@@ -9,6 +9,7 @@
 #include "bigWig.h"
 #include "bigs.h"
 #include "bwtool.h"
+#include "bwtool_shared.h"
 
 void usage_distrib()
 /* Explain usage of distribution program and exit. */
@@ -27,7 +28,7 @@ void bwtool_distrib(struct hash *options, char *favorites, char *regions, unsign
 		    char *bigfile, char *outputfile)
 /* bwtool_distrib - main for distribution program */
 {
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     FILE *output = mustOpen(outputfile, "w");
     struct bed *section;
     int low = 0;

@@ -27,7 +27,7 @@ void bwtool_fill(struct hash *options, char *favorites, char *regions, unsigned 
 /* bwtool_fill - main for filling program */
 {
     double val = sqlDouble(val_s);
-    struct metaBig *mb = metaBigOpen_favs(bigfile, regions, favorites);
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     char wigfile[512];
     safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
     FILE *out = mustOpen(wigfile, "w");
