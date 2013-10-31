@@ -27,7 +27,7 @@ errAbort(
   "   -bed            instead of outputting data, just output the bed indicating\n"
   "                   where the data lies.\n"
   "   -NA-perc=p      maximum percent of region allowed to contain NA values\n"
-  "   -blacklist=bed  specifically avoid these regions."
+  "   -blacklist=bed  specifically avoid these regions.\n"
   "   -seed=s         seed the random number generator with some positive integer\n"
   );
 }
