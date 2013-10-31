@@ -28,6 +28,7 @@ errAbort(
   "                   where the data lies.\n"
   "   -NA-perc=p      maximum percent of region allowed to contain NA values\n"
   "   -blacklist=bed  specifically avoid these regions."
+  "   -seed=s         seed the random number generator with some positive integer\n"
   );
 }
 
@@ -38,6 +39,7 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
     struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     FILE *out = mustOpen(output_file, "w");
     boolean just_bed = (hashFindVal(options, "bed") != NULL) ? TRUE : FALSE;
+    unsigned seed = sqlUnsigned((char *)hashOptionalVal(options, "seed", "0"));
     unsigned N = sqlUnsigned(num_s);
     unsigned size = sqlUnsigned(size_s);
     char *blacklist_file = hashFindVal(options, "blacklist");
@@ -45,45 +47,9 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
     struct perBaseWig *pbw;
     struct perBaseWig *pbwList = NULL;
     double NA_perc = sqlDouble(hashOptionalVal(options, "NA-perc", "0.4"));
-    struct random_coord *rc = NULL;
-    unsigned long max = 0;
-    unsigned kept = 0;
-    srand(time(NULL));
     if (blacklist_file)
 	blacklist = bedLoadNAll(blacklist_file, 3);
-    rc = random_coord_init(mb->chromSizeHash, blacklist);
-    max = rc->length - size;
-    while (kept < N)
-    {
-	struct bed *bed = NULL;
-	while (bed == NULL)
-	{
-	    unsigned long rand = random_in_range(0, max);
-	    bed = random_bed(rc, size, rand);
-	}
-	pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE, fill);
-	int size_pbw = pbw->chromEnd - pbw->chromStart;
-	int count_NA = 0;
-	int i;
-	if (isnan(fill))
-	{
-	    for (i = 0; i < size_pbw; i++)
-	    {
-		if (isnan(pbw->data[i]))
-		    count_NA++;
-	    }
-	    if ((double)count_NA/size_pbw <= NA_perc)
-	    {
-		slAddHead(&pbwList, pbw);
-		kept++;
-	    }
-	}
-	else
-	{
-	    slAddHead(&pbwList, pbw);
-	    kept++;
-	}	    
-    }
+    pbwList = random_pbw_list(size, N, mb, NA_perc, fill, blacklist, seed);
     slSort(&pbwList, bedCmp);
     /* output either the bed or a tab-separated list of vals*/ 
     for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
@@ -99,5 +65,4 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
     }
     carefulClose(&out);
     bedFreeList(&blacklist);
-    random_coord_free(&rc);
 }

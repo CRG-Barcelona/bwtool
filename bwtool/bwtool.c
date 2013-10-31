@@ -39,13 +39,15 @@ errAbort(
   "   matrix         extract same-sized sections from bigWig to examine as a matrix\n"
   "   paste          output data from multiple bigWigs and align them one per column\n"
   "                  in tab-delimited output meant to feed into computations\n"
+#ifdef USE_GSL
   "   random         print out random data or random regions from the bigWig file\n"
+#endif
   "   remove         remove data equal to or thresholded on a given value\n"
   "                  or remove data using ranges specified in a bed file\n"
   "   sax            run symbolic aggregate approximation (SAX) algorithm on data\n"
   "   shift          move data on the chromosome\n"
-  "   split          make a set of files describing evenly-sized regions of the bigWig,\n"
-  "                  each of which may be used separately on a cluster and combined later\n"
+/*   "   split          make a set of files describing evenly-sized regions of the bigWig,\n" */
+/*   "                  each of which may be used separately on a cluster and combined later\n" */
   "   summary        provide some summary stats for each region in a bed file\n"
   "   window         print out tiling windows of data in comma-separated lists\n\n"
   "general options:\n"
@@ -178,6 +180,7 @@ else if (sameString(argv[1], "distribution") || sameString(argv[1], "dist"))
     else
 	bwtool_distrib(options, favorites, regions, decimals, argv[2], argv[3]);
 }
+#ifdef USE_GSL 
 else if (sameString(argv[1], "random"))
 {
     if (argc != 6)
@@ -185,6 +188,7 @@ else if (sameString(argv[1], "random"))
     else
 	bwtool_random(options, favorites, regions, decimals, fill, argv[2], argv[3], argv[4], argv[5]);
 }
+#endif
 else if (sameString(argv[1], "aggregate") || sameString(argv[1], "agg"))
 {
     decimals = sqlUnsigned((char *)hashOptionalVal(options, "decimals", "6"));

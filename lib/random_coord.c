@@ -1,16 +1,19 @@
+/* module to deal with random coordinates across chromosomes */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-/* module to deal with random coordinates across chromosomes */
 
 #include "common.h"
 #include "obscure.h"
 #include "random_coord.h"
 #include "bigs.h"
-#include "mt64.h"
 
-#include <limits.h>
+#define NANUM sqrt(-1)
+
+#ifdef USE_GSL
+#include <gsl/gsl_rng.h>
+#endif
 
 /* "private" struct declaration */
 struct cat_chrom
@@ -129,62 +132,43 @@ struct bed *random_bed(struct random_coord *rc, int size, int rand_coord)
     return bed;
 }
 
-static unsigned long rand_converted_ULL()
-/* does a bit shift on the unsigned long long in case it's not the same size in */
-/* the local machine's architecture as an unsigned long */
-{
-    int diff = sizeof(unsigned long long) - sizeof(unsigned long);
-    int bit_diff = CHAR_BIT * diff;
-    if (diff == 0)
-	return genrand64_int64();
-    else
-	return (unsigned long)(genrand64_int64() >> bit_diff);
-}
-
-int random_in_range(unsigned long min, unsigned long max)
-/* Would like a semi-open interval [min, max) */
-{
-    unsigned long base_random = rand_converted_ULL(); /* in [0, ULONG_MAX] */
-    if (ULONG_MAX == base_random) return random_in_range(min, max);
-    /* now guaranteed to be in [0, ULONG_MAX) */
-    int range       = max - min,
-	remainder   = ULONG_MAX % range,
-	bucket      = ULONG_MAX / range;
-    /* There are range buckets, plus one smaller interval
-       within remainder of ULONG_MAX */
-    if (base_random < ULONG_MAX - remainder) {
-	return min + base_random/bucket;
-    } else {
-	return random_in_range(min, max);
-    }
-}
-
+#ifdef USE_GSL
 
 struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double NA_perc, 
-				   double fill, struct bed *blacklist)
+				   double fill, struct bed *blacklist, unsigned seed)
 /* retrieve a list random regions' data from a bigWig */
 {
     struct perBaseWig *pbwList = NULL;
+    const gsl_rng_type *T;
+    gsl_rng *r;
     struct random_coord *rc = NULL;
     unsigned long max = 0;
     unsigned kept = 0;
-    init_genrand64((unsigned long)time(NULL));
+    double na = NANUM;
+    unsigned long int s = time(0);
     rc = random_coord_init(mb->chromSizeHash, blacklist);
     max = rc->length - size;
+    gsl_rng_env_setup();
+    T = gsl_rng_default;
+    r = gsl_rng_alloc(T);
+    if (seed != 0)
+	gsl_rng_set(r,(unsigned long)seed);
+    else 
+	gsl_rng_set(r,s);
     while (kept < N)
     {
 	struct bed *bed = NULL;
 	while (bed == NULL)
 	{
-	    unsigned long rand = random_in_range(0, max);
+	    unsigned long rand = gsl_rng_uniform_int(r, max);
 	    bed = random_bed(rc, size, rand);
 	}
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, bed->chrom, bed->chromStart, bed->chromEnd, FALSE, fill);
-	int size_pbw = pbw->chromEnd - pbw->chromStart;
-	int count_NA = 0;
-	int i;
 	if (isnan(fill))
 	{
+	    int size_pbw = pbw->len;
+	    int count_NA = 0;
+	    int i;
 	    for (i = 0; i < size_pbw; i++)
 	    {
 		if (isnan(pbw->data[i]))
@@ -203,6 +187,7 @@ struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double N
 	}
 	bedFree(&bed);
     }
+    gsl_rng_free(r);
     random_coord_free(&rc);
     return pbwList;
 }
@@ -211,7 +196,8 @@ struct bed *random_bed_list(int size, int N, struct metaBig *mb, double NA_perc,
 			    double NA, struct bed *blacklist)
 /* same thing as the pbw list, but return only coordinates */
 {
-    struct perBaseWig *pbwList = random_pbw_list(size, N, mb, NA_perc, NA, blacklist);
+    double na = NANUM;
+    struct perBaseWig *pbwList = random_pbw_list(size, N, mb, NA_perc, na, blacklist, 0);
     struct perBaseWig *pbw;
     struct bed *bedList = NULL;
     for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
@@ -227,3 +213,21 @@ struct bed *random_bed_list(int size, int N, struct metaBig *mb, double NA_perc,
     perBaseWigFreeList(&pbwList);
     return bedList;
 }
+
+#else
+/* not USE_GSL */
+
+struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double NA_perc, 
+				   double fill, struct bed *blacklist, unsigned seed)
+{
+    return NULL;
+}
+
+struct bed *random_bed_list(int size, int N, struct metaBig *mb, double NA_perc, 
+			    double NA, struct bed *blacklist)
+{
+    return NULL;
+}
+
+#endif
+/* USE_GSL */
