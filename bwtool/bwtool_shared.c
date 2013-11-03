@@ -171,7 +171,7 @@ void writeBw(char *inName, char *outName, struct hash *chromSizeHash)
     struct bwgSection *sectionList = bwgParseWig(inName, TRUE, chromSizeHash, 1024, lm);
     if (sectionList == NULL)
 	errAbort("%s is empty of data", inName);
-    bwgCreate(sectionList, chromSizeHash, 256, 1024, FALSE, outName);
+    bwgCreate(sectionList, chromSizeHash, 256, 1024, TRUE, outName);
     lmCleanup(&lm);
 }
 
