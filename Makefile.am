@@ -1,1 +1,1 @@
-SUBDIRS = libjkweb lib bwtool bwtool/wigToBigWig
+SUBDIRS = libjkweb lib bwtool

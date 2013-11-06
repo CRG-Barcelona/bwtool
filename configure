@@ -9753,7 +9753,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile lib/Makefile libjkweb/Makefile bwtool/Makefile bwtool/wigToBigWig/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile libjkweb/Makefile bwtool/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -10389,7 +10389,6 @@ do
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "libjkweb/Makefile") CONFIG_FILES="$CONFIG_FILES libjkweb/Makefile" ;;
     "bwtool/Makefile") CONFIG_FILES="$CONFIG_FILES bwtool/Makefile" ;;
-    "bwtool/wigToBigWig/Makefile") CONFIG_FILES="$CONFIG_FILES bwtool/wigToBigWig/Makefile" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 $as_echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
