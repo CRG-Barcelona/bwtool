@@ -32,11 +32,11 @@ errAbort(
   "usage:\n"
   "   bwtool lift old.bw[:chr:start-end] oldToNew.liftOver.chain.gz new.bw\n" 
   "options:\n"
-  "   -sizes=new.sizes  if set use the chrom.sizes file specified instead of\n"
-  "                     gathering the size information from the chain.\n"
-  "                     This is one way to restrict the chromosomes lifted to\n"
-  "                     in the output.\n"
-  "   -bad=file.bed     save all the regions from the input not lifted\n"
+  "   -sizes=new.sizes       if set use the chrom.sizes file specified instead of\n"
+  "                          gathering the size information from the chain.\n"
+  "                          This is one way to restrict the chromosomes lifted to\n"
+  "                          in the output.\n"
+  "   -unlifted=file.bed     save all the regions from the input not lifted\n"
   );
 }
 
@@ -335,7 +335,7 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
     struct hash *chainHash = readLiftOverMapChainHash(chainfile);
     struct hash *gpbw = NULL;
     char *size_file = hashFindVal(options, "sizes");
-    char *bad_file = hashFindVal(options, "bad");
+    char *bad_file = hashFindVal(options, "unlifted");
     if (size_file)
 	sizeHash = readCsizeHash(size_file);
     else
