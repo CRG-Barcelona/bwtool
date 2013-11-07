@@ -241,6 +241,8 @@ void perBaseWigFree(struct perBaseWig **pRegion)
 	return;
     if (pbw->subsections)
 	bedFreeList(&pbw->subsections);
+    if (pbw->name)
+	freeMem(pbw->name);
     freeMem(pbw->chrom);
     freez(&pbw->data);
     freez(pRegion);
@@ -410,6 +412,55 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
     return wholething;
 }
 
+struct perBaseWig *perBaseWigLoadSingleMetaContinue(struct metaBig *mb, char *chrom, 
+						int start, int end, boolean reverse, double fill, int size)
+/* Load all the regions into one perBaseWig, but with gaps filled  */
+/* in with NA value */
+{
+    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse, fill);
+    struct perBaseWig *meta = alloc_fill_perBaseWig(chrom, start, start+size, fill);
+    float step = (float)pbw->len/meta->len;
+    int i;
+    for (i = 0; i < meta->len; i++)
+    {
+	float pbw_s = step * i;
+	float pbw_e = pbw_s + step;
+	if ((int)pbw_e - (int)pbw_s == 0)
+	    meta->data[i] = pbw->data[(int)pbw_s];
+	else
+	{
+	    double area = 0;
+	    double len = 0;
+	    int j;
+	    int firstix = floor(pbw_s);
+	    int between_s = ceil(pbw_s);
+	    int between_e = floor(pbw_e);
+	    int lastixp1 = ceil(pbw_e);
+	    if ((between_s > firstix) && (!isnan(pbw->data[firstix])))
+	    {
+		area += ((float)between_s - pbw_s) * pbw->data[firstix];
+		len += (float)between_s - pbw_s;
+	    }
+	    for (j = between_s; j < between_e; j++)
+		if (!isnan(pbw->data[j]))
+		{
+		    area += pbw->data[j];
+		    len += 1.0;
+		}
+	    if ((between_e < pbw->len) && (lastixp1 > between_e) && (!isnan(pbw->data[between_e])))
+	    {
+		area += (pbw_e - (float)between_e) * pbw->data[between_e];
+		len += (pbw_e - (float)between_e);
+	    }
+	    if (len > 0)
+		meta->data[i] = area/len;
+	    else meta->data[i] = fill;
+	}
+    }
+    perBaseWigFree(&pbw);
+    return meta;
+}
+
 struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, int end, boolean reverse, double fill)
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
@@ -458,7 +509,7 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
     return pmat;
 }
 
-struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size, double fill)
+struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int tile_size, double fill)
 /* the matrix is tiled averages instead the values at each base */
 {
     struct perBaseMatrix *pmat;
@@ -468,12 +519,12 @@ struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *re
     if (!mb->sections)
 	return NULL;
     item = regions;
-    if (!regions || (((regions->chromEnd - regions->chromStart) % size) != 0))
+    if (!regions || (((regions->chromEnd - regions->chromStart) % tile_size) != 0))
 	return NULL;
     AllocVar(pmat);
     pmat->nrow = slCount(regions);
     pmat->ncol = item->chromEnd - item->chromStart;
-    pmat->ncol /= size;
+    pmat->ncol /= tile_size;
     AllocArray(pmat->array, pmat->nrow);
     AllocArray(pmat->matrix, pmat->nrow);
     for (i = 0; (i < pmat->nrow) && (item != NULL); i++, item = item->next)
@@ -486,7 +537,7 @@ struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *re
 	{
 	    double sum = 0, ave;
 	    int n = 0;
-	    for (k = j*size; k < j*size+size; k++)
+	    for (k = j*tile_size; k < j*tile_size+tile_size; k++)
 		if (!isnan(pbw->data[k]))
 		{
 		    sum += pbw->data[k];
@@ -506,6 +557,36 @@ struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *re
 	perBaseWigFree(&pbw);
     }
     return pmat;    
+}
+
+struct perBaseMatrix *load_meta_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int meta_size, double fill)
+/* Load variably-sized regions into fixed-sized matrix */
+{
+    struct perBaseMatrix *pmat;
+    struct bed6 *item;
+    int i;
+    if (!mb->sections)
+	return NULL;
+    item = regions;
+    if (!item)
+	return NULL;
+    AllocVar(pmat);
+    pmat->nrow = slCount(regions);
+    pmat->ncol = meta_size;
+    AllocArray(pmat->array, pmat->nrow);
+    AllocArray(pmat->matrix, pmat->nrow);
+    for (i = 0; (i < pmat->nrow) && (item != NULL); i++, item = item->next)
+    {
+	struct perBaseWig *pbw;
+	pbw = perBaseWigLoadSingleMetaContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-', fill, meta_size);
+	pbw->name = cloneString(item->name);
+	pbw->score = item->score;
+	pbw->len = pmat->ncol;
+	pbw->strand[0] = item->strand[0];
+	pmat->array[i] = pbw;
+	pmat->matrix[i] = pbw->data;
+    }
+    return pmat;
 }
 
 void perBaseMatrixAddOrigRegions(struct perBaseMatrix *pbm, struct bed6 *orig_regions)
@@ -741,13 +822,6 @@ static void fold_array2(int *big_array, int big_array_size, int *unique_array, i
 	ave_sizes[j] /= counts_array[j];
     }
 }
-
-void debug_print_middles_array(struct middles *mids)
-{
-    int i;
-    for (i = 0; i < mids->num_mids; i++)
-	uglyf("pos[%d] = %d\tcounts[%d] = %d\tsizes[%d] = %d\n", i, mids->mids[i], i, mids->counts[i], i, mids->ave_sizes[i]);
-    }
 
 struct middles *beds_to_middles(struct bed6 *bedList)
 /* minimal information for stacking middles */

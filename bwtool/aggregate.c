@@ -34,6 +34,8 @@ errAbort(
   "options:\n"
   "   -starts          use starts of bed regions as opposed to the middles\n"
   "   -ends            use ends of bed regions as opposed to the middles\n"
+  "   -meta=m          use m bases of meta-region to put in middle between\n"
+  "                    starts and ends of regions inputted\n"
   "   -firstbase       in this case the zero base is used so output\n"
   "                    has left+right+1 lines\n"
   "   -expanded        output medians and standard deviations instead of just\n"
@@ -53,6 +55,9 @@ struct agg_data
 {
     int nrow;
     int ncol;
+    int left;
+    int right;
+    int meta;
     int num_firsts;
     int num_seconds;
     int *indexes;
@@ -61,7 +66,7 @@ struct agg_data
     double **data;
 };
 
-struct agg_data *init_agg_data(int left, int right, boolean firstbase, boolean nozero, int num_firsts, 
+struct agg_data *init_agg_data(int left, int right, int meta, boolean firstbase, boolean nozero, int num_firsts, 
 			       int num_seconds, boolean expanded, struct slName *lf_labels)
 /* init the output struct */
 {
@@ -72,7 +77,10 @@ struct agg_data *init_agg_data(int left, int right, boolean firstbase, boolean n
     AllocVar(agg);
     agg->num_firsts = num_firsts;
     agg->num_seconds = num_seconds;
-    agg->nrow = left + right;
+    agg->left = left;
+    agg->right = right;
+    agg->meta = meta;
+    agg->nrow = left + right + meta;;
     agg->ncol = num_firsts * num_seconds;
     if (expanded)
 	agg->ncol *= 4;
@@ -193,6 +201,8 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 	{
 	    k = 0;   /* index for first names (beds) */
 	    l = 0;   /* index for second names (wigs) */
+	    if ((agg->meta > 0) && (i == agg->left + agg->meta))
+		fprintf(out, "# meta part ends here\n");
 	    for (j = 0; j < agg->ncol; j++)
 	    {
 		if (expanded)
@@ -219,6 +229,8 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
     {
 	for (i = 0; i < agg->nrow; i++)
 	{
+	    if ((agg->meta > 0) && (i == agg->left + agg->meta))
+		fprintf(out, "# meta part ends here\n");
 	    fprintf(out, "%d\t", agg->indexes[i]);
 	    j = 0;
 	    while (j < agg->ncol)
@@ -324,6 +336,28 @@ static struct slName *setup_labels(char *long_form, boolean clustering, int k, s
     return lf_labels;
 }
 
+int calculate_meta(struct slName *region_list)
+/* from all the beds in all the region files, get a single average */
+{
+    int count = 0;
+    int sum = 0;
+    struct slName *reg;
+    if (!region_list)
+	return 0;
+    for (reg = region_list; reg != NULL; reg = reg->next)
+    {
+	struct bed6 *beds = readBed6Soft(reg->name);
+	struct bed6 *bed;
+	for (bed = beds; bed != NULL; bed = bed->next)
+	{
+	    count++;
+	    sum += bed->chromEnd - bed->chromStart;
+	}
+	bed6FreeList(&beds);
+    }
+    return sum / count;
+}
+
 void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, double fill,
 		       char *size_s, char *region_list_s, char *wig, char *output_file)
 /* aggregate - main */
@@ -341,6 +375,15 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     char *cluster_sets = (char *)hashFindVal(options, "cluster-sets");
     char *long_form = (char *)hashFindVal(options, "long-form");
     boolean do_long_form = (long_form != NULL);
+    int meta = 0;
+    char *meta_s = (char *)hashFindVal(options, "meta");
+    if (meta_s)
+    {
+	if (sameString(meta_s, "on"))
+	    meta = -1;
+	else
+	    meta = (int)sqlUnsigned(meta_s);
+    }
     struct slName *lf_labels = NULL, *lf_labels_b = NULL, *lf_labels_w = NULL;
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
     FILE *output;
@@ -355,6 +398,10 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	errAbort("k should be between 2 and 10\n");
     if ((mult_regions || mult_wigs) && clustering)
 	errAbort("with clustering just specify one region list and one bigWig");
+    if (meta_s && clustering)
+	errAbort("at the moment clustering doesn't use -meta\n");
+    if (meta_s && (use_start || use_end || firstbase))
+	errAbort("neither -firstbast nor -starts nor -ends are available with -meta\n");
     if (firstbase)
 	nozero = FALSE;
     if (mult_regions && mult_wigs)
@@ -371,7 +418,13 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	struct agg_data *agg = NULL;
 	struct metaBig *mbList = NULL;
 	struct metaBig *mb;	
-	agg = init_agg_data(left, right, firstbase, nozero, num_regions, num_wigs, expanded, lf_labels);
+	/* first calculate the meta if necessary as an average of all the regions in all the files */
+	if (meta == -1) 
+	{
+	    meta = calculate_meta(region_list);
+	    fprintf(stderr, "calculated meta = %d bases\n", meta);
+	}
+	agg = init_agg_data(left, right, meta, firstbase, nozero, num_regions, num_wigs, expanded, lf_labels);
 	for (wig_name = wig_list; wig_name != NULL; wig_name = wig_name->next)
 	{
 	    mb = metaBigOpen(wig_name->name, NULL);
@@ -379,18 +432,46 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	}
 	slReverse(&mbList);
 	int offset = 0;
-	for (reg = region_list; reg != NULL; reg = reg->next)
-	{	
-	    struct bed6 *regions = load_and_recalculate_coords(reg->name, left, right, firstbase, use_start, use_end);
-	    struct slName *wig_name;
-	    for (mb = mbList; mb != NULL; mb = mb->next)
-	    {
-		struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
-		do_summary(pbm, agg, expanded, offset); 
-		offset += (expanded) ? 4 : 1;
-		free_perBaseMatrix(&pbm);
+	if (meta == 0)
+	{
+	    for (reg = region_list; reg != NULL; reg = reg->next)
+	    {	
+		struct bed6 *regions = load_and_recalculate_coords(reg->name, left, right, firstbase, use_start, use_end);
+		struct slName *wig_name;
+		for (mb = mbList; mb != NULL; mb = mb->next)
+		{
+		    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
+		    do_summary(pbm, agg, expanded, offset); 
+		    offset += (expanded) ? 4 : 1;
+		    free_perBaseMatrix(&pbm);
+		}
+		bed6FreeList(&regions);
 	    }
-	    bed6FreeList(&regions);
+	}
+	else
+	/* the meta will be a fusion of three matrices */
+	{
+	    for (reg = region_list; reg != NULL; reg = reg->next)
+	    {	
+		struct bed6 *regions_left = load_and_recalculate_coords(reg->name, left, 0, FALSE, TRUE, FALSE);
+		struct bed6 *regions_right = load_and_recalculate_coords(reg->name, 0, right, FALSE, FALSE, TRUE);
+		struct bed6 *regions_meta = readBed6Soft(reg->name);
+		struct slName *wig_name;
+		for (mb = mbList; mb != NULL; mb = mb->next)
+		{
+		    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions_left, fill);
+		    struct perBaseMatrix *right_pbm = load_perBaseMatrix(mb, regions_right, fill);
+		    struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, meta, fill);
+		    fuse_pbm(&pbm, &meta_pbm);
+		    fuse_pbm(&pbm, &right_pbm);
+		    do_summary(pbm, agg, expanded, offset);
+		    offset += (expanded) ? 4 : 1;
+		    free_perBaseMatrix(&pbm);
+		}
+		bed6FreeList(&regions_left);
+		bed6FreeList(&regions_right);
+		bed6FreeList(&regions_meta);
+	    }
 	}
 	while ((mb = slPopHead(&mbList)) != NULL)
 	    metaBigClose(&mb); 
@@ -399,7 +480,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     }
     else
     {
-	struct agg_data *agg = init_agg_data(left, right, firstbase, nozero, 1, k, FALSE, lf_labels);
+	struct agg_data *agg = init_agg_data(left, right, 0, firstbase, nozero, 1, k, FALSE, lf_labels);
 	struct metaBig *mb = metaBigOpen(wig_list->name, NULL);
 	struct bed6 *regions = load_and_recalculate_coords(region_list->name, left, right, firstbase, use_start, use_end);
 	struct bed6 *orig_regions = readBed6Soft(region_list->name);

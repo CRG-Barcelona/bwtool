@@ -135,6 +135,11 @@ struct perBaseWig *perBaseWigLoadSingle(char *wigFile, char *chrom, int start, i
 /* Load all the regions into one perBaseWig, but with gaps filled  */
 /* in with NA value */
 
+struct perBaseWig *perBaseWigLoadSingleMetaContinue(struct metaBig *mb, char *chrom, 
+						    int start, int end, boolean reverse, double fill, int size);
+/* Load all the regions into one perBaseWig, but with gaps filled  */
+/* in with NA value */
+
 struct perBaseWig *perBaseWigLoadHuge(struct metaBig *mb, struct bed *regions);
 /* Load a huge pbw, gaps removed */
 
@@ -143,8 +148,11 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
 /* that the regions may include negative and out-of-bounds coordinates.  Out-of-bounds data is */
 /* NA in the matrix. */ 
 
-struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int size, double fill);
+struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int tile_size, double fill);
 /* the matrix is tiled averages instead the values at each base */
+
+struct perBaseMatrix *load_meta_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int meta_size, double fill);
+/* Load variably-sized regions into fixed-sized matrix */
 
 void perBaseMatrixAddOrigRegions(struct perBaseMatrix *pbm, struct bed6 *orig_regions);
 /* add the original bed information for retrieval later.  it's really important */

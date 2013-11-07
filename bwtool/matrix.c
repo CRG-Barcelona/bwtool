@@ -143,48 +143,6 @@ void output_matrix(struct perBaseMatrix *pbm, int decimals, boolean keep_bed, ch
     carefulClose(&out);
 }
 
-void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add)
-/* not this makes perhaps-illegal perBaseWigs where the chromEnd-chromStart are not the */
-/* same as the len... which may break things somewhere if this were ever library-ized */
-{
-    if (pBig && pTo_add && *pTo_add)
-    {
-	if (*pBig == NULL)
-	{
-	    *pBig = *pTo_add;
-	}
-	else
-	{
-	    struct perBaseMatrix *big = *pBig;
-	    struct perBaseMatrix *to_add = *pTo_add;
-	    if (to_add->nrow == big->nrow)
-	    {
-		int i, j;
-		int expanding = to_add->ncol;
-		for (i = 0; i < big->nrow; i++)
-		{
-		    struct perBaseWig *big_pbw = big->array[i];
-		    struct perBaseWig *add_pbw = to_add->array[i];
-		    struct perBaseWig *new_pbw = alloc_perBaseWig(big_pbw->chrom, big_pbw->chromStart, big_pbw->chromStart + big->ncol + expanding);
-		    new_pbw->name = cloneString(".");
-		    new_pbw->score = 0; 
-		    new_pbw->strand[0] = big_pbw->strand[0];
-		    new_pbw->chromEnd = big_pbw->chromEnd;
-		    for (j = 0; j < big_pbw->len; j++)
-			new_pbw->data[j] = big_pbw->data[j];
-		    for (j = 0; j < add_pbw->len; j++)
-			new_pbw->data[j+big_pbw->len] = add_pbw->data[j];
-		    big->array[i] = new_pbw;
-		    big->matrix[i] = new_pbw->data;
-		    perBaseWigFree(&big_pbw);
-		}
-		big->ncol += expanding;
-		free_perBaseMatrix(pTo_add);
-	    }
-	}
-    }
-}
-
 static struct slName *setup_labels(char *long_form, struct slName *bw_list, struct slName **labels_from_bw_list)
 {
     struct slName *lf_labels = NULL;

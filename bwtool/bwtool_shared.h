@@ -21,4 +21,8 @@ void writeBw(char *inName, char *outName, struct hash *chromSizeHash);
 struct metaBig *metaBigOpen_check(char *bigfile, char *regions);
 /* A wrapper for metaBigOpen that does some checking and erroring */
 
+void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add);
+/* not this makes perhaps-illegal perBaseWigs where the chromEnd-chromStart are not the */
+/* same as the len... which may break things somewhere if this were ever library-ized */
+
 #endif /* BWTOOL_SHARED_H */

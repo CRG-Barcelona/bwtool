@@ -152,16 +152,14 @@ void parse_left_right(char *size_s, unsigned *pleft, unsigned *pright)
 /* parse the "left:right" from the command */
 {
     unsigned left = 0, right = 0;
-    char *tmp_s = cloneString(size_s);
     char *range[2];
-    int range_num = chopString(tmp_s, ":", range, sizeof(range));
+    int range_num = chopString(size_s, ":", range, 2);
     if (range_num != 2)
 	errAbort("wrongly formatted range left:right");
     left = sqlUnsigned(range[0]);
     right = sqlUnsigned(range[1]);
     *pleft = left;
     *pright = right;
-    freeMem(tmp_s);
 }
 
 void writeBw(char *inName, char *outName, struct hash *chromSizeHash)
@@ -204,4 +202,46 @@ struct metaBig *metaBigOpen_check(char *bigfile, char *regions)
 	    errAbort("There was a problem opening %s. Perhaps there is a problem with the internet connection.", bigfile); 
     }
     return mb;
+}
+
+void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add)
+/* not this makes perhaps-illegal perBaseWigs where the chromEnd-chromStart are not the */
+/* same as the len... which may break things somewhere if this were ever library-ized */
+{
+    if (pBig && pTo_add && *pTo_add)
+    {
+	if (*pBig == NULL)
+	{
+	    *pBig = *pTo_add;
+	}
+	else
+	{
+	    struct perBaseMatrix *big = *pBig;
+	    struct perBaseMatrix *to_add = *pTo_add;
+	    if (to_add->nrow == big->nrow)
+	    {
+		int i, j;
+		int expanding = to_add->ncol;
+		for (i = 0; i < big->nrow; i++)
+		{
+		    struct perBaseWig *big_pbw = big->array[i];
+		    struct perBaseWig *add_pbw = to_add->array[i];
+		    struct perBaseWig *new_pbw = alloc_perBaseWig(big_pbw->chrom, big_pbw->chromStart, big_pbw->chromStart + big->ncol + expanding);
+		    new_pbw->name = cloneString(".");
+		    new_pbw->score = 0; 
+		    new_pbw->strand[0] = big_pbw->strand[0];
+		    new_pbw->chromEnd = big_pbw->chromEnd;
+		    for (j = 0; j < big_pbw->len; j++)
+			new_pbw->data[j] = big_pbw->data[j];
+		    for (j = 0; j < add_pbw->len; j++)
+			new_pbw->data[j+big_pbw->len] = add_pbw->data[j];
+		    big->array[i] = new_pbw;
+		    big->matrix[i] = new_pbw->data;
+		    perBaseWigFree(&big_pbw);
+		}
+		big->ncol += expanding;
+		free_perBaseMatrix(pTo_add);
+	    }
+	}
+    }
 }
