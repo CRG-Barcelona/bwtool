@@ -205,16 +205,67 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
     freeMem(c1);
     return labels;
 }
-    
-void do_kmeans(struct cluster_bed_matrix *cbm, double t)
-/* the main clustering function.  labels matrix rows and reorders */
+
+int sortthesize(const void *a, const void *b)
+{
+    int *row_a = *(int **)a;
+    int *row_b = *(int **)b;
+    int diff = row_a[0] - row_b[0];
+    if (diff == 0)
+	return row_a[1] - row_b[1];
+    return diff;
+}
+
+int sortoriglabel(const void *a, const void *b)
+{
+    int *row_a = *(int **)a;
+    int *row_b = *(int **)b;
+    return row_a[1] - row_b[1];
+}
+
+static void exchange_labels(int *cluster_sizes, int k, int *labels, int start, int size)
+/* rename labels based on size */
+{
+    int **array;
+    int i;
+    AllocArray(array, k);
+    for (i = 0; i < k; i++)
+    {
+	AllocArray(array[i], 3);
+	array[i][0] = cluster_sizes[i];
+	array[i][1] = i;
+    }
+    qsort(array, k, sizeof(int *), sortthesize);
+    for (i = 0; i < k; i++)
+    {
+	array[i][2] = i;
+	cluster_sizes[i] = array[i][0];
+    }
+    qsort(array, k, sizeof(int *), sortoriglabel);
+    for (i = start; i < size; i++)
+	labels[i] = array[labels[i]][2];
+    for (i = 0; i < k; i++)
+	freeMem(array[i]);
+    freeMem(array);
+}
+
+void do_kmeans_sort(struct cluster_bed_matrix *cbm, double t, boolean sort)
+/* clusters but also sorts the labels by cluster size */
 {
     int i = 0;
     int *labels = k_means(cbm, t);
+    if (sort)
+	exchange_labels(cbm->cluster_sizes, cbm->k, labels, cbm->num_na, cbm->pbm->nrow);
     for (i = cbm->num_na; i < cbm->pbm->nrow; i++)
 	cbm->pbm->array[i]->label = labels[i];
     qsort(cbm->pbm->array, cbm->pbm->nrow, sizeof(cbm->pbm->array[0]), perBaseWigLabelCmp);
     for (i = 0; i < cbm->pbm->nrow; i++)
 	cbm->pbm->matrix[i] = cbm->pbm->array[i]->data;
     freeMem(labels);
+}
+
+void do_kmeans(struct cluster_bed_matrix *cbm, double t)
+/* the main clustering function.  labels matrix rows and reorders */
+{
+    return do_kmeans_sort(cbm, t, FALSE);
 }

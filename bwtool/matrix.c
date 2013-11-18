@@ -213,7 +213,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	struct cluster_bed_matrix *cbm = NULL;
 	/* ordered by cluster with label in first column */
 	cbm = init_cbm_from_pbm(pbm, k);
-	do_kmeans(cbm, 0.001);
+	do_kmeans_sort(cbm, 0.001, TRUE);
 	if (do_long_form)
 	    output_cluster_matrix_long(cbm, labels, keep_bed, outputfile, lf_header);
 	else

@@ -488,7 +488,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	if (cluster_sets)
 	    perBaseMatrixAddOrigRegions(pbm, orig_regions);
 	struct cluster_bed_matrix *cbm = init_cbm_from_pbm(pbm, k);
-	do_kmeans(cbm, k);
+	do_kmeans_sort(cbm, 0.001, TRUE);
 	copy_centroids(cbm, agg);
 	output_agg_data(output, FALSE, FALSE, agg, do_long_form);
 	if (cluster_sets)
