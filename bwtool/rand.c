@@ -14,6 +14,8 @@
 
 #include <stdlib.h>
 
+#ifdef USE_GSL
+
 void usage_random()
 /* Explain usage of randomized data program and exit. */
 {
@@ -66,3 +68,31 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
     carefulClose(&out);
     bedFreeList(&blacklist);
 }
+
+#else
+
+void usage_random()
+/* Explain usage of randomized data program and exit. */
+{
+errAbort(
+  "bwtool random - retrieve data from random regions in the bigWig.\n"
+  "usage:\n"
+  "   bwtool random n size input.bw output.txt\n" 
+  "where n is the number of regions desired, and size is the size of each\n"
+  "region retrieved.\n"
+  "options:\n"
+  "   -bed            instead of outputting data, just output the bed indicating\n"
+  "                   where the data lies.\n"
+  "   -NA-perc=p      maximum percent of region allowed to contain NA values\n"
+  "   -blacklist=bed  specifically avoid these regions.\n"
+  "   -seed=s         seed the random number generator with some positive integer\n"
+  );
+}
+
+void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
+/* random - main ... random number generation takes place here.  */
+{
+}
+
+#endif
