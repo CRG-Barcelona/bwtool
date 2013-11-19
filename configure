@@ -740,6 +740,8 @@ ac_user_opts='
 enable_option_checking
 enable_dependency_tracking
 enable_color_32
+with_libraries
+with_includes
 enable_largefile
 '
       ac_precious_vars='build_alias
@@ -1386,6 +1388,14 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-color-32      disable 32-bit color in PNG etc (default enabled)
   --disable-largefile     omit support for large files
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+
+  --with-libraries=<path> additional place to look for libraries
+
+  --with-includes=<path> additional place to look for header files
 
 Some influential environment variables:
   CC          C compiler command
@@ -3875,6 +3885,20 @@ _ACEOF
 
    fi
 
+# Added argument maybe better than LDFLAGS/CFLAGS
+
+# Check whether --with-libraries was given.
+if test "${with_libraries+set}" = set; then
+  withval=$with_libraries; LDFLAGS="$LDFLAGS -L$withval"
+fi
+
+
+# Check whether --with-includes was given.
+if test "${with_includes+set}" = set; then
+  withval=$with_includes; CPPFLAGS="$CPPFLAGS -I$withval"
+fi
+
+
 # Stuff for MACHTYPE_
 case $host in
      *x86_64*)
@@ -4536,12 +4560,14 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
-{ $as_echo "$as_me:$LINENO: checking for library containing gsl_stats_mean" >&5
-$as_echo_n "checking for library containing gsl_stats_mean... " >&6; }
-if test "${ac_cv_search_gsl_stats_mean+set}" = set; then
+
+{ $as_echo "$as_me:$LINENO: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if test "${ac_cv_lib_gslcblas_cblas_dgemm+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  ac_func_search_save_LIBS=$LIBS
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -4555,23 +4581,16 @@ cat >>conftest.$ac_ext <<_ACEOF
 #ifdef __cplusplus
 extern "C"
 #endif
-char gsl_stats_mean ();
+char cblas_dgemm ();
 int
 main ()
 {
-return gsl_stats_mean ();
+return cblas_dgemm ();
   ;
   return 0;
 }
 _ACEOF
-for ac_lib in '' gsl; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  rm -f conftest.$ac_objext conftest$ac_exeext
+rm -f conftest.$ac_objext conftest$ac_exeext
 if { (ac_try="$ac_link"
 case "(($ac_try" in
   *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
@@ -4592,34 +4611,96 @@ $as_echo "$ac_try_echo") >&5
 	 test "$cross_compiling" = yes ||
 	 $as_test_x conftest$ac_exeext
        }; then
-  ac_cv_search_gsl_stats_mean=$ac_res
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
 else
   $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-
+	ac_cv_lib_gslcblas_cblas_dgemm=no
 fi
 
 rm -rf conftest.dSYM
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext
-  if test "${ac_cv_search_gsl_stats_mean+set}" = set; then
-  break
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
 fi
-done
-if test "${ac_cv_search_gsl_stats_mean+set}" = set; then
-  :
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = x""yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+{ $as_echo "$as_me:$LINENO: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if test "${ac_cv_lib_gsl_gsl_blas_dgemm+set}" = set; then
+  $as_echo_n "(cached) " >&6
 else
-  ac_cv_search_gsl_stats_mean=no
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgsl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gsl_blas_dgemm ();
+int
+main ()
+{
+return gsl_blas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_gsl_gsl_blas_dgemm=no
 fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_search_gsl_stats_mean" >&5
-$as_echo "$ac_cv_search_gsl_stats_mean" >&6; }
-ac_res=$ac_cv_search_gsl_stats_mean
-if test "$ac_res" != no; then
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = x""yes; then
   has_gsl=yes
 else
   has_gsl=no

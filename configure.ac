@@ -29,6 +29,20 @@ AC_ARG_ENABLE([color-32],
       AC_DEFINE([COLOR32],[1],[Use 32-bit color in PNG etc])
    fi
 
+# Added argument maybe better than LDFLAGS/CFLAGS
+AC_ARG_WITH(libraries,
+	[
+  --with-libraries=<path> additional place to look for libraries],
+  [LDFLAGS="$LDFLAGS -L$withval"],
+  ,
+)
+AC_ARG_WITH(includes,
+	[
+  --with-includes=<path> additional place to look for header files],
+  [CPPFLAGS="$CPPFLAGS -I$withval"],
+  ,
+)
+
 # Stuff for MACHTYPE_ 
 case $host in
      *x86_64*)  AC_DEFINE([MACHTYPE_x86_64],[],[Used in some rare cases.]) ;;
@@ -95,9 +109,10 @@ AC_SEARCH_LIBS([SHA1_Init], [crypto], [has_ssl=yes], [has_ssl=no])
 if test "x${has_ssl}" = xyes; then
    AC_DEFINE([USE_SSL],[1],[Turn on SSL support in https.c])
 fi
-AC_SEARCH_LIBS([gsl_stats_mean], [gsl], [has_gsl=yes], [has_gsl=no])
+AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+AC_CHECK_LIB([gsl],[gsl_blas_dgemm], [has_gsl=yes], [has_gsl=no])
 if test "x${has_gsl}" = xyes; then
-   AC_DEFINE([USE_GSL],[1],[Turn on GSL support.])
+    AC_DEFINE([USE_GSL],[1],[Turn on GSL support.])
 fi
 
 # Checks for header files.
