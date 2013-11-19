@@ -110,10 +110,7 @@ if test "x${has_ssl}" = xyes; then
    AC_DEFINE([USE_SSL],[1],[Turn on SSL support in https.c])
 fi
 AC_CHECK_LIB([gslcblas],[cblas_dgemm])
-AC_CHECK_LIB([gsl],[gsl_blas_dgemm], [has_gsl=yes], [has_gsl=no])
-if test "x${has_gsl}" = xyes; then
-    AC_DEFINE([USE_GSL],[1],[Turn on GSL support.])
-fi
+AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/file.h sys/socket.h sys/statvfs.h sys/time.h syslog.h termios.h unistd.h utime.h])

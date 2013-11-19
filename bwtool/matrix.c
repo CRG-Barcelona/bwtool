@@ -1,5 +1,9 @@
 /* bwtool_matrix - with a bed file of regions, select  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
+
 #include "common.h"
 #include "obscure.h"
 #include "linefile.h"

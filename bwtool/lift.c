@@ -1,5 +1,9 @@
 /* bwtool_lift - lift bigWig file */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
+
 #include "common.h"
 #include "obscure.h"
 #include "linefile.h"

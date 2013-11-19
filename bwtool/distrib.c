@@ -1,5 +1,9 @@
 /* bwtool_distrib - distribution plotting  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
+
 #include "common.h"
 #include "linefile.h"
 #include "hash.h"

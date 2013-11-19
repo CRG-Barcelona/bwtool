@@ -1,3 +1,9 @@
+/* Some common routines for a few of the bwtool programs. */ 
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
+
 #include "common.h"
 #include "sqlNum.h"
 #include "metaBig.h"

@@ -1,5 +1,9 @@
 /* bwtool_paste - simultaneously output same regions of multiple bigWigs */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
+
 #include "common.h"
 #include "obscure.h"
 #include "linefile.h"

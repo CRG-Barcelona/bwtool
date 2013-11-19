@@ -11,7 +11,7 @@
 
 #define NANUM sqrt(-1)
 
-#ifdef USE_GSL
+#ifdef HAVE_LIBGSL
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -132,7 +132,7 @@ struct bed *random_bed(struct random_coord *rc, int size, int rand_coord)
     return bed;
 }
 
-#ifdef USE_GSL
+#ifdef HAVE_LIBGSL
 
 struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double NA_perc, 
 				   double fill, struct bed *blacklist, unsigned seed)
@@ -215,7 +215,7 @@ struct bed *random_bed_list(int size, int N, struct metaBig *mb, double NA_perc,
 }
 
 #else
-/* not USE_GSL */
+/* not HAVE_LIBGSL */
 
 struct perBaseWig *random_pbw_list(int size, int N, struct metaBig *mb, double NA_perc, 
 				   double fill, struct bed *blacklist, unsigned seed)
@@ -230,4 +230,4 @@ struct bed *random_bed_list(int size, int N, struct metaBig *mb, double NA_perc,
 }
 
 #endif
-/* USE_GSL */
+/* HAVE_LIBGSL */

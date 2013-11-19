@@ -39,7 +39,7 @@ errAbort(
   "   matrix         extract same-sized sections from bigWig to examine as a matrix\n"
   "   paste          output data from multiple bigWigs and align them one per column\n"
   "                  in tab-delimited output meant to feed into computations\n"
-#ifdef USE_GSL
+#ifdef HAVE_LIBGSL
   "   random         print out random data or random regions from the bigWig file\n"
 #endif
   "   remove         remove data equal to or thresholded on a given value\n"
@@ -180,7 +180,7 @@ else if (sameString(argv[1], "distribution") || sameString(argv[1], "dist"))
     else
 	bwtool_distrib(options, favorites, regions, decimals, argv[2], argv[3]);
 }
-#ifdef USE_GSL 
+#ifdef HAVE_LIBGSL 
 else if (sameString(argv[1], "random"))
 {
     if (argc != 6)

@@ -1,4 +1,7 @@
 /* bwtool_random - retrieve random data */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
 
 #include "common.h"
 #include "linefile.h"
@@ -14,7 +17,7 @@
 
 #include <stdlib.h>
 
-#ifdef USE_GSL
+#ifdef HAVE_LIBGSL
 
 void usage_random()
 /* Explain usage of randomized data program and exit. */

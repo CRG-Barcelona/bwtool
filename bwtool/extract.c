@@ -1,5 +1,9 @@
 /* bwtool_extract - extrancting data in other ways than matrix, paste, or window */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif 
+
 #include "common.h"
 #include "linefile.h"
 #include "hash.h"
