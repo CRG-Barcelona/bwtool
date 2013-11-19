@@ -210,7 +210,7 @@ int sortthesize(const void *a, const void *b)
 {
     int *row_a = *(int **)a;
     int *row_b = *(int **)b;
-    int diff = row_a[0] - row_b[0];
+    int diff = row_b[0] - row_a[0];
     if (diff == 0)
 	return row_a[1] - row_b[1];
     return diff;
