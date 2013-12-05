@@ -101,9 +101,8 @@ libbeato_a_AR = $(AR) $(ARFLAGS)
 libbeato_a_LIBADD =
 am_libbeato_a_OBJECTS = libbeato_a-bigs.$(OBJEXT) \
 	libbeato_a-cluster.$(OBJEXT) libbeato_a-extrema.$(OBJEXT) \
-	libbeato_a-fastq_stuff.$(OBJEXT) libbeato_a-favs.$(OBJEXT) \
-	libbeato_a-metaBig.$(OBJEXT) libbeato_a-metaBigBam.$(OBJEXT) \
-	libbeato_a-mt19937-64.$(OBJEXT) \
+	libbeato_a-fastq_stuff.$(OBJEXT) libbeato_a-metaBig.$(OBJEXT) \
+	libbeato_a-metaBigBam.$(OBJEXT) \
 	libbeato_a-random_coord.$(OBJEXT) libbeato_a-sax.$(OBJEXT) \
 	libbeato_a-stuff.$(OBJEXT)
 libbeato_a_OBJECTS = $(am_libbeato_a_OBJECTS)
@@ -280,22 +279,16 @@ libbeato_a_SOURCES = \
 	extrema.h \
 	fastq_stuff.c \
 	fastq_stuff.h \
-	favs.c \
-	favs.h \
 	metaBig.c \
 	metaBig.h \
 	metaBigBam.c \
 	metaBigBam.h \
-	mt19937-64.c \
-	mt64.h \
-	r_stuff.h \
 	random_coord.c \
 	random_coord.h \
 	sax.c \
 	sax.h \
 	stuff.c \
-	stuff.h \
-	zwriting.h
+	stuff.h
 
 all: all-am
 
@@ -350,10 +343,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-cluster.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-extrema.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-fastq_stuff.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-favs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-metaBig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-metaBigBam.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-mt19937-64.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-random_coord.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-sax.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbeato_a-stuff.Po@am__quote@
@@ -428,20 +419,6 @@ libbeato_a-fastq_stuff.obj: fastq_stuff.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -c -o libbeato_a-fastq_stuff.obj `if test -f 'fastq_stuff.c'; then $(CYGPATH_W) 'fastq_stuff.c'; else $(CYGPATH_W) '$(srcdir)/fastq_stuff.c'; fi`
 
-libbeato_a-favs.o: favs.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -MT libbeato_a-favs.o -MD -MP -MF $(DEPDIR)/libbeato_a-favs.Tpo -c -o libbeato_a-favs.o `test -f 'favs.c' || echo '$(srcdir)/'`favs.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbeato_a-favs.Tpo $(DEPDIR)/libbeato_a-favs.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='favs.c' object='libbeato_a-favs.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -c -o libbeato_a-favs.o `test -f 'favs.c' || echo '$(srcdir)/'`favs.c
-
-libbeato_a-favs.obj: favs.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -MT libbeato_a-favs.obj -MD -MP -MF $(DEPDIR)/libbeato_a-favs.Tpo -c -o libbeato_a-favs.obj `if test -f 'favs.c'; then $(CYGPATH_W) 'favs.c'; else $(CYGPATH_W) '$(srcdir)/favs.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbeato_a-favs.Tpo $(DEPDIR)/libbeato_a-favs.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='favs.c' object='libbeato_a-favs.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -c -o libbeato_a-favs.obj `if test -f 'favs.c'; then $(CYGPATH_W) 'favs.c'; else $(CYGPATH_W) '$(srcdir)/favs.c'; fi`
-
 libbeato_a-metaBig.o: metaBig.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -MT libbeato_a-metaBig.o -MD -MP -MF $(DEPDIR)/libbeato_a-metaBig.Tpo -c -o libbeato_a-metaBig.o `test -f 'metaBig.c' || echo '$(srcdir)/'`metaBig.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbeato_a-metaBig.Tpo $(DEPDIR)/libbeato_a-metaBig.Po
@@ -469,20 +446,6 @@ libbeato_a-metaBigBam.obj: metaBigBam.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='metaBigBam.c' object='libbeato_a-metaBigBam.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -c -o libbeato_a-metaBigBam.obj `if test -f 'metaBigBam.c'; then $(CYGPATH_W) 'metaBigBam.c'; else $(CYGPATH_W) '$(srcdir)/metaBigBam.c'; fi`
-
-libbeato_a-mt19937-64.o: mt19937-64.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -MT libbeato_a-mt19937-64.o -MD -MP -MF $(DEPDIR)/libbeato_a-mt19937-64.Tpo -c -o libbeato_a-mt19937-64.o `test -f 'mt19937-64.c' || echo '$(srcdir)/'`mt19937-64.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbeato_a-mt19937-64.Tpo $(DEPDIR)/libbeato_a-mt19937-64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mt19937-64.c' object='libbeato_a-mt19937-64.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -c -o libbeato_a-mt19937-64.o `test -f 'mt19937-64.c' || echo '$(srcdir)/'`mt19937-64.c
-
-libbeato_a-mt19937-64.obj: mt19937-64.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -MT libbeato_a-mt19937-64.obj -MD -MP -MF $(DEPDIR)/libbeato_a-mt19937-64.Tpo -c -o libbeato_a-mt19937-64.obj `if test -f 'mt19937-64.c'; then $(CYGPATH_W) 'mt19937-64.c'; else $(CYGPATH_W) '$(srcdir)/mt19937-64.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbeato_a-mt19937-64.Tpo $(DEPDIR)/libbeato_a-mt19937-64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mt19937-64.c' object='libbeato_a-mt19937-64.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -c -o libbeato_a-mt19937-64.obj `if test -f 'mt19937-64.c'; then $(CYGPATH_W) 'mt19937-64.c'; else $(CYGPATH_W) '$(srcdir)/mt19937-64.c'; fi`
 
 libbeato_a-random_coord.o: random_coord.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbeato_a_CFLAGS) $(CFLAGS) -MT libbeato_a-random_coord.o -MD -MP -MF $(DEPDIR)/libbeato_a-random_coord.Tpo -c -o libbeato_a-random_coord.o `test -f 'random_coord.c' || echo '$(srcdir)/'`random_coord.c

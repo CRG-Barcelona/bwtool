@@ -5,10 +5,6 @@
 #include "hash.h"
 #endif
 
-#ifndef FAVS_H
-#include "favs.h"
-#endif
-
 #ifndef METABIG_H
 #include "metaBig.h"
 #endif
@@ -181,14 +177,8 @@ struct middles *beds_to_middles(struct bed6 *bedList);
 struct middles *metaBig_get_middles(struct metaBig *mb, char *chrom, unsigned start, unsigned end);
 /* return middles struct used with stackreads program */
 
-struct metaBig *metaBigOpen_favs(char *filename, char *sectionsBed, char *favs_file);
-/* open the file based on favorites.txt */
-
 struct bed *metaBig_chopGenome(struct metaBig *mb, int size);
 /* return a bed of regularly-sized intervals (given) from the chromSizeHash */
-
-struct bbiFile *bigWigFileOpen_favs(char *filename, char *favs_file);
-/* open the file based on favorites.txt */
 
 void startsFreeList(struct starts **pList);
 /* free a list of starts */

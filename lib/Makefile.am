@@ -12,19 +12,13 @@ libbeato_a_SOURCES = \
 	extrema.h \
 	fastq_stuff.c \
 	fastq_stuff.h \
-	favs.c \
-	favs.h \
 	metaBig.c \
 	metaBig.h \
 	metaBigBam.c \
 	metaBigBam.h \
-	mt19937-64.c \
-	mt64.h \
-	r_stuff.h \
 	random_coord.c \
 	random_coord.h \
 	sax.c \
 	sax.h \
 	stuff.c \
-	stuff.h \
-	zwriting.h
+	stuff.h

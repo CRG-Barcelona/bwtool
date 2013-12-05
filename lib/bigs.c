@@ -953,50 +953,6 @@ static boolean local_file(char *filename)
     return ret;
 }
 
-struct metaBig *metaBigOpen_favs(char *filename, char *sectionsBed, char *favs_file)
-/* open the file based on favorites.txt */
-{
-    struct metaBig *mb = NULL;
-    struct hash *hash = NULL;
-    char *fav;
-    /* check that the file isn't remote or local */
-    if (strstr(filename, "tp://") || local_file(filename))
-	mb = metaBigOpen(filename, sectionsBed);
-    else
-    {
-	hash = favs_load_hash(favs_file);
-	fav = (char *)hashFindVal(hash, filename);
-	if (fav)
-	    mb = metaBigOpen(fav, sectionsBed);
-	else
-	    mb = NULL;
-    }
-    hashFree(&hash);
-    return mb;
-}
-
-struct bbiFile *bigWigFileOpen_favs(char *filename, char *favs_file)
-/* open the file based on favorites.txt */
-{
-    struct bbiFile *bbi = NULL;
-    struct hash *hash = NULL;
-    char *fav;
-    /* check that the file isn't remote or local */
-    if (strstr(filename, "tp://") || local_file(filename))
-	bbi = bigWigFileOpen(filename);
-    else
-    {
-	hash = favs_load_hash(favs_file);
-	fav = (char *)hashFindVal(hash, filename);
-	if (fav)
-	    bbi = bigWigFileOpen(fav);
-	else
-	    bbi = NULL;
-    }
-    hashFree(&hash);
-    return bbi;
-}
-
 struct bed *metaBig_chopGenome(struct metaBig *mb, int size)
 /* return a bed of regularly-sized intervals (given) from the chromSizeHash */
 {
