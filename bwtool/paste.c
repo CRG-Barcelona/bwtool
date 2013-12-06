@@ -30,20 +30,20 @@ errAbort(
   );
 }
 
-void print_line(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, int i)
+void print_line(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, int i, FILE *out)
 {
     struct perBaseWig *pbw;
     if (wot == bedGraphOut)
-	printf("%s\t%d\t%d\t", pbw_list->chrom, pbw_list->chromStart+i, pbw_list->chromStart+i+1);
+	fprintf(out, "%s\t%d\t%d\t", pbw_list->chrom, pbw_list->chromStart+i, pbw_list->chromStart+i+1);
     else if (wot == varStepOut)
-	printf("%d\t", pbw_list->chromStart+i+1);
+	fprintf(out, "%d\t", pbw_list->chromStart+i+1);
     for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
     {
 	if (isnan(pbw->data[i]))
-	    printf("NA");
+	    fprintf(out, "NA");
 	else
-	    printf("%0.*f", decimals, pbw->data[i]);
-	printf("%c", (pbw->next == NULL) ? '\n' : '\t');
+	    fprintf(out, "%0.*f", decimals, pbw->data[i]);
+	fprintf(out, "%c", (pbw->next == NULL) ? '\n' : '\t');
     }
 }
 
@@ -56,7 +56,7 @@ boolean has_na(struct perBaseWig *pbw_list, int i)
     return FALSE;
 }
 
-void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, boolean skip_NA)
+void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, boolean skip_NA, FILE *out)
 /* outputs one set of perBaseWigs all at the same section */
 {
     struct perBaseWig *pbw;
@@ -72,11 +72,11 @@ void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot,
 		if (i - last_printed > 1)
 		{
 		    if (wot == varStepOut)
-			printf("variableStep chrom=%s span=1\n", pbw_list->chrom);
+			fprintf(out, "variableStep chrom=%s span=1\n", pbw_list->chrom);
 		    else if (wot == fixStepOut)
-			printf("fixedStep chrom=%s start=%d step=1 span=1\n", pbw_list->chrom, pbw_list->chromStart+i+1);
+			fprintf(out, "fixedStep chrom=%s start=%d step=1 span=1\n", pbw_list->chrom, pbw_list->chromStart+i+1);
 		}
-		print_line(pbw_list, decimals, wot, i);
+		print_line(pbw_list, decimals, wot, i, out);
 		last_printed = i;
 	    }
 	}
@@ -84,7 +84,7 @@ void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot,
 }
 
 void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, 
-		  enum wigOutType wot, struct slName **p_files)
+		  enum wigOutType wot, struct slName **p_files, char *output_file)
 /* bwtool_paste - main for paste program */
 {
     struct metaBig *mb;
@@ -100,6 +100,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     boolean verbose = (hashFindVal(options, "verbose") != NULL) ? TRUE : FALSE;
     struct slName *labels = NULL;
     struct slName *files = *p_files;
+    FILE *out = mustOpen(output_file, "w");
     /* open the files one by one */
     if (slCount(files) == 1)
 	check_for_list_files(&files, &labels);
@@ -140,10 +141,11 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	    slAddHead(&pbw_list, pbw);
 	}
 	slReverse(&pbw_list);
-	output_pbws(pbw_list, decimals, wot, skip_na);
+	output_pbws(pbw_list, decimals, wot, skip_na, out);
 	perBaseWigFreeList(&pbw_list);
     }
     /* close the files */
+    carefulClose(&out);
     while ((mb = slPopHead(&mb_list)) != NULL)
 	metaBigClose(&mb);
     if (labels)

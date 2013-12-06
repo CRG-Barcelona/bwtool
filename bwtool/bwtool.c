@@ -56,7 +56,9 @@ errAbort(
   " -condense                condense output, particularly bedGraphs\n"
   " -decimals=n              output specified number of decimals (default 2)\n"
   " -fill=val                some programs allow filling missing parts of the bigWig\n"
-  "                          with a specified value prior to using data."
+  "                          with a specified value prior to using data.\n"
+  " -o=output.txt            where normally standard output is written, write to a\n"
+  "                          file instead."
   );
 }
 
@@ -114,6 +116,7 @@ int main(int argc, char *argv[])
 struct hash *options = optionParseIntoHashExceptNumbers(&argc, argv, FALSE);
 /* common options */
 char *regions = (char *)hashOptionalVal(options, "regions", NULL);
+char *output_file = (char *)hashOptionalVal(options, "o", NULL);
 char *favorites = (char *)hashOptionalVal(options, "favorites", NULL);
 unsigned decimals = sqlUnsigned((char *)hashOptionalVal(options, "decimals", "2"));
 enum wigOutType wot = get_wig_out_type((char *)hashOptionalVal(options, "wigtype", "fix"));
@@ -220,7 +223,7 @@ else if (sameString(argv[1], "paste"))
 	    slAddHead(&list, name);
 	}
 	slReverse(&list);
-	bwtool_paste(options, favorites, regions, decimals, fill, wot, &list);
+	bwtool_paste(options, favorites, regions, decimals, fill, wot, &list, output_file);
     }
 }
 else if (sameString(argv[1], "lift"))

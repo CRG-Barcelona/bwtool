@@ -132,7 +132,7 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
 /* bwtool_lift - main for lifting program */
 
 void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, 
-		  enum wigOutType wot, struct slName **p_files);
+		  enum wigOutType wot, struct slName **p_files, char *output_file);
 /* bwtool_paste - main for paste program */
 
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
