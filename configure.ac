@@ -144,6 +144,6 @@ AC_FUNC_REALLOC
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([bzero dup2 floor getcwd gettimeofday memmove memset mkdir munmap pow putenv regcomp rint select setenv socket sqrt strcasecmp strchr strcspn strdup strerror strrchr strspn strstr strtol tzset uname utime])
 
-AC_CONFIG_FILES([Makefile lib/Makefile libjkweb/Makefile bwtool/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile libjkweb/Makefile bwtool/Makefile bwtool/tests/Makefile])
 
 AC_OUTPUT
