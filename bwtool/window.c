@@ -38,7 +38,7 @@ errAbort(
 }
 
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, 
-                   double fill, char *size_s, char *bigfile)
+                   double fill, char *size_s, char *bigfile, char *output_file)
 /* bwtool_window - main for the windowing program */
 {
     struct metaBig *mb = metaBigOpen(bigfile, regions);
@@ -50,6 +50,7 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
     int size = sqlSigned(size_s);
     if (size < 1)
 	errAbort("size must be >= 1 for bwtool window");
+    FILE *out = (output_file) ? mustOpen(output_file, "w") : stdout;
     struct bed *section;
     for (section = mb->sections; section != NULL; section = section->next)
     {
@@ -80,20 +81,21 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
 		}
 		if (!has_NA)
  		{
-		    printf("%s\t%d\t%d\t", pbw->chrom, s, e);
+		    fprintf(out, "%s\t%d\t%d\t", pbw->chrom, s, e);
 		    for (j = i; j < i + size; j++)
 			if (isnan(pbw->data[j]) && (j == i + size - 1))
-			    printf("NA\n");
+			    fprintf(out, "NA\n");
 			else if (isnan(pbw->data[j]))
-			    printf("NA,");
+			    fprintf(out, "NA,");
 			else if (j == i + size - 1)
-			    printf("%0.*f\n", decimals, pbw->data[j]);
+			    fprintf(out, "%0.*f\n", decimals, pbw->data[j]);
 			else
-			    printf("%0.*f,", decimals, pbw->data[j]);
+			    fprintf(out, "%0.*f,", decimals, pbw->data[j]);
 		}
 	    }
 	    perBaseWigFree(&pbw);
 	}
     }
     metaBigClose(&mb);
+    carefulClose(&out);
 }

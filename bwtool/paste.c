@@ -100,7 +100,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     boolean verbose = (hashFindVal(options, "verbose") != NULL) ? TRUE : FALSE;
     struct slName *labels = NULL;
     struct slName *files = *p_files;
-    FILE *out = mustOpen(output_file, "w");
+    FILE *out = (output_file) ? mustOpen(output_file, "w") : stdout;
     /* open the files one by one */
     if (slCount(files) == 1)
 	check_for_list_files(&files, &labels);

@@ -259,7 +259,7 @@ else if (sameString(argv[1], "window") || sameString(argv[1], "win"))
     if (argc != 4)
 	usage_window();
     else
-	bwtool_window(options, favorites, regions, decimals, fill, argv[2], argv[3]);
+	bwtool_window(options, favorites, regions, decimals, fill, argv[2], argv[3], output_file);
 }
 else if (sameString(argv[1], "extract") || sameString(argv[1], "ex"))
 {

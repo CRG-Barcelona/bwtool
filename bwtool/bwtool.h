@@ -136,11 +136,11 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 /* bwtool_paste - main for paste program */
 
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
-                   char *size_s, char *bigfile);
+                   char *size_s, char *bigfile, char *outputfile);
 /* bwtool_window - main for the windowing program */
 
 void bwtool_extract(struct hash *options, char *regions, unsigned decimals, double fill,
-		    char *style, char *bigfile, char *outputfile);
+		    char *style, char *bigfile, char *output_file);
 /* bwtool_extract - main for the extract program */
 
 #endif /* BWTOOL_H */
