@@ -12,6 +12,7 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AC_LANG([C])
 AM_PROG_CC_C_O
+AM_MAINTAINER_MODE([disable])
 
 # Stuff for the -DCOLOR32 define. This is library-independent so just having the define
 # is enough
