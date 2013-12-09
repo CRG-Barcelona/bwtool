@@ -122,13 +122,13 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
     {
 	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
 	if (with_quants)
-	    fprintf(out, "%d\tna\tna\tna\tna\tna\tna\tna\tna\tna", size);
+	    fprintf(out, "%d\t0\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA", size);
 	else
-	    fprintf(out, "%d\tna\tna\tna\tna\tna", size);
+	    fprintf(out, "%d\t0\tNA\tNA\tNA\tNA", size);
 	if (with_sos)
-	    fprintf(out, "\tna");
+	    fprintf(out, "\tNA");
 	if (with_sum)
-	    fprintf(out, "\tna");
+	    fprintf(out, "\tNA");
 	fprintf(out, "\n");
     }
 }
