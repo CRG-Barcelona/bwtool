@@ -307,15 +307,18 @@ void do_final_pass(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw
 		    struct perBaseWig *dest_chrom_pbw = (struct perBaseWig *)hashFindVal(gpbw, dest_chrom);
 		    if (dest_chrom_pbw && (!isnan(dest_chrom_pbw->data[dest_start])))
 			dest_chrom_pbw->data[dest_start] = pbw->data[i];
-		    else if (isnan(dest_chrom_pbw->data[dest_start]))
+		    else if (bad && isnan(dest_chrom_pbw->data[dest_start]))
 			fprintf(bad, "%s\t%d\tmulti_mapped_%s_%d\n", pbw->chrom, pbw->chromStart+i, dest_chrom, dest_start);
 		}
-		else if (rmr == duplicated)
-		    fprintf(bad, "%s\t%d\tduplicated_in_destination\n", pbw->chrom, pbw->chromStart+i);
-		else if (rmr == deleted)
-		    fprintf(bad, "%s\t%d\tdeleted_in_destination\n", pbw->chrom, pbw->chromStart+i);
-		else
-		    fprintf(bad, "%s\t%d\tproblem_lifting\n", pbw->chrom, pbw->chromStart+i);
+		else if (bad)
+		{
+		    if (rmr == duplicated)
+			fprintf(bad, "%s\t%d\tduplicated_in_destination\n", pbw->chrom, pbw->chromStart+i);
+		    else if (rmr == deleted)
+			fprintf(bad, "%s\t%d\tdeleted_in_destination\n", pbw->chrom, pbw->chromStart+i);
+		    else
+			fprintf(bad, "%s\t%d\tproblem_lifting\n", pbw->chrom, pbw->chromStart+i);
+		}
 	    }
 	}
 	perBaseWigFreeList(&pbwList);
