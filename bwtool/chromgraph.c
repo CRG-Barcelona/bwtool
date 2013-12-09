@@ -53,7 +53,9 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 	{
 	    numBases = 0;
 	    sum = 0;
-	    for (i = windowPos; (i < pbw->chromEnd) && (i < windowPos + every); i++)
+	    int end = (windowPos + every > pbw->chromEnd) ? pbw->chromEnd : windowPos + every; 
+	    int middle = windowPos + (end-windowPos)/2;
+	    for (i = windowPos; i < end; i++)
 	    {
 		if (!isnan(pbw->data[i]))
 		{
@@ -63,7 +65,7 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 	    }
 	    if (numBases > 0)
 		sum = sum / numBases;
-	    fprintf(output, "%s\t%d\t%0.*f\n", pbw->chrom, windowPos, decimals, sum);
+	    fprintf(output, "%s\t%d\t%0.*f\n", pbw->chrom, middle, decimals, sum);
 	    windowPos += every;
 	} 
 	perBaseWigFreeList(&pbw);
