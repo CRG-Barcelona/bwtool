@@ -66,7 +66,7 @@ fi
 
 # create .wig if needed
 if [ $expected != ${expected%.wig} ]; then
-   ./wigmake $tested ${tested%.bw}.wig $decimals $condense 
+   ./wigmake $tested ${tested%.bw}.wig $decimals $wigtype $condense 
    rm -f $tested
    tested=${tested%.bw}.wig
 fi 

@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     {
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
 							      section->chromEnd, FALSE, na);
-	perBaseWigOutput(pbw, out, wot, decimals, NULL, FALSE, condense);
+	perBaseWigOutputNASkip(pbw, out, wot, decimals, NULL, FALSE, condense);
 	perBaseWigFree(&pbw);
     }
     carefulClose(&out);

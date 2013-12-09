@@ -477,13 +477,20 @@ TESTS = \
 	scripts/aggregate_main.wig_agg1.bed.2.sh \
 	scripts/aggregate_main.wig_agg1.bed.3.sh \
 	scripts/aggregate_2_and_2.sh \
+	scripts/chromgraph_main_every_5.sh \
+	scripts/extract_main_agg1.sh \
 	scripts/find_main.bw_morethan4.sh \
 	scripts/shift_main.bw_+3.sh \
 	scripts/shift_main.bw_-2.sh \
 	scripts/fill_main.bw_zero.sh \
+	scripts/lift_to_new_main.sh \
+	scripts/lift_main_inversion.1.sh \
+	scripts/lift_main_inversion.2.sh \
 	scripts/paste_main.bw_second.bw.1.sh \
 	scripts/paste_main.bw_second.bw.2.sh \
-	scripts/remove_main.bw_agg1.bed.sh
+	scripts/remove_main.bw_agg1.bed.sh \
+	scripts/summary_main_every3.sh \
+	scripts/summary_main_every10_fillzero_wsum.sh
 
 all: all-am
 
@@ -803,6 +810,20 @@ scripts/aggregate_2_and_2.sh.log: scripts/aggregate_2_and_2.sh
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/chromgraph_main_every_5.sh.log: scripts/chromgraph_main_every_5.sh
+	@p='scripts/chromgraph_main_every_5.sh'; \
+	b='scripts/chromgraph_main_every_5.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/extract_main_agg1.sh.log: scripts/extract_main_agg1.sh
+	@p='scripts/extract_main_agg1.sh'; \
+	b='scripts/extract_main_agg1.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 scripts/find_main.bw_morethan4.sh.log: scripts/find_main.bw_morethan4.sh
 	@p='scripts/find_main.bw_morethan4.sh'; \
 	b='scripts/find_main.bw_morethan4.sh'; \
@@ -831,6 +852,27 @@ scripts/fill_main.bw_zero.sh.log: scripts/fill_main.bw_zero.sh
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/lift_to_new_main.sh.log: scripts/lift_to_new_main.sh
+	@p='scripts/lift_to_new_main.sh'; \
+	b='scripts/lift_to_new_main.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/lift_main_inversion.1.sh.log: scripts/lift_main_inversion.1.sh
+	@p='scripts/lift_main_inversion.1.sh'; \
+	b='scripts/lift_main_inversion.1.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/lift_main_inversion.2.sh.log: scripts/lift_main_inversion.2.sh
+	@p='scripts/lift_main_inversion.2.sh'; \
+	b='scripts/lift_main_inversion.2.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 scripts/paste_main.bw_second.bw.1.sh.log: scripts/paste_main.bw_second.bw.1.sh
 	@p='scripts/paste_main.bw_second.bw.1.sh'; \
 	b='scripts/paste_main.bw_second.bw.1.sh'; \
@@ -848,6 +890,20 @@ scripts/paste_main.bw_second.bw.2.sh.log: scripts/paste_main.bw_second.bw.2.sh
 scripts/remove_main.bw_agg1.bed.sh.log: scripts/remove_main.bw_agg1.bed.sh
 	@p='scripts/remove_main.bw_agg1.bed.sh'; \
 	b='scripts/remove_main.bw_agg1.bed.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/summary_main_every3.sh.log: scripts/summary_main_every3.sh
+	@p='scripts/summary_main_every3.sh'; \
+	b='scripts/summary_main_every3.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+scripts/summary_main_every10_fillzero_wsum.sh.log: scripts/summary_main_every10_fillzero_wsum.sh
+	@p='scripts/summary_main_every10_fillzero_wsum.sh'; \
+	b='scripts/summary_main_every10_fillzero_wsum.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

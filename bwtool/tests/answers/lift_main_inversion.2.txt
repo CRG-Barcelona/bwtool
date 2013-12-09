@@ -1,0 +1,16 @@
+chr	7	multi_mapped_chr_9
+chr	8	deleted_in_destination
+chr	9	deleted_in_destination
+chr	19	multi_mapped_chr_9
+chr	20	deleted_in_destination
+chr	21	deleted_in_destination
+chr	22	deleted_in_destination
+chr	27	deleted_in_destination
+chr	28	deleted_in_destination
+chr	29	deleted_in_destination
+chr	30	deleted_in_destination
+chr	31	deleted_in_destination
+chr	32	deleted_in_destination
+chr	33	deleted_in_destination
+chr	34	deleted_in_destination
+chr	35	deleted_in_destination
