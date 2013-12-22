@@ -148,7 +148,7 @@ void output_cluster_matrix_long(struct cluster_bed_matrix *cbm, struct slName *l
 }
 
 void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *labels, boolean keep_bed, int left, 
-			int right, boolean header, char *outputfile)
+			int right, int tile, boolean header, char *outputfile)
 /* long output.  right this is just patching things up.  this and some other stuff could be combined */
 /* with aggregate some day. */
 {
@@ -156,7 +156,7 @@ void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *
     int i,j,k, lr_pos;
     int n_labels = slCount(labels);
     int unfused_cols = pbm->ncol / n_labels;
-    assert(unfused_cols == left+right);
+    assert(unfused_cols == (left+right)/tile);
     struct slName *lab;
     if (header)
     {
@@ -166,7 +166,7 @@ void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *
 	    fprintf(out, "Signal\tRegion\tPosition\tValue\n");
     }
     /* Do label, region, Position, Value */
-    for (lr_pos = -1 *left, k = 0; (lr_pos <= right) && (k < unfused_cols); lr_pos += (lr_pos == -1) ? 2 : 1, k++)
+    for (lr_pos = -1 *left, k = 0; (lr_pos <= right) && (k < unfused_cols); lr_pos += (lr_pos + tile == 0) ? 2*tile : tile, k++)
     {
 	for (lab = labels, j = 0; (lab != NULL) && (j < n_labels); lab = lab->next, j++)
 	{
@@ -178,10 +178,10 @@ void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *
 		{
 		    char strand = pbw->strand[0];
 		    char *chrom = pbw->chrom;
-		    int chromStart = k + pbw->chromStart;
+		    int chromStart = k*tile + pbw->chromStart;
 		    if (strand == '-')
-			chromStart = pbw->chromEnd - k - 1;
-		    fprintf(out, "%s\t%d\t%d\t", chrom, chromStart, chromStart + 1);
+			chromStart = pbw->chromEnd - k*tile - 1;
+		    fprintf(out, "%s\t%d\t%d\t", chrom, chromStart, chromStart + tile);
 		    fprintf(out, "%s\t", pbw->name);
 		    fprintf(out, "%d\t%c\t", pbw->score, strand);
 		}
@@ -260,11 +260,13 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     unsigned left = 0, right = 0;
     parse_left_right(range_s, &left, &right);
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
-    int tile = (int)sqlUnsigned((char *)hashOptionalVal(options, "tiled-averages", "0"));
+    int tile = (int)sqlUnsigned((char *)hashOptionalVal(options, "tiled-averages", "1"));
     if ((do_k) && ((k < 2) || (k > 10)))
 	errAbort("k should be between 2 and 10\n");
-    if ((do_tile) && (tile < 1))
+    if ((do_tile) && (tile < 2))
 	errAbort("tiling should be done for larger regions");
+    if ((left % tile != 0) || (right % tile != 0))
+	errAbort("tiling should be multiple of both left and right values");
     struct slName *bw_names = slNameListFromComma(bigfile);
     struct slName *bw_name;
     struct slName *labels_from_file = NULL;
@@ -298,7 +300,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     else 
     {
 	if (do_long_form)
-	    output_matrix_long(pbm, decimals, labels, keep_bed, left, right, lf_header, outputfile);
+	    output_matrix_long(pbm, decimals, labels, keep_bed, left, right, tile, lf_header, outputfile);
 	else
 	    output_matrix(pbm, decimals, keep_bed, outputfile);
 	/* unordered, no label  */
