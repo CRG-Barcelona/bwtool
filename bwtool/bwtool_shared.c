@@ -233,7 +233,7 @@ void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add)
 		    struct perBaseWig *big_pbw = big->array[i];
 		    struct perBaseWig *add_pbw = to_add->array[i];
 		    struct perBaseWig *new_pbw = alloc_perBaseWig(big_pbw->chrom, big_pbw->chromStart, big_pbw->chromStart + big->ncol + expanding);
-		    new_pbw->name = cloneString(".");
+		    new_pbw->name = cloneString(big_pbw->name);
 		    new_pbw->score = 0; 
 		    new_pbw->strand[0] = big_pbw->strand[0];
 		    new_pbw->chromEnd = big_pbw->chromEnd;
