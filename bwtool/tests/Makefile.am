@@ -19,6 +19,10 @@ TESTS = \
 	scripts/lift_to_new_main.sh \
 	scripts/lift_main_inversion.1.sh \
 	scripts/lift_main_inversion.2.sh \
+	scripts/matrix_two_wigs.1.sh \
+	scripts/matrix_two_wigs.2.sh \
+	scripts/matrix_two_wigs.3.sh \
+	scripts/matrix_two_wigs.4.sh \
 	scripts/paste_main.bw_second.bw.1.sh \
 	scripts/paste_main.bw_second.bw.2.sh \
 	scripts/remove_main.bw_agg1.bed.sh \
