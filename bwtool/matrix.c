@@ -48,7 +48,17 @@ errAbort(
   );
 }
 
+void na_or_num(FILE *out, double num, int decimals)
+/* repeated function testing NA-ness of the number then outputting. */
+{
+    if (isnan(num))
+	fprintf(out, "NA");
+    else
+	fprintf(out, "%0.*f", decimals, num);
+}
+
 void output_centroids(struct cluster_bed_matrix *cbm, char *centroid_file, int decimals)
+/* strictly the centroids */
 {
     FILE *out2 = mustOpen(centroid_file, "w");
     int i, j, k = cbm->k;
@@ -64,6 +74,7 @@ void output_centroids(struct cluster_bed_matrix *cbm, char *centroid_file, int d
 }
 
 void output_cluster_matrix(struct cluster_bed_matrix *cbm, int decimals, boolean keep_bed, char *outputfile)
+/* non-long output */
 {
     FILE *out = mustOpen(outputfile, "w");
     int i, j;
@@ -75,12 +86,16 @@ void output_cluster_matrix(struct cluster_bed_matrix *cbm, int decimals, boolean
 	fprintf(out, "%d\t", pbw->label);
 	fprintf(out, "%f\t", pbw->cent_distance);
 	for (j = 0; j < pbw->len; j++)
-	    fprintf(out, "%0.*f%c", decimals, pbw->data[j], (j == pbw->len-1) ? '\n' : '\t');
+	{
+	    na_or_num(out, pbw->data[j], decimals);
+	    fprintf(out, "%c", (j == pbw->len-1) ? '\n' : '\t');
+	}
     }
     carefulClose(&out);
 }
 
 void output_cluster_matrix_long(struct cluster_bed_matrix *cbm, struct slName *labels, boolean keep_bed, char *outputfile, boolean header)
+/* For handling long-form cluster output */
 {
     FILE *out = mustOpen(outputfile, "w");
     int i, j, l;
@@ -132,7 +147,58 @@ void output_cluster_matrix_long(struct cluster_bed_matrix *cbm, struct slName *l
     carefulClose(&out);
 }
 
+void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *labels, boolean keep_bed, int left, 
+			int right, boolean header, char *outputfile)
+/* long output.  right this is just patching things up.  this and some other stuff could be combined */
+/* with aggregate some day. */
+{
+    FILE *out = mustOpen(outputfile, "w");
+    int i,j,k, lr_pos;
+    int n_labels = slCount(labels);
+    int unfused_cols = pbm->ncol / n_labels;
+    assert(unfused_cols == left+right);
+    struct slName *lab;
+    if (header)
+    {
+	if (keep_bed)
+	    fprintf(out, "chrom\tchromStart\tchromEnd\tname\tscore\tstrand\tSignal\tPosition\tValue\n");
+	else
+	    fprintf(out, "Signal\tRegion\tPosition\tValue\n");
+    }
+    /* Do label, region, Position, Value */
+    for (lr_pos = -1 *left, k = 0; (lr_pos <= right) && (k < unfused_cols); lr_pos += (lr_pos == -1) ? 2 : 1, k++)
+    {
+	for (lab = labels, j = 0; (lab != NULL) && (j < n_labels); lab = lab->next, j++)
+	{
+	    for (i = 0; i < pbm->nrow; i++)
+	    {
+		int jj = j*unfused_cols + k;
+		struct perBaseWig *pbw = pbm->array[i];
+		if (keep_bed)
+		{
+		    char strand = pbw->strand[0];
+		    char *chrom = pbw->chrom;
+		    int chromStart = k + pbw->chromStart;
+		    if (strand == '-')
+			chromStart = pbw->chromEnd - k - 1;
+		    fprintf(out, "%s\t%d\t%d\t", chrom, chromStart, chromStart + 1);
+		    fprintf(out, "%s\t", pbw->name);
+		    fprintf(out, "%d\t%c\t", pbw->score, strand);
+		}
+		fprintf(out, "%s\t", lab->name);
+		if (!keep_bed)
+		    fprintf(out, "%s\t", (pbw->name) ? pbw->name : ".");
+		fprintf(out, "%d\t", lr_pos);
+		na_or_num(out, pbm->matrix[i][jj], decimals);
+		fprintf(out, "\n");
+	    }
+	}
+    }	
+    carefulClose(&out);
+}
+
 void output_matrix(struct perBaseMatrix *pbm, int decimals, boolean keep_bed, char *outputfile)
+/* the simplest output */
 {
     FILE *out = mustOpen(outputfile, "w");
     int i,j;
@@ -142,7 +208,10 @@ void output_matrix(struct perBaseMatrix *pbm, int decimals, boolean keep_bed, ch
 	if (keep_bed)
 	    fprintf(out, "%s\t%d\t%d\t%s\t%d\t%c\t", pbw->chrom, pbw->chromStart, pbw->chromEnd, pbw->name, pbw->score, pbw->strand[0]);
 	for (j = 0; j < pbw->len; j++)
-	    fprintf(out, "%0.*f%c", decimals, pbw->data[j], (j == pbw->len-1) ? '\n' : '\t');
+	{
+	    na_or_num(out, pbw->data[j], decimals);
+	    fprintf(out, "%c", (j == pbw->len-1) ? '\n' : '\t');
+	}
     }	
     carefulClose(&out);
 }
@@ -228,7 +297,10 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     }
     else 
     {
-	output_matrix(pbm, decimals, keep_bed, outputfile);
+	if (do_long_form)
+	    output_matrix_long(pbm, decimals, labels, keep_bed, left, right, lf_header, outputfile);
+	else
+	    output_matrix(pbm, decimals, keep_bed, outputfile);
 	/* unordered, no label  */
 	free_perBaseMatrix(&pbm);
     }
