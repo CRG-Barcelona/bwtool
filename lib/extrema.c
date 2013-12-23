@@ -70,6 +70,18 @@ int extrema_cmp(const void *va, const void *vb)
     return dif;
 }
 
+int extrema_bed_cmp(const void *va, const void *vb)
+/* Sort like a bed */
+{
+    const struct extrema *a = *((struct extrema **)va);
+    const struct extrema *b = *((struct extrema **)vb);
+    int dif = 0;
+    dif = strcmp(a->chrom, b->chrom);
+    if (dif != 0)
+	return dif;
+    return a->chromStart - b->chromStart;
+}
+
 static void refine_extrema(struct extrema **pList, unsigned min_sep)
 /* sorts by max and value descending, then by min and value ascending */
 /* then consecutively adds each extrema depending on whether when extending */

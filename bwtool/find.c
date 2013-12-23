@@ -93,8 +93,11 @@ void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, u
 	for (ex = main_list; ex != NULL; ex = ex->next)
 	    fprintf(out, "%s\t%d\t%d\t%d\t1000\t%c\n", ex->chrom, ex->chromStart, ex->chromStart+1, (int)ex->val, ex->min_or_max);
     else
+    {
+	slSort(&main_list, extrema_bed_cmp);
 	for (ex = main_list; ex != NULL; ex = ex->next)
 	    fprintf(out, "%s\t%d\t%d\t%0.*f\t1000\t%c\n", ex->chrom, ex->chromStart, ex->chromStart+1, decimals, ex->val, ex->min_or_max);
+    }
     carefulClose(&out);
     extrema_free_list(&main_list);
 }

@@ -33,6 +33,10 @@ int extrema_cmp(const void *va, const void *vb);
 /* Sort first by min_or_max, then by extremity of the value (depends on min_or_max) */
 /* i.e. if it's a local max, sort descending, if it's a local min, sort ascending */ 
 
+int extrema_bed_cmp(const void *va, const void *vb);
+/* Sort first by min_or_max, then by extremity of the value (depends on min_or_max) */
+/* i.e. if it's a local max, sort descending, if it's a local min, sort ascending */ 
+
 struct extrema *extrema_find(struct metaBig *mb, int min_sep, enum ex_removal rem);
 /* the heart of the algorithm.  does the three-point per-base extrema search */
 
