@@ -37,6 +37,8 @@ errAbort(
   "                    output sum of squared deviations from the mean along with \n"
   "                    the other fields\n"
   "   -with-sum        output sum, also\n"
+  "   -skip-median     because the median requires a sorting of the data, this can\n"
+  "                    be time-consuming for large regions, or when using -total\n"
   "   -keep-bed        if the loci bed is given, keep as many bed file\n"
   "   -total           only output a summary as if all of the regions are pasted\n"
   "                    together\n"
@@ -66,27 +68,46 @@ double sumOfSquares(int num_data, double *vector, double mean)
     return ret;
 }
 
-void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct bed *section, int bed_size, boolean use_rgb, boolean zero_remove, boolean with_quants, boolean with_sos, boolean with_sum)
+unsigned count_non_na(int num_data, double *vector)
+{
+    int i;
+    unsigned count = 0;
+    for (i = 0; i < num_data; i++)
+	if (!isnan(vector[i]))
+	    count++;
+    return count;
+}
+
+void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct bed *section, int bed_size, boolean use_rgb, boolean zero_remove, boolean with_quants, boolean with_sos, boolean with_sum, boolean without_med)
 /* at each iteration of */
 {
     int i;
     int size = pbw->chromEnd - pbw->chromStart;
     double *vector = pbw->data;
+    unsigned num_data = 0;
     if (zero_remove)
+    {
 	fill_na(vector, size, decimals);
-    unsigned num_data = doubleWithNASort(size, vector);
+	num_data = size;
+    }
+    else if (without_med)
+	num_data = count_non_na(size, vector);
+    else
+	num_data = doubleWithNASort(size, vector);
     if (num_data > 0)
     {
 	double mean = 0;
 	double sum = 0;
 	double min = DBL_MAX;
 	double max = -1 * DBL_MAX;
-	double median = doubleWithNAMedianAlreadySorted(num_data, vector);
+	double median = 0;
 	double first_10p = -1;
 	double first_quart = -1;
 	double third_quart = -1;
 	double last_10p = -1;
 	double sos = -1;
+	if (!without_med)
+	    median = doubleWithNAMedianAlreadySorted(num_data, vector);
 	if (with_quants)
 	{
 	    first_10p = doubleWithNAInvQuantAlreadySorted(num_data, vector, 10, TRUE);
@@ -109,9 +130,12 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 	if (with_quants)
 	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size, 
 		    num_data, decimals, min, decimals, max, decimals, mean, decimals, first_10p, decimals, first_quart, decimals, median, decimals, third_quart, decimals, last_10p);
-	else
+	else if (!without_med)
 	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size, 
 		num_data, decimals, min, decimals, max, decimals, mean, decimals, median);
+	else
+	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f", size, 
+		num_data, decimals, min, decimals, max, decimals, mean);
 	if (with_sos)
 	    fprintf(out, "\t%0.*f", decimals, sos);
 	if (with_sum)
@@ -123,8 +147,10 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
 	if (with_quants)
 	    fprintf(out, "%d\t0\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA", size);
-	else
+	else if (!without_med)
 	    fprintf(out, "%d\t0\tNA\tNA\tNA\tNA", size);
+	else
+	    fprintf(out, "%d\t0\tNA\tNA\tNA", size);
 	if (with_sos)
 	    fprintf(out, "\tNA");
 	if (with_sum)
@@ -133,7 +159,7 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
     }
 }
 
-void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_list, int bed_size, boolean use_rgb, FILE *out, double fill, boolean zero_remove, boolean with_quants, boolean with_sos, boolean with_sum, boolean total)
+void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_list, int bed_size, boolean use_rgb, FILE *out, double fill, boolean zero_remove, boolean with_quants, boolean with_sos, boolean with_sum, boolean total, boolean without_med)
 /* if the "loci" ends up being a bed file */
 {
     if (total)
@@ -144,7 +170,7 @@ void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_l
 	big_bed->chrom = cloneString(big_pbw->chrom);
 	big_bed->chromStart = big_pbw->chromStart;
 	big_bed->chromEnd = big_pbw->chromEnd;
-	summary_loop(big_pbw, decimals, out, big_bed, 3, FALSE, zero_remove, with_quants, with_sos, with_sum);
+	summary_loop(big_pbw, decimals, out, big_bed, 3, FALSE, zero_remove, with_quants, with_sos, with_sum, without_med);
 	bedFree(&big_bed);
     }
     else
@@ -153,7 +179,7 @@ void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_l
 	for (section = bed_list; section != NULL; section = section->next)
 	{
 	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, section->chromEnd, FALSE, fill);
-	    summary_loop(pbw, decimals, out, section, bed_size, use_rgb, zero_remove, with_quants, with_sos, with_sum);
+	    summary_loop(pbw, decimals, out, section, bed_size, use_rgb, zero_remove, with_quants, with_sos, with_sum, without_med);
 	    perBaseWigFreeList(&pbw);
 	}
     }
@@ -168,6 +194,7 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
     boolean with_quants = (hashFindVal(options, "with-quantiles") != NULL) ? TRUE : FALSE;
     boolean with_sos = (hashFindVal(options, "with-sum-of-squares") != NULL) ? TRUE : FALSE;
     boolean with_sum = (hashFindVal(options, "with-sum") != NULL) ? TRUE : FALSE;
+    boolean without_med = (hashFindVal(options, "skip-median") != NULL) ? TRUE : FALSE;
     boolean total = (hashFindVal(options, "total") != NULL) ? TRUE : FALSE;
     struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     double filll = (hashFindVal(options, "zero-fill") != NULL) ? 0 : fill;
@@ -221,15 +248,17 @@ void bwtool_summary(struct hash *options, char *favorites, char *regions, unsign
 	    fprintf(out, "\tunknown_field");
 	if (with_quants)
 	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tfirst_10%%\t1st_quart\tmedian\t3rd_quart\tlast_10%%");
-	else
+	else if (!without_med)
 	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean\tmedian");
+	else
+	    fprintf(out, "\tsize\tnum_data\tmin\tmax\tmean");
 	if (with_sos)
 	    fprintf(out, "\tsum_of_squares");
 	if (with_sum)
 	    fprintf(out, "\tsum");
 	fprintf(out, "\n");
     }
-    bwtool_summary_bed(mb, decimals, bed_list, bed_size, use_rgb, out, fill, zero_remove, with_quants, with_sos, with_sum, total);
+    bwtool_summary_bed(mb, decimals, bed_list, bed_size, use_rgb, out, fill, zero_remove, with_quants, with_sos, with_sum, total, without_med);
     bedFreeList(&bed_list);
     carefulClose(&out);
     metaBigClose(&mb);
