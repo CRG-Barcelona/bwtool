@@ -103,12 +103,19 @@ struct cluster_bed_matrix *init_cbm_from_pbm(struct perBaseMatrix *pbm, int k)
 /* initialize the cluster struct froma matrix */
 {
     struct cluster_bed_matrix *cbm;
+    int i;
     AllocVar(cbm);
     cbm->pbm = pbm;
     cbm->m = pbm->ncol;
     cbm->n = pbm->nrow;
     cbm->k = k;
     cbm->num_na = clear_na_rows(cbm->pbm);
+    AllocArray(cbm->cluster_sizes, k);
+    AllocArray(cbm->centroids, k);
+    for (i = 0; i < k; i++)
+    {
+	AllocArray(cbm->centroids[i], cbm->m);
+    }
     return cbm;
 }
 
@@ -123,8 +130,11 @@ void free_cbm(struct cluster_bed_matrix **pCbm)
 /* free up the cluster struct */
 {
     struct cluster_bed_matrix *cbm = *pCbm;
+    int i;
     free_perBaseMatrix(&cbm->pbm);
     freeMem(cbm->cluster_sizes);
+    for (i = 0; i < cbm->k; i++)
+	freeMem(cbm->centroids[i]);
     freeMem(cbm->centroids);
     freez(&cbm);
 }
@@ -136,25 +146,21 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
     int h, i, j; /* loop counters, of course :) */
     double old_error; 
     double error = DBL_MAX; /* sum of squared euclidean distance */
-    double **c1; /* centroids and temp centroids (size k x m) */
+    double **tmp_centroids; /* centroids and temp centroids (size k x m) */
     int n = cbm->n;
     int m = cbm->m;
     int k = cbm->k;
+    int pass = 1;
     AllocArray(labels, n);
-    AllocArray(cbm->cluster_sizes, k);
-    AllocArray(cbm->centroids, k);
-    AllocArray(c1, k);
+    AllocArray(tmp_centroids, k);
     for (i = 0; i < k; i++)
-    {
-	AllocArray(cbm->centroids[i], m);
-	AllocArray(c1[i], m);
-    }
+	AllocArray(tmp_centroids[i], m);
     /* assert(data && k > 0 && k <= n && m > 0 && t >= 0); /\* for debugging *\/ */
     /* init ialization */
     for (i = 0, h = cbm->num_na; i < k; h += (cbm->n-cbm->num_na) / k, i++) 
     {
 	/* pick k points as initial centroids */
-	for (j = cbm->m-1; j >= 0; j--)
+	for (j = 0; j < m; j++)
 	    cbm->centroids[i][j] = cbm->pbm->matrix[h][j];
     }
     /* main loop */
@@ -168,7 +174,7 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
 	{
 	    cbm->cluster_sizes[i] = 0;
 	    for (j = 0; j < m; j++)
-		c1[i][j] = 0;
+		tmp_centroids[i][j] = 0;
 	}
 	for (h = cbm->num_na; h < n; h++) 
 	{
@@ -177,8 +183,9 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
 	    for (i = 0; i < k; i++) 
 	    {
 		double distance = 0;
-		for (j = m-1; j >= 0; j--)
+		for (j = 0; j < m; j++)
 		    distance += pow(cbm->pbm->matrix[h][j] - cbm->centroids[i][j], 2);
+		distance = sqrt(distance);
 		if (distance < min_distance) 
 		{
 		    labels[h] = i;
@@ -186,23 +193,23 @@ static int *k_means(struct cluster_bed_matrix *cbm, double t)
 		}
 	    }
 	    /* update size and temp centroid of the destination cluster */
-	    for (j = m-1; j >= 0; j--)
-		c1[labels[h]][j] += cbm->pbm->matrix[h][j];
+	    for (j = 0; j < m; j++)
+		tmp_centroids[labels[h]][j] += cbm->pbm->matrix[h][j];
 	    cbm->cluster_sizes[labels[h]]++;
 	    /* update standard error */
 	    cbm->pbm->array[h]->cent_distance = min_distance;
 	    error += min_distance;
 	}
+	/* update all centroids */
 	for (i = 0; i < k; i++) 
-	{ /* update all centroids */
 	    for (j = 0; j < m; j++) 
-	    {
-		cbm->centroids[i][j] = cbm->cluster_sizes[i] ? (c1[i][j] / cbm->cluster_sizes[i]) : c1[i][j];
-	    }
-	}
+		cbm->centroids[i][j] = (cbm->cluster_sizes[i] > 0)  
+		    ? (tmp_centroids[i][j] / cbm->cluster_sizes[i]) : 0;
     } while (fabs(error - old_error) > t);
     /* housekeeping */
-    freeMem(c1);
+    for (i = 0; i < k; i++)
+	freeMem(tmp_centroids[i]);
+    freeMem(tmp_centroids);
     return labels;
 }
 
@@ -254,8 +261,8 @@ void do_kmeans_sort(struct cluster_bed_matrix *cbm, double t, boolean sort)
 {
     int i = 0;
     int *labels = k_means(cbm, t);
-    if (sort)
-	exchange_labels(cbm->cluster_sizes, cbm->k, labels, cbm->num_na, cbm->pbm->nrow);
+    /* if (sort) */
+    /* 	exchange_labels(cbm->cluster_sizes, cbm->k, labels, cbm->num_na, cbm->pbm->nrow); */
     for (i = cbm->num_na; i < cbm->pbm->nrow; i++)
 	cbm->pbm->array[i]->label = labels[i];
     qsort(cbm->pbm->array, cbm->pbm->nrow, sizeof(cbm->pbm->array[0]), perBaseWigLabelCmp);
