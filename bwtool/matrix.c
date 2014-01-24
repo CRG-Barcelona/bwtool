@@ -25,18 +25,20 @@ errAbort(
   "bwtool matrix - extract data and output in a tab-delimited way that is\n"
   "   easily used as a matrix by other programs.\n"
   "usage:\n"
-  "   bwtool matrix left:right regions.bed input1.bw,input2... output.txt\n"
-  "   bwtool matrix left:right regions.bed bigWigs.lst output.txt\n\n"
+  "   bwtool matrix up:down regions.bed input1.bw,input2... output.txt\n"
+  "   bwtool matrix up:down regions.bed bigWigs.lst output.txt\n\n"
+  "   bwtool matrix up:meta:down regions.bed input1.bw,input2... output.txt\n"
+  "   bwtool matrix up:meta:down regions.bed bigWigs.lst output.txt\n\n"
   "If more than one bigWig is specified, then the matrix from the second\n"
   "matrix is fused to the first, and the third to the second, etc. in the\n"
-  "same left-to-right order as the bigWigs\n\n"
+  "same left-to-right order as the comma-list of bigWigs\n\n"
   "options:\n"
   "   -keep-bed       in this case output the original bed loci in the first\n"
   "                   columns of the output and output data as comma-separated\n"
   "   -starts         use starts of bed regions as opposed to the middles\n"
   "   -ends           use ends of bed regions as opposed to the middles\n"
   "   -tiled-averages=n\n"
-  "                   break the left:right sized region into regions of n bases\n"
+  "                   break the up:down sized region into regions of n bases\n"
   "                   and average over those subregions as the matrix.\n"
   "   -long-form=labels\n"
   "   -long-form-header\n"
@@ -243,6 +245,12 @@ static struct slName *setup_labels(char *long_form, struct slName *bw_list, stru
     return lf_labels;
 }
 
+void check_list(struct bed6 *list)
+{
+    struct bed6 *one;
+    for (one = list; one != NULL; one = one->next)
+	uglyf("   %s\t%d\t%d\n", one->chrom, one->chromStart, one->chromEnd);
+}
 
 void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals, 
 		   double fill, char *range_s, char *bigfile, char *outputfile)
@@ -258,7 +266,9 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     char *long_form = (char *)hashFindVal(options, "long-form");
     boolean do_long_form = (long_form != NULL);
     unsigned left = 0, right = 0;
-    parse_left_right(range_s, &left, &right);
+    int meta = 0;
+    int num_parse = parse_left_right(range_s, &left, &right, &meta);
+    boolean do_meta = (num_parse == 3);
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
     int tile = (int)sqlUnsigned((char *)hashOptionalVal(options, "tiled-averages", "1"));
     if ((do_k) && ((k < 2) || (k > 10)))
@@ -266,21 +276,54 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     if ((do_tile) && (tile < 2))
 	errAbort("tiling should be done for larger regions");
     if ((left % tile != 0) || (right % tile != 0))
-	errAbort("tiling should be multiple of both left and right values");
+	errAbort("tiling should be multiple of both up and down values");
+    if (do_meta && starts && ends)
+	warn("meta uses -starts and -ends anyway");
+    else if ((do_meta) && (starts || ends))
+	warn("-starts and -ends both automatically used with meta");
     struct slName *bw_names = slNameListFromComma(bigfile);
     struct slName *bw_name;
     struct slName *labels_from_file = NULL;
     int num_bigwigs = check_for_list_files(&bw_names, &labels_from_file);
     struct slName *labels = setup_labels(long_form, bw_names, &labels_from_file);
     struct bed6 *regs = NULL;
+    struct bed6 *regions_left = NULL, *regions_right = NULL, *regions_meta = NULL;
     struct perBaseMatrix *pbm = NULL;
     int i;
-    regs = load_and_recalculate_coords(regions, left, right, FALSE, starts, ends);
+    if (do_meta)
+    {
+	if (meta == -1) 
+	{
+	    meta = calculate_meta_file(regions);
+	    fprintf(stderr, "calculated meta = %d bases\n", meta);
+	}
+	regions_left = load_and_recalculate_coords(regions, left, 0, FALSE, TRUE, FALSE);
+	regions_right = load_and_recalculate_coords(regions, 0, right, FALSE, FALSE, TRUE);
+	regions_meta = (meta > 0) ? readBed6Soft(regions) : NULL;
+    }
+    else
+	regs = load_and_recalculate_coords(regions, left, right, FALSE, starts, ends);
     for (bw_name = bw_names; bw_name != NULL; bw_name = bw_name->next)
     {
 	struct metaBig *mb = metaBigOpen(bw_name->name, NULL);
-	struct perBaseMatrix *one_pbm = (do_tile) ? load_ave_perBaseMatrix(mb, regs, tile, fill) : load_perBaseMatrix(mb, regs, fill);
-	fuse_pbm(&pbm, &one_pbm);
+	if (do_meta)
+	{
+	    struct perBaseMatrix *one_pbm = load_perBaseMatrix(mb, regions_left, fill);
+	    struct perBaseMatrix *right_pbm = load_perBaseMatrix(mb, regions_right, fill);
+	    if (meta > 0)
+	    {
+		struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, meta, fill);
+		fuse_pbm(&one_pbm, &meta_pbm, TRUE);
+	    }
+	    fuse_pbm(&one_pbm, &right_pbm, TRUE);
+	    fuse_pbm(&pbm, &one_pbm, FALSE);
+	}
+	else
+	{
+	    struct perBaseMatrix *one_pbm = (do_tile) ? load_ave_perBaseMatrix(mb, regs, tile, fill) : 
+		load_perBaseMatrix(mb, regs, fill);
+	    fuse_pbm(&pbm, &one_pbm, FALSE);
+	}
 	metaBigClose(&mb);
     }
     if (do_k)
@@ -306,5 +349,13 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	/* unordered, no label  */
 	free_perBaseMatrix(&pbm);
     }
-    bed6FreeList(&regs);
+    if (do_meta)
+    {
+	bed6FreeList(&regions_left);
+	bed6FreeList(&regions_right);
+	if (meta > 0)
+	    bed6FreeList(&regions_meta);
+    }
+    else
+	bed6FreeList(&regs);
 }

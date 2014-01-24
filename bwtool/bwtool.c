@@ -57,6 +57,7 @@ errAbort(
   " -decimals=n              output specified number of decimals (default 2)\n"
   " -fill=val                some programs allow filling missing parts of the bigWig\n"
   "                          with a specified value prior to using data.\n"
+  " -pseudo=val              add a pseudo-count at every value\n"
   " -o=output.txt            where normally standard output is written, write to a\n"
   "                          file instead."
   );

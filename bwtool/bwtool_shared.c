@@ -154,18 +154,31 @@ int check_for_list_files(struct slName **pList, struct slName **lf_list_labels)
     return slCount(tmp_list);
 }
 
-void parse_left_right(char *size_s, unsigned *pleft, unsigned *pright)
-/* parse the "left:right" from the command */
+int parse_left_right(char *size_s, unsigned *pleft, unsigned *pright, int *pmeta)
+/* parse the "left:right" or "left:meta:right" from the command */
+/* return the number of args: 2 or 3 */
 {
     unsigned left = 0, right = 0;
-    char *range[2];
-    int range_num = chopString(size_s, ":", range, 2);
-    if (range_num != 2)
-	errAbort("wrongly formatted range left:right");
+    int meta = 0;
+    char *range[3];
+    int range_num = chopString(size_s, ":", range, 3);
+    if ((range_num != 2) && (range_num != 3))
+	errAbort("wrongly formatted range up:down or up:meta:down");
     left = sqlUnsigned(range[0]);
-    right = sqlUnsigned(range[1]);
     *pleft = left;
-    *pright = right;
+    if (range_num == 2)
+    {
+	right = sqlUnsigned(range[1]);
+	*pright = right;
+    }
+    else
+    {
+	meta = sqlSigned(range[1]);
+	*pmeta = meta;
+	right = sqlUnsigned(range[2]);
+	*pright = right;
+    }
+    return range_num;
 }
 
 void writeBw(char *inName, char *outName, struct hash *chromSizeHash)
@@ -210,7 +223,7 @@ struct metaBig *metaBigOpen_check(char *bigfile, char *regions)
     return mb;
 }
 
-void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add)
+void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add, boolean add_coords)
 /* not this makes perhaps-illegal perBaseWigs where the chromEnd-chromStart are not the */
 /* same as the len... which may break things somewhere if this were ever library-ized */
 {
@@ -236,7 +249,7 @@ void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add)
 		    new_pbw->name = cloneString(big_pbw->name);
 		    new_pbw->score = 0; 
 		    new_pbw->strand[0] = big_pbw->strand[0];
-		    new_pbw->chromEnd = big_pbw->chromEnd;
+		    new_pbw->chromEnd = (add_coords) ? add_pbw->chromEnd : big_pbw->chromEnd;
 		    for (j = 0; j < big_pbw->len; j++)
 			new_pbw->data[j] = big_pbw->data[j];
 		    for (j = 0; j < add_pbw->len; j++)
@@ -251,3 +264,44 @@ void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add)
 	}
     }
 }
+
+int calculate_meta_file(char *file_name)
+/* from all the beds in all the region files, get a single average */
+{
+    int count = 0;
+    int sum = 0;
+    if (!file_name)
+	return 0;
+    struct bed6 *beds = readBed6Soft(file_name);
+    struct bed6 *bed;
+    for (bed = beds; bed != NULL; bed = bed->next)
+    {
+	count++;
+	sum += bed->chromEnd - bed->chromStart;
+    }
+    bed6FreeList(&beds);
+    return sum / count;
+}
+
+int calculate_meta_file_list(struct slName *region_list)
+/* from all the beds in all the region files, get a single average */
+{
+    int count = 0;
+    int sum = 0;
+    struct slName *reg;
+    if (!region_list)
+	return 0;
+    for (reg = region_list; reg != NULL; reg = reg->next)
+    {
+	struct bed6 *beds = readBed6Soft(reg->name);
+	struct bed6 *bed;
+	for (bed = beds; bed != NULL; bed = bed->next)
+	{
+	    count++;
+	    sum += bed->chromEnd - bed->chromStart;
+	}
+	bed6FreeList(&beds);
+    }
+    return sum / count;
+}
+

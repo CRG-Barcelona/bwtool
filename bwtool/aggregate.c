@@ -27,19 +27,22 @@ errAbort(
   "bwtool aggregate - produce plot data as averages surrounding given regions\n"
   "   seen in the bigWig.\n"
   "usage:\n"
-  "   bwtool aggregate left:right a.bed,b.bed,... x.bw,y.bw,... output.txt\n" 
-  "   bwtool aggregate left:right bed.lst bigWig.lst output.txt\n"
+  "   bwtool aggregate up:down a.bed,b.bed,... x.bw,y.bw,... output.txt\n" 
+  "   bwtool aggregate up:down bed.lst bigWig.lst output.txt\n"
+  "   bwtool aggregate up:meta:down a.bed,b.bed,... x.bw,y.bw,... output.txt\n" 
+  "   bwtool aggregate up:meta:down bed.lst bigWig.lst output.txt\n"
   "where:\n"
-  "  left:right is a description of the range to use surrounding the\n"
+  "  up:down is a description of the range to use surrounding the\n"
   "         centers/starts. A value of 200:300 will create plot points\n"
-  "         for -200 bp to +300 bp from the center of all the regions.\n"
+  "         for 200 bp upstream to 300 bp downstream from the center of\n"
+  "         all the regions.\n"
   "  bed.lst/bigWig.lst are files containing lists of files to be used\n"
   "         in place of a comma-separated list.\n\n"
   "options:\n"
   "   -starts          use starts of bed regions as opposed to the middles\n"
+  "                    (unavailable when using meta)\n"
   "   -ends            use ends of bed regions as opposed to the middles\n"
-  "   -meta=m          use m bases of meta-region to put in middle between\n"
-  "                    starts and ends of regions inputted\n"
+  "                    (unavailable when using meta)\n"
   "   -firstbase       in this case the zero base is used so output\n"
   "                    has left+right+1 lines\n"
   "   -expanded        output medians and standard deviations instead of just\n"
@@ -340,28 +343,6 @@ static struct slName *setup_labels(char *long_form, boolean clustering, int k, s
     return lf_labels;
 }
 
-int calculate_meta(struct slName *region_list)
-/* from all the beds in all the region files, get a single average */
-{
-    int count = 0;
-    int sum = 0;
-    struct slName *reg;
-    if (!region_list)
-	return 0;
-    for (reg = region_list; reg != NULL; reg = reg->next)
-    {
-	struct bed6 *beds = readBed6Soft(reg->name);
-	struct bed6 *bed;
-	for (bed = beds; bed != NULL; bed = bed->next)
-	{
-	    count++;
-	    sum += bed->chromEnd - bed->chromStart;
-	}
-	bed6FreeList(&beds);
-    }
-    return sum / count;
-}
-
 void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, double fill,
 		       char *size_s, char *region_list_s, char *wig, char *output_file)
 /* aggregate - main */
@@ -380,14 +361,6 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     char *long_form = (char *)hashFindVal(options, "long-form");
     boolean do_long_form = (long_form != NULL);
     int meta = 0;
-    char *meta_s = (char *)hashFindVal(options, "meta");
-    if (meta_s)
-    {
-	if (sameString(meta_s, "on"))
-	    meta = -1;
-	else
-	    meta = (int)sqlUnsigned(meta_s);
-    }
     struct slName *lf_labels = NULL, *lf_labels_b = NULL, *lf_labels_w = NULL;
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
     FILE *output;
@@ -395,17 +368,18 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     int num_wigs = check_for_list_files(&wig_list, &lf_labels_w);
     boolean mult_regions = (num_regions > 1);
     boolean mult_wigs = (num_wigs > 1);
-    parse_left_right(size_s, &left, &right);
+    int num_parse = parse_left_right(size_s, &left, &right, &meta);
+    boolean do_meta = (num_parse == 3);
     if (use_start && use_end)
 	errAbort("cannot specify both -starts and -ends");
     if ((clustering) && ((k < 2) || (k > 10)))
 	errAbort("k should be between 2 and 10\n");
     if ((mult_regions || mult_wigs) && clustering)
 	errAbort("with clustering just specify one region list and one bigWig");
-    if (meta_s && clustering)
-	errAbort("at the moment clustering doesn't use -meta\n");
-    if (meta_s && (use_start || use_end || firstbase))
-	errAbort("neither -firstbast nor -starts nor -ends are available with -meta\n");
+    if (do_meta && clustering)
+	errAbort("at the moment clustering doesn't use meta\n");
+    if (do_meta && (use_start || use_end || firstbase))
+	errAbort("neither -firstbase nor -starts nor -ends are available with meta\n");
     if (firstbase)
 	nozero = FALSE;
     if (mult_regions && mult_wigs)
@@ -425,7 +399,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	/* first calculate the meta if necessary as an average of all the regions in all the files */
 	if (meta == -1) 
 	{
-	    meta = calculate_meta(region_list);
+	    meta = calculate_meta_file_list(region_list);
 	    fprintf(stderr, "calculated meta = %d bases\n", meta);
 	}
 	agg = init_agg_data(left, right, meta, firstbase, nozero, num_regions, num_wigs, expanded, lf_labels);
@@ -436,7 +410,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	}
 	slReverse(&mbList);
 	int offset = 0;
-	if (meta == 0)
+	if (!do_meta)
 	{
 	    for (reg = region_list; reg != NULL; reg = reg->next)
 	    {	
@@ -459,22 +433,26 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	    {	
 		struct bed6 *regions_left = load_and_recalculate_coords(reg->name, left, 0, FALSE, TRUE, FALSE);
 		struct bed6 *regions_right = load_and_recalculate_coords(reg->name, 0, right, FALSE, FALSE, TRUE);
-		struct bed6 *regions_meta = readBed6Soft(reg->name);
+		struct bed6 *regions_meta = (meta > 0) ? readBed6Soft(reg->name) : NULL;
 		struct slName *wig_name;
 		for (mb = mbList; mb != NULL; mb = mb->next)
 		{
 		    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions_left, fill);
 		    struct perBaseMatrix *right_pbm = load_perBaseMatrix(mb, regions_right, fill);
-		    struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, meta, fill);
-		    fuse_pbm(&pbm, &meta_pbm);
-		    fuse_pbm(&pbm, &right_pbm);
+		    if (meta > 0)
+		    {
+			struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, meta, fill);
+			fuse_pbm(&pbm, &meta_pbm, TRUE);
+		    }
+		    fuse_pbm(&pbm, &right_pbm, TRUE);
 		    do_summary(pbm, agg, expanded, offset);
 		    offset += (expanded) ? 4 : 1;
 		    free_perBaseMatrix(&pbm);
 		}
 		bed6FreeList(&regions_left);
 		bed6FreeList(&regions_right);
-		bed6FreeList(&regions_meta);
+		if (meta > 0)
+		    bed6FreeList(&regions_meta);
 	    }
 	}
 	while ((mb = slPopHead(&mbList)) != NULL)

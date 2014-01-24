@@ -12,8 +12,9 @@ int check_for_list_files(struct slName **pList, struct slName **lf_list_labels);
 /* either way, it should expand the file into a list and return the size of the list */
 /* if it's the case that the comma-list are files, then nothing should change. */
 
-void parse_left_right(char *size_s, unsigned *pleft, unsigned *pright);
-/* parse the "left:right" from the command */
+int parse_left_right(char *size_s, unsigned *pleft, unsigned *pright, int *pmeta);
+/* parse the "left:right" or "left:meta:right" from the command */
+/* return the number of args: 2 or 3 */
 
 void writeBw(char *inName, char *outName, struct hash *chromSizeHash);
 /* shared func */
@@ -21,8 +22,14 @@ void writeBw(char *inName, char *outName, struct hash *chromSizeHash);
 struct metaBig *metaBigOpen_check(char *bigfile, char *regions);
 /* A wrapper for metaBigOpen that does some checking and erroring */
 
-void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add);
+void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add, boolean add_coords);
 /* not this makes perhaps-illegal perBaseWigs where the chromEnd-chromStart are not the */
 /* same as the len... which may break things somewhere if this were ever library-ized */
+
+int calculate_meta_file(char *file_name);
+/* from all the beds one region file, get a single average */
+
+int calculate_meta_file_list(struct slName *region_list);
+/* from all the beds in all the region files, get a single average */
 
 #endif /* BWTOOL_SHARED_H */
