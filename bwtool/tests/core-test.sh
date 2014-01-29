@@ -76,6 +76,8 @@ difference=`diff ../$expected $tested | wc -l`
 if [ "$difference" -gt 0 ]; then
     cd ../
     echo "results don't match correct answer"
+    mkdir -p fails
+    cp ${tmpdir}/$tested fails/${name}-$tested
     rm -fr $tmpdir
     exit 1
 fi
