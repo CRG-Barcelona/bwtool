@@ -26,6 +26,7 @@ TESTS = \
 	scripts/matrix_two_wigs.4.sh \
 	scripts/paste_main.bw_second.bw.1.sh \
 	scripts/paste_main.bw_second.bw.2.sh \
+	scripts/paste_main.bw_second.bw.3.sh \
 	scripts/remove_main.bw_agg1.bed.sh \
 	scripts/remove_main_less3.sh \
 	scripts/sax_main_4.sh \

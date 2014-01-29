@@ -25,14 +25,16 @@ errAbort(
   "usage:\n"
   "   bwtool paste input1.bw input2.bw input3.bw ...\n"
   "options:\n"
-  "   -header         put header with labels from file or filenames\n"
-  "   -skip-NA        don't output lines (bases) where one of the inputs is NA\n"
+  "   -header           put header with labels from file or filenames\n"
+  "   -consts=c1,c2...  add constants to output lines\n"
+  "   -skip-NA          don't output lines (bases) where one of the inputs is NA\n"
   );
 }
 
-void print_line(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, int i, FILE *out)
+void print_line(struct perBaseWig *pbw_list, struct slDouble *c_list, int decimals, enum wigOutType wot, int i, FILE *out)
 {
     struct perBaseWig *pbw;
+    struct slDouble *c;
     if (wot == bedGraphOut)
 	fprintf(out, "%s\t%d\t%d\t", pbw_list->chrom, pbw_list->chromStart+i, pbw_list->chromStart+i+1);
     else if (wot == varStepOut)
@@ -43,8 +45,10 @@ void print_line(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, 
 	    fprintf(out, "NA");
 	else
 	    fprintf(out, "%0.*f", decimals, pbw->data[i]);
-	fprintf(out, "%c", (pbw->next == NULL) ? '\n' : '\t');
+	fprintf(out, "%c", (c_list == NULL) && (pbw->next == NULL) ? '\n' : '\t');
     }
+    for (c = c_list; c != NULL; c = c->next)
+	fprintf(out, "%0.*f%c", decimals, c->val, (c->next == NULL) ? '\n' : '\t');
 }
 
 boolean has_na(struct perBaseWig *pbw_list, int i)
@@ -56,7 +60,7 @@ boolean has_na(struct perBaseWig *pbw_list, int i)
     return FALSE;
 }
 
-void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot, boolean skip_NA, FILE *out)
+void output_pbws(struct perBaseWig *pbw_list, struct slDouble *c_list, int decimals, enum wigOutType wot, boolean skip_NA, FILE *out)
 /* outputs one set of perBaseWigs all at the same section */
 {
     struct perBaseWig *pbw;
@@ -76,11 +80,29 @@ void output_pbws(struct perBaseWig *pbw_list, int decimals, enum wigOutType wot,
 		    else if (wot == fixStepOut)
 			fprintf(out, "fixedStep chrom=%s start=%d step=1 span=1\n", pbw_list->chrom, pbw_list->chromStart+i+1);
 		}
-		print_line(pbw_list, decimals, wot, i, out);
+		print_line(pbw_list, c_list, decimals, wot, i, out);
 		last_printed = i;
 	    }
 	}
     }
+}
+
+struct slDouble *parse_constants(char *consts)
+/* simply process the comma-list of constants from the command and return the list*/
+{
+    if (!consts)
+	return NULL;
+    struct slName *strings = slNameListFromComma(consts);
+    struct slName *s;
+    struct slDouble *c_list = NULL;
+    for (s = strings; s != NULL; s = s->next)
+    {
+	struct slDouble *d = slDoubleNew(sqlDouble(s->name));
+	slAddHead(&c_list, d);
+    }
+    slReverse(&c_list);
+    slFreeList(&strings);
+    return c_list;
 }
 
 void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, 
@@ -98,6 +120,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	errAbort("cannot use -skip_na with -fill");
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean verbose = (hashFindVal(options, "verbose") != NULL) ? TRUE : FALSE;
+    struct slDouble *c_list = parse_constants((char *)hashOptionalVal(options, "consts", NULL));
     struct slName *labels = NULL;
     struct slName *files = *p_files;
     FILE *out = (output_file) ? mustOpen(output_file, "w") : stdout;
@@ -141,7 +164,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	    slAddHead(&pbw_list, pbw);
 	}
 	slReverse(&pbw_list);
-	output_pbws(pbw_list, decimals, wot, skip_na, out);
+	output_pbws(pbw_list, c_list, decimals, wot, skip_na, out);
 	perBaseWigFreeList(&pbw_list);
     }
     /* close the files */
@@ -151,4 +174,6 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     if (labels)
 	slNameFreeList(&labels);
     slNameFreeList(p_files);
+    if (c_list)
+	slFreeList(&c_list);
 }
