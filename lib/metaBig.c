@@ -54,6 +54,9 @@ struct bed6 *readBed6(char *file)
 
 struct bed6 *readBed6SoftAndSize(char *file, int *orig_size)
 /* read from a file.  If it's missing fields, fill the bed */
+/* note to developer: don't put a sort step in here. Code */
+/* elsewhere calls this multiple times and expects parallel */
+/* lists to have same order... yeah, shakey, bug-magnet stuff, I know */
 {
     char *words[6];
     if (!fileExists(file))

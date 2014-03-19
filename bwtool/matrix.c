@@ -314,7 +314,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	    struct perBaseMatrix *right_pbm = load_perBaseMatrix(mb, regions_right, fill);
 	    if (meta > 0)
 	    {
-		struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, meta, fill);
+		struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, NULL, meta, fill);
 		fuse_pbm(&one_pbm, &meta_pbm, TRUE);
 	    }
 	    fuse_pbm(&one_pbm, &right_pbm, TRUE);

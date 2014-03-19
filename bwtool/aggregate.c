@@ -43,6 +43,12 @@ errAbort(
   "                    (unavailable when using meta)\n"
   "   -ends            use ends of bed regions as opposed to the middles\n"
   "                    (unavailable when using meta)\n"
+  "   -meta-scale-all  if meta is used the default behavior is to only scale\n"
+  "                    regions inside the bed region to be similar sizes. With\n"
+  "                    this option set, the upstream and downstream regions are\n"
+  "                    also scaled using the same scaling factors as the regions.\n"
+  "                    Be careful with this option.  Meta already distorts a lot,\n"
+  "                    and this makes it potentially more difficult to interpret.\n"
   "   -firstbase       in this case the zero base is used so output\n"
   "                    has left+right+1 lines\n"
   "   -expanded        output medians and standard deviations instead of just\n"
@@ -355,6 +361,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean use_start = (hashFindVal(options, "starts") != NULL) ? TRUE : FALSE;
     boolean use_end = (hashFindVal(options, "ends") != NULL) ? TRUE : FALSE;
+    boolean meta_scale_all = (hashFindVal(options, "meta-scale-all") != NULL) ? TRUE : FALSE;
     boolean expanded = (hashFindVal(options, "expanded") != NULL) ? TRUE : FALSE;
     boolean clustering = (hashFindVal(options, "cluster") != NULL) ? TRUE : FALSE;
     char *cluster_sets = (char *)hashFindVal(options, "cluster-sets");
@@ -431,18 +438,35 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	{
 	    for (reg = region_list; reg != NULL; reg = reg->next)
 	    {	
+		/* orders for all three region lists are the same */
 		struct bed6 *regions_left = load_and_recalculate_coords(reg->name, left, 0, FALSE, TRUE, FALSE);
 		struct bed6 *regions_right = load_and_recalculate_coords(reg->name, 0, right, FALSE, FALSE, TRUE);
 		struct bed6 *regions_meta = (meta > 0) ? readBed6Soft(reg->name) : NULL;
 		struct slName *wig_name;
 		for (mb = mbList; mb != NULL; mb = mb->next)
 		{
-		    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions_left, fill);
-		    struct perBaseMatrix *right_pbm = load_perBaseMatrix(mb, regions_right, fill);
-		    if (meta > 0)
+		    struct perBaseMatrix *pbm = NULL;
+		    struct perBaseMatrix *right_pbm = NULL;
+		    struct perBaseMatrix *meta_pbm = NULL;
+		    if (meta_scale_all)
 		    {
-			struct perBaseMatrix *meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, meta, fill);
-			fuse_pbm(&pbm, &meta_pbm, TRUE);
+			pbm = load_meta_perBaseMatrix(mb, regions_meta, regions_left, meta, fill);
+			right_pbm = load_meta_perBaseMatrix(mb, regions_meta, regions_right, meta, fill);
+			if (meta > 0)
+			{
+			    meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, NULL, meta, fill);
+			    fuse_pbm(&pbm, &meta_pbm, TRUE);
+			}
+		    }
+		    else
+		    {
+			pbm = load_perBaseMatrix(mb, regions_left, fill);
+			right_pbm = load_perBaseMatrix(mb, regions_right, fill);
+			if (meta > 0)
+			{
+			    meta_pbm = load_meta_perBaseMatrix(mb, regions_meta, NULL, meta, fill);
+			    fuse_pbm(&pbm, &meta_pbm, TRUE);
+			}
 		    }
 		    fuse_pbm(&pbm, &right_pbm, TRUE);
 		    do_summary(pbm, agg, expanded, offset);

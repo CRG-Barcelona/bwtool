@@ -75,6 +75,14 @@ enum wigOutType
     fixStepOut = 3,
 };
 
+/* used by meta for the martix loader  */
+enum wig_part
+{
+    part_middle = 0,
+    part_upstream = 1,
+    part_downstream = 2,
+};
+
 enum wigOutType get_wig_out_type(char *option);
 /* scan the option and return it */
 
@@ -147,8 +155,10 @@ struct perBaseMatrix *load_perBaseMatrix(struct metaBig *mb, struct bed6 *region
 struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int tile_size, double fill);
 /* the matrix is tiled averages instead the values at each base */
 
-struct perBaseMatrix *load_meta_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int meta_size, double fill);
-/* Load variably-sized regions into fixed-sized matrix */
+struct perBaseMatrix *load_meta_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, struct bed6 *side_regions, 
+					      int meta_size, double fill);
+/* Load variably-sized regions into fixed-sized matrix.  part defaults to the middle. */
+/* but part == upstream or downstream will make sort of a double-meta matrix. */
 
 void perBaseMatrixAddOrigRegions(struct perBaseMatrix *pbm, struct bed6 *orig_regions);
 /* add the original bed information for retrieval later.  it's really important */

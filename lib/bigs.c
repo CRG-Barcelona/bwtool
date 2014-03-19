@@ -412,18 +412,17 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
     return wholething;
 }
 
-struct perBaseWig *perBaseWigLoadSingleMetaContinue(struct metaBig *mb, char *chrom, 
-						int start, int end, boolean reverse, double fill, int size)
-/* Load all the regions into one perBaseWig, but with gaps filled  */
-/* in with NA value */
+static struct perBaseWig *perBaseWigLoadSingleMetaContinueGeneral(struct metaBig *mb, struct perBaseWig *pbw, char *chrom,
+							   int start, int end, float pbw_remainder, float pbw_size, 
+							   boolean reverse, double fill)
+/* complicated */
 {
-    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse, fill);
-    struct perBaseWig *meta = alloc_fill_perBaseWig(chrom, start, start+size, fill);
-    float step = (float)pbw->len/meta->len;
+    struct perBaseWig *meta = alloc_fill_perBaseWig(chrom, start, end, fill);
     int i;
+    float step = (float)pbw_size/meta->len;
+    float pbw_s = pbw_remainder;
     for (i = 0; i < meta->len; i++)
     {
-	float pbw_s = step * i;
 	float pbw_e = pbw_s + step;
 	if ((int)pbw_e - (int)pbw_s == 0)
 	    meta->data[i] = pbw->data[(int)pbw_s];
@@ -454,10 +453,54 @@ struct perBaseWig *perBaseWigLoadSingleMetaContinue(struct metaBig *mb, char *ch
 	    }
 	    if (len > 0)
 		meta->data[i] = area/len;
-	    else meta->data[i] = fill;
+	    else 
+		meta->data[i] = fill;
+	pbw_s += step;
 	}
     }
+    return meta;
+}
+
+struct perBaseWig *perBaseWigLoadSingleMetaContinue(struct metaBig *mb, char *chrom, 
+						    int start, int end, boolean reverse, double fill, int meta_size)
+/* Load all the regions into one perBaseWig, but with gaps filled  */
+/* in with NA value */
+{
+    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse, fill);
+    struct perBaseWig *meta =  perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, start+meta_size, 0, 
+						   (float)(end-start), reverse, fill);
     perBaseWigFree(&pbw);
+    return meta;
+}
+
+struct perBaseWig *perBaseWigLoadSingleMetaSideContinue(struct metaBig *mb, char *chrom, 
+							int start, int end, int main_start, int main_end, 
+							boolean reverse, double fill, int meta_size)
+/* this is a lot like the other meta loader except that it deals with a side region instead of the */
+/* main region. */
+{
+    /* first determine which side this is */
+    float main_size = (float)(main_end - main_start);
+    float step = (float)main_size/meta_size;
+    float pbw_size = step * (end - start);
+    struct perBaseWig *meta = NULL;
+    if (start == main_end)
+    {
+	/* right side */
+	int pbw_end = ceil((float)start + pbw_size);
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, pbw_end, reverse, fill);
+	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, 0, pbw_size, reverse, fill);
+	perBaseWigFree(&pbw);
+    }
+    else if (end == main_start)
+    {
+	/* left side */
+	int pbw_start = floor((float)end - pbw_size);
+	float pbw_remainder = ((float)end - pbw_size) - pbw_start;
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, pbw_start, end, reverse, fill);
+	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, pbw_remainder, pbw_size, reverse, fill);
+	perBaseWigFree(&pbw);	
+    }
     return meta;
 }
 
@@ -559,32 +602,47 @@ struct perBaseMatrix *load_ave_perBaseMatrix(struct metaBig *mb, struct bed6 *re
     return pmat;    
 }
 
-struct perBaseMatrix *load_meta_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, int meta_size, double fill)
+struct perBaseMatrix *load_meta_perBaseMatrix(struct metaBig *mb, struct bed6 *regions, struct bed6 *side_regions, int meta_size, double fill)
 /* Load variably-sized regions into fixed-sized matrix */
 {
     struct perBaseMatrix *pmat;
-    struct bed6 *item;
+    struct bed6 *main_reg;
+    struct bed6 *side_reg;
     int i;
     if (!mb->sections)
 	return NULL;
-    item = regions;
-    if (!item)
+    main_reg = regions;
+    side_reg = side_regions;
+    if (!main_reg)
 	return NULL;
     AllocVar(pmat);
     pmat->nrow = slCount(regions);
-    pmat->ncol = meta_size;
+    if (side_regions)
+	pmat->ncol = side_regions->chromEnd - side_regions->chromStart;
+    else
+	pmat->ncol = meta_size;
     AllocArray(pmat->array, pmat->nrow);
     AllocArray(pmat->matrix, pmat->nrow);
-    for (i = 0; (i < pmat->nrow) && (item != NULL); i++, item = item->next)
+    for (i = 0; (i < pmat->nrow) && (main_reg != NULL); i++, main_reg = main_reg->next)
     {
 	struct perBaseWig *pbw;
-	pbw = perBaseWigLoadSingleMetaContinue(mb, item->chrom, item->chromStart, item->chromEnd, item->strand[0]=='-', fill, meta_size);
-	pbw->name = cloneString(item->name);
-	pbw->score = item->score;
+	if (!side_regions)
+	    pbw = perBaseWigLoadSingleMetaContinue(mb, main_reg->chrom, main_reg->chromStart, 
+						   main_reg->chromEnd, main_reg->strand[0]=='-', fill, meta_size);
+	else
+	{
+	    pbw = perBaseWigLoadSingleMetaSideContinue(mb, main_reg->chrom, side_reg->chromStart, 
+						       side_reg->chromEnd, main_reg->chromStart, 
+						       main_reg->chromEnd, main_reg->strand[0]=='-', fill, meta_size); 
+	}
+	pbw->name = cloneString(main_reg->name);
+	pbw->score = main_reg->score;
 	pbw->len = pmat->ncol;
-	pbw->strand[0] = item->strand[0];
+	pbw->strand[0] = main_reg->strand[0];
 	pmat->array[i] = pbw;
 	pmat->matrix[i] = pbw->data;
+	if (side_regions)
+	    side_reg = side_reg->next;
     }
     return pmat;
 }
