@@ -365,6 +365,20 @@ struct perBaseWig *perBaseWigLoadHuge(struct metaBig *mb, struct bed *regions)
     return big_pbw;
 }
 
+static void pbwReverse(struct perBaseWig *pbw)
+{
+    int i, j;
+    int size = pbw->len;
+    double swap;
+    for (i = 0; i < (size/2); i++)
+    {
+	j = (size-1)-i;
+	swap = pbw->data[i];
+	pbw->data[i] = pbw->data[j];
+	pbw->data[j] = swap;
+    }
+}
+
 struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom, 
 						int start, int end, boolean reverse, double fill)
 /* Load all the regions into one perBaseWig, but with gaps filled  */
@@ -399,16 +413,7 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
 	perBaseWigFreeList(&list);
     }
     if (reverse)
-    {
-	double swap;
-	for (i = 0; i < (size/2); i++)
-	{
-	    j = (size-1)-i;
-	    swap = wholething->data[i];
-	    wholething->data[i] = wholething->data[j];
-	    wholething->data[j] = swap;
-	}
-    }
+	pbwReverse(wholething);
     return wholething;
 }
 
@@ -488,8 +493,10 @@ struct perBaseWig *perBaseWigLoadSingleMetaSideContinue(struct metaBig *mb, char
     {
 	/* right side */
 	int pbw_end = ceil((float)start + pbw_size);
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, pbw_end, reverse, fill);
-	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, 0, pbw_size, reverse, fill);
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, pbw_end, FALSE, fill);
+	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, 0, pbw_size, FALSE, fill);
+	if (reverse)
+	    pbwReverse(meta);
 	perBaseWigFree(&pbw);
     }
     else if (end == main_start)
@@ -497,8 +504,10 @@ struct perBaseWig *perBaseWigLoadSingleMetaSideContinue(struct metaBig *mb, char
 	/* left side */
 	int pbw_start = floor((float)end - pbw_size);
 	float pbw_remainder = ((float)end - pbw_size) - pbw_start;
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, pbw_start, end, reverse, fill);
-	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, pbw_remainder, pbw_size, reverse, fill);
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, pbw_start, end, FALSE, fill);
+	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, pbw_remainder, pbw_size, FALSE, fill);
+	if (reverse)
+	    pbwReverse(meta);
 	perBaseWigFree(&pbw);	
     }
     return meta;
