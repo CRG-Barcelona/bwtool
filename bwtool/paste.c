@@ -27,6 +27,10 @@ errAbort(
   "options:\n"
   "   -header           put header with labels from file or filenames\n"
   "   -consts=c1,c2...  add constants to output lines\n"
+  "   -consts-means     add means of input bigWigs as constants every line in the\n"
+  "                     same order as the bigWigs.\n"
+  "   -consts-totals    like -consts-means except the total sum\n"
+  "   -consts-covs      like -consts-means except number of bases covered\n"
   "   -skip-NA          don't output lines (bases) where one of the inputs is NA\n"
   );
 }
@@ -120,7 +124,11 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	errAbort("cannot use -skip_na with -fill");
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean verbose = (hashFindVal(options, "verbose") != NULL) ? TRUE : FALSE;
+    boolean do_mean_consts = (hashFindVal(options, "consts-means") != NULL) ? TRUE : FALSE;
+    boolean do_total_consts = (hashFindVal(options, "consts-totals") != NULL) ? TRUE : FALSE;
+    boolean do_covs_consts = (hashFindVal(options, "consts-covs") != NULL) ? TRUE : FALSE;
     struct slDouble *c_list = parse_constants((char *)hashOptionalVal(options, "consts", NULL));
+    struct slDouble *fix_consts = NULL;
     struct slName *labels = NULL;
     struct slName *files = *p_files;
     FILE *out = (output_file) ? mustOpen(output_file, "w") : stdout;
@@ -130,9 +138,33 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     for (file = files; file != NULL; file = file->next)
     {
 	mb = metaBigOpen(file->name, regions);
+	if (do_mean_consts || do_total_consts || do_covs_consts)
+	{
+	    struct bbiSummaryElement sum = bbiTotalSummary(mb->big.bbi);
+	    if (do_mean_consts)
+	    {
+		struct slDouble *d = slDoubleNew((double)sum.sumData/sum.validCount);
+		slAddHead(&fix_consts, d);
+	    }
+	    if (do_total_consts)
+	    {
+		struct slDouble *d = slDoubleNew((double)sum.sumData);
+		slAddHead(&fix_consts, d);
+	    }
+	    if (do_covs_consts)
+	    {
+		struct slDouble *d = slDoubleNew((double)sum.validCount);
+		slAddHead(&fix_consts, d);
+	    }
+	}
 	slAddHead(&mb_list, mb);
     }
     slReverse(&mb_list);
+    if (fix_consts)
+    {
+	slReverse(&fix_consts);
+	c_list = slCat(c_list, fix_consts);
+    }
     num_sections = slCount(mb_list->sections);
     if (header)
     {
@@ -146,6 +178,13 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	else
 	    for (mb = mb_list; mb != NULL; mb = mb->next)
 		printf("\t%s", mb->fileName);
+	if (c_list)
+	{
+	    int i;
+	    int size = slCount(c_list);
+	    for (i = 0; i < size; i++)
+		printf("\tConstant_%d", i+1);
+	}
 	printf("\n");
     }
     for (bed = mb_list->sections; bed != NULL; bed = bed->next)
