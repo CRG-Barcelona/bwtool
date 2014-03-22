@@ -91,8 +91,8 @@ static boolean sniff_bed6(char *filename)
     return good_bed;
 }
 
-static struct slName *possibly_read_list(char *filename, struct slName **pLabel_list)
-/* */
+static struct slName *possibly_read_list(char *filename, struct slName **pLabel_list, int ix)
+/* Hopefully the file is a list of files.  return this, with labels set.  */
 {
     if (isBigWigOrBed(filename) != isNotBig)
 	return NULL;
@@ -103,19 +103,26 @@ static struct slName *possibly_read_list(char *filename, struct slName **pLabel_
     int num_words;
     struct slName *file_list = NULL;
     struct slName *label_list = NULL;
+    int line_num = 1;
     while ((num_words = lineFileChop(lf, words)) > 0)
     {
 	if (fileExists(words[0]))
 	{
-	    struct slName *newfile = slNameNew(words[0]);
-	    slAddHead(&file_list, newfile);
-	    if (num_words > 1)
+	    if (!ix || (ix == line_num))
 	    {
-		struct slName *label = slNameNew(words[1]);
-		slAddHead(&label_list, label);
+		struct slName *newfile = slNameNew(words[0]);
+		slAddHead(&file_list, newfile);
+		if (num_words > 1)
+		{
+		    struct slName *label = slNameNew(words[1]);
+		    slAddHead(&label_list, label);
+		}
 	    }
+	    line_num++;
 	}
     }
+    if (line_num < ix)
+	errAbort("file number %d is too high.  only %d files found.", ix, line_num);
     slReverse(&file_list);
     slReverse(&label_list);
     if (pLabel_list != NULL)
@@ -123,21 +130,25 @@ static struct slName *possibly_read_list(char *filename, struct slName **pLabel_
     return file_list;
 }
 
-int check_for_list_files(struct slName **pList, struct slName **lf_list_labels)
+int check_for_list_files(struct slName **pList, struct slName **lf_list_labels, int ix)
 /* check if the comma-lists contain actual files or if they contain files listing files */
 /* either way, it should expand the file into a list and return the size of the list */
 /* if it's the case that the comma-list are files, then nothing should change. */
+/* ix only works if it's > 0 and there isn't multiple comma-separated files */
 {
     struct slName *list = *pList;
     struct slName *tmp_list = NULL;
     struct slName *label_list = NULL;
     struct slName *cur;
+    int ixx = 0;
+    if ((slCount(list) == 1) && (ix > 0))
+	ixx = ix;
     if (!list)
 	errAbort("Something went terribly wrong trying to load a file");
     while ((cur = slPopHead(&list)) != NULL)
     {
 	struct slName *potential_lf_labels = NULL;
-	struct slName *potential_list = possibly_read_list(cur->name, &potential_lf_labels);
+	struct slName *potential_list = possibly_read_list(cur->name, &potential_lf_labels, ixx);
 	if (potential_list)
 	{
 	    struct slName *cat = (tmp_list) ? slCat(tmp_list, potential_list) : potential_list;

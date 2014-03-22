@@ -55,6 +55,9 @@ errAbort(
   "                    output \"long form\" where each line is just the position\n"
   "                    and one of the values and the first column is the name of\n"
   "                    the file.\n"
+  /* secret options:  they're not so important */
+  /* "   -bed-ix=i        if a list of bed files is given, use only the ith one\n" */
+  /* "   -bw-ix=i         if a list of bigWig files is given, only use the ith one\n" */
   );
 }
 
@@ -352,6 +355,8 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     struct slName *wig_list = slNameListFromComma(wig); 
     boolean firstbase = (hashFindVal(options, "firstbase") != NULL) ? TRUE : FALSE;
     boolean nozero = TRUE;
+    int bed_ix = (int)sqlUnsigned((char *)hashOptionalVal(options, "bed-ix", "0"));
+    int bw_ix = (int)sqlUnsigned((char *)hashOptionalVal(options, "bw-ix", "0"));
     boolean header = (hashFindVal(options, "header") != NULL) ? TRUE : FALSE;
     boolean use_start = (hashFindVal(options, "starts") != NULL) ? TRUE : FALSE;
     boolean use_end = (hashFindVal(options, "ends") != NULL) ? TRUE : FALSE;
@@ -364,8 +369,8 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     struct slName *lf_labels = NULL, *lf_labels_b = NULL, *lf_labels_w = NULL;
     int k = (int)sqlUnsigned((char *)hashOptionalVal(options, "cluster", "0"));
     FILE *output;
-    int num_regions = check_for_list_files(&region_list, &lf_labels_b);
-    int num_wigs = check_for_list_files(&wig_list, &lf_labels_w);
+    int num_regions = check_for_list_files(&region_list, &lf_labels_b, bed_ix);
+    int num_wigs = check_for_list_files(&wig_list, &lf_labels_w, bw_ix);
     boolean mult_regions = (num_regions > 1);
     boolean mult_wigs = (num_wigs > 1);
     int num_parse = parse_left_right(size_s, &left, &right, &meta);

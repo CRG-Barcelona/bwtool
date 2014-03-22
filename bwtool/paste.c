@@ -134,7 +134,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     FILE *out = (output_file) ? mustOpen(output_file, "w") : stdout;
     /* open the files one by one */
     if (slCount(files) == 1)
-	check_for_list_files(&files, &labels);
+	check_for_list_files(&files, &labels, 0);
     for (file = files; file != NULL; file = file->next)
     {
 	mb = metaBigOpen(file->name, regions);

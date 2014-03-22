@@ -286,7 +286,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     struct slName *bw_names = slNameListFromComma(bigfile);
     struct slName *bw_name;
     struct slName *labels_from_file = NULL;
-    int num_bigwigs = check_for_list_files(&bw_names, &labels_from_file);
+    int num_bigwigs = check_for_list_files(&bw_names, &labels_from_file, 0);
     struct slName *labels = setup_labels(long_form, bw_names, &labels_from_file);
     struct bed6 *regs = NULL;
     struct bed6 *regions_left = NULL, *regions_right = NULL, *regions_meta = NULL;
