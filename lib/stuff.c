@@ -78,10 +78,10 @@ double doubleWithNAInvQuantAlreadySorted(int num_non_na, double *array, unsigned
 {
     if (inv_quant < 2)
 	errAbort("Need to specify larger than 2 for inverse quantile");
-    float quant = (first) ? (float)(1/inv_quant) : 1-(float)1/inv_quant;
+    float quant = (first) ? (1/(float)inv_quant) : 1-1/(float)inv_quant;
     int ix = (int)(num_non_na * quant);
     if (num_non_na % inv_quant == 0)
-	return (array[ix] + array[ix+1])/2;
+	return (array[ix-1] + array[ix])/2;
     return array[ix];
 }
 
