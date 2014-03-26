@@ -634,13 +634,13 @@ struct metaBig *metaBigOpen(char *fileOrUrlwSections, char *sectionsBed)
     }
     if (sectionsBed && sections)
     {
-	struct bed *regions = regionsLoad(sectionsBed);
+	struct bed *regions = (fileExists(sectionsBed)) ? regionsLoad(sectionsBed) : parseSectionString(sectionsBed, mb->chromSizeHash);
 	struct bed *subsets = subset_beds(sections, &regions, mb->chromSizeHash);
 	mb->sections = subsets;
     }
     else if (sectionsBed)
     {
-	mb->sections = regionsLoad(sectionsBed);
+	mb->sections = (fileExists(sectionsBed)) ? regionsLoad(sectionsBed) : parseSectionString(sectionsBed, mb->chromSizeHash);
     }
     else
 	mb->sections = parseSectionString(sections, mb->chromSizeHash);
