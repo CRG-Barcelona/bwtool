@@ -56,6 +56,8 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
     {
 	if (size <= section->chromEnd - section->chromStart)
 	{
+	    /* I think window should be split into to two functions */
+	    /* when skipping NA, perBaseWigLoadContinue should be used */
 	    struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart,
 								  section->chromEnd, FALSE, fill);
 	    int i, j;
@@ -71,6 +73,7 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
 		boolean has_NA = FALSE;
 		if (skip_na)
 		{
+		    /* stupidly inefficient */
 		    for (j = i; j < i + size; j++)
 			if (isnan(pbw->data[j]))
 			{
