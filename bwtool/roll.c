@@ -27,6 +27,7 @@ errAbort(
   "   bwtool roll <command> size file.bw output.txt\n"
   "options:\n"
   "   -max-NA       maximum NA-valued bases to consider a region legitimate.\n"
+  "   -min-mean=m   remove regions in output having calculated means < m\n"
   );
 }
 
@@ -61,6 +62,10 @@ void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned 
     struct metaBig *mb = metaBigOpen(bigfile, regions);
     int step = (int)sqlUnsigned((char *)hashOptionalVal(options, "step", "1"));
     int max_na = (int)sqlSigned((char *)hashOptionalVal(options, "max-NA", "-1"));
+    char *min_mean_s = (char *)hashOptionalVal(options, "min-mean", "unused");
+    double min_mean = -DBL_MAX;
+    if (!sameString(min_mean_s,"unused"))
+	min_mean = sqlDouble(min_mean_s);
     int size = sqlSigned(size_s);
     if (max_na == -1)
 	max_na = size/2;
@@ -97,14 +102,14 @@ void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned 
 		int s = pbw->chromStart + i;
 		int e = pbw->chromStart + i + size;
  		int st = step;
+		double mean = total/(size - num_na);
 		/* the next two calculations center it */
 		s += size/2 - step/2;
 		e = s + step;
 		/* output */
-		if (num_na <= max_na)
+		if ((num_na <= max_na) && (mean >= min_mean))
 		{
 		    double out_val;
-		    double mean = total/(size - num_na);
 		    if (com == roll_mean)
 			out_val = mean;
 		    else
