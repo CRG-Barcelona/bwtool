@@ -112,17 +112,17 @@ void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned 
 		    if (wot == fixStepOut)
 		    {
 			if (broken)
-			    printf("fixedStep chr=%s start=%d step=%d span=%d\n", pbw->chrom, s, step, step);
-			printf("%0.*f\n", decimals, out_val); 
+			    fprintf(out, "fixedStep chrom=%s start=%d step=%d span=%d\n", pbw->chrom, s+1, step, step);
+			fprintf(out, "%0.*f\n", decimals, out_val); 
 		    }
 		    else if (wot == varStepOut)
 		    {
 			if (broken)
-			    printf("variableStep chr=%s span=%d\n", pbw->chrom, step);
-			printf("%d\t%0.*f\n", s, decimals, out_val); 
+			    fprintf(out, "variableStep chrom=%s span=%d\n", pbw->chrom, step);
+			fprintf(out, "%d\t%0.*f\n", s+1, decimals, out_val); 
 		    }
 		    else 
-			printf("%s\t%d\t%d\t%0.*f\n", pbw->chrom, s, e, decimals, out_val);
+			fprintf(out, "%s\t%d\t%d\t%0.*f\n", pbw->chrom, s, e, decimals, out_val);
 		    broken = FALSE;
 		}
 		else
