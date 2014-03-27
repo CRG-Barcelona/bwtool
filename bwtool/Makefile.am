@@ -17,6 +17,7 @@ bwtool_SOURCES = \
 	paste.c \
 	rand.c \
 	remove.c \
+	roll.c \
 	sax.c \
 	shift.c \
 	split.c \

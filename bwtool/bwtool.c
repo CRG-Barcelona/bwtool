@@ -44,6 +44,7 @@ errAbort(
 #endif
   "   remove         remove data equal to or thresholded on a given value\n"
   "                  or remove data using ranges specified in a bed file\n"
+  "   roll           compute rolling means, etc\n"
   "   sax            run symbolic aggregate approximation (SAX) algorithm on data\n"
   "   shift          move data on the chromosome\n"
 /*   "   split          make a set of files describing evenly-sized regions of the bigWig,\n" */
@@ -233,6 +234,13 @@ else if (sameString(argv[1], "lift"))
 	usage_lift();
     else
 	bwtool_lift(options, favorites, regions, decimals, wot, argv[2], argv[3], argv[4]);
+}
+else if (sameString(argv[1], "roll"))
+{
+    if (argc != 6)
+	usage_roll();
+    else
+	bwtool_roll(options, favorites, regions, decimals, fill, wot, argv[2], argv[3], argv[4], argv[5]);
 }
 else if (sameString(argv[1], "summary"))
 {

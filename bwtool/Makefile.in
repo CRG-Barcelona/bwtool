@@ -99,9 +99,10 @@ am_bwtool_OBJECTS = bwtool-aggregate.$(OBJEXT) bwtool-bwtool.$(OBJEXT) \
 	bwtool-fill.$(OBJEXT) bwtool-find.$(OBJEXT) \
 	bwtool-lift.$(OBJEXT) bwtool-matrix.$(OBJEXT) \
 	bwtool-paste.$(OBJEXT) bwtool-rand.$(OBJEXT) \
-	bwtool-remove.$(OBJEXT) bwtool-sax.$(OBJEXT) \
-	bwtool-shift.$(OBJEXT) bwtool-split.$(OBJEXT) \
-	bwtool-summarize.$(OBJEXT) bwtool-window.$(OBJEXT)
+	bwtool-remove.$(OBJEXT) bwtool-roll.$(OBJEXT) \
+	bwtool-sax.$(OBJEXT) bwtool-shift.$(OBJEXT) \
+	bwtool-split.$(OBJEXT) bwtool-summarize.$(OBJEXT) \
+	bwtool-window.$(OBJEXT)
 bwtool_OBJECTS = $(am_bwtool_OBJECTS)
 bwtool_DEPENDENCIES = $(top_srcdir)/lib/libbeato.a \
 	$(top_srcdir)/libjkweb/libjkweb.a
@@ -287,6 +288,7 @@ bwtool_SOURCES = \
 	paste.c \
 	rand.c \
 	remove.c \
+	roll.c \
 	sax.c \
 	shift.c \
 	split.c \
@@ -393,6 +395,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-paste.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-rand.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-remove.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-roll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-sax.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-shift.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-split.Po@am__quote@
@@ -594,6 +597,20 @@ bwtool-remove.obj: remove.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='remove.c' object='bwtool-remove.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-remove.obj `if test -f 'remove.c'; then $(CYGPATH_W) 'remove.c'; else $(CYGPATH_W) '$(srcdir)/remove.c'; fi`
+
+bwtool-roll.o: roll.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-roll.o -MD -MP -MF $(DEPDIR)/bwtool-roll.Tpo -c -o bwtool-roll.o `test -f 'roll.c' || echo '$(srcdir)/'`roll.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-roll.Tpo $(DEPDIR)/bwtool-roll.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='roll.c' object='bwtool-roll.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-roll.o `test -f 'roll.c' || echo '$(srcdir)/'`roll.c
+
+bwtool-roll.obj: roll.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-roll.obj -MD -MP -MF $(DEPDIR)/bwtool-roll.Tpo -c -o bwtool-roll.obj `if test -f 'roll.c'; then $(CYGPATH_W) 'roll.c'; else $(CYGPATH_W) '$(srcdir)/roll.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-roll.Tpo $(DEPDIR)/bwtool-roll.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='roll.c' object='bwtool-roll.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-roll.obj `if test -f 'roll.c'; then $(CYGPATH_W) 'roll.c'; else $(CYGPATH_W) '$(srcdir)/roll.c'; fi`
 
 bwtool-sax.o: sax.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-sax.o -MD -MP -MF $(DEPDIR)/bwtool-sax.Tpo -c -o bwtool-sax.o `test -f 'sax.c' || echo '$(srcdir)/'`sax.c
