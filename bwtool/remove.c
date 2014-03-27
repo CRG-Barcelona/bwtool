@@ -60,7 +60,7 @@ static struct hash *load_range_tree( char *range_file)
 
 static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *val_s, 
 				 char *outputfile, enum wigOutType wot, unsigned decimals,
-                                 boolean condense)
+                                 boolean condense, boolean wig_only)
 /* deal with the thresholding type of removal. */
 {
     char wigfile[512];
@@ -130,12 +130,17 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 	perBaseWigFreeList(&pbwList);
     }
     carefulClose(&out);
-    writeBw(wigfile, outputfile, mb->chromSizeHash);
-    remove(wigfile);
+    if (wig_only)
+	rename(wigfile, outputfile);
+    else
+    {
+	writeBw(wigfile, outputfile, mb->chromSizeHash);
+	remove(wigfile);
+    }
 }  
 
 static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *outputfile, enum wigOutType wot, 
-			       unsigned decimals, boolean condense, boolean inverse)
+			       unsigned decimals, boolean condense, boolean wig_only, boolean inverse)
 /* masking */
 {
     char wigfile[512];
@@ -166,13 +171,19 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 	perBaseWigFreeList(&pbwList);	
     }
     carefulClose(&out);
-    writeBw(wigfile, outputfile, mb->chromSizeHash);
-    remove(wigfile);
+    if (wig_only)
+	rename(wigfile, outputfile);
+    else
+    {
+	writeBw(wigfile, outputfile, mb->chromSizeHash);
+	remove(wigfile);
+    }
     hashFree(&rt_hash);    
 }
 
 void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot, 
-		   boolean condense, char *thresh_type, char *val_or_file, char *bigfile, char *outputfile)
+		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile, 
+		   char *outputfile)
 /* bwtool_remove - main for removal program */
 {
     boolean inverse = (hashFindVal(options, "inverse") != NULL) ? TRUE : FALSE;
@@ -181,9 +192,9 @@ void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigne
 	usage_remove();
     struct metaBig *mb = metaBigOpen_check(bigfile, regions);
     if (op == mask)
-	bwtool_remove_mask(mb, val_or_file, outputfile, wot, decimals, condense, inverse);
+	bwtool_remove_mask(mb, val_or_file, outputfile, wot, decimals, condense, wig_only, inverse);
     else
-	bwtool_remove_thresh(mb, op, val_or_file, outputfile, wot, decimals, condense);
+	bwtool_remove_thresh(mb, op, val_or_file, outputfile, wot, decimals, condense, wig_only);
     metaBigClose(&mb);
 }
 
