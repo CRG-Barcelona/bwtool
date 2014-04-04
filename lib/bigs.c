@@ -423,16 +423,16 @@ static struct perBaseWig *perBaseWigLoadSingleMetaContinueGeneral(struct metaBig
 /* complicated */
 {
     struct perBaseWig *meta = alloc_fill_perBaseWig(chrom, start, end, fill);
+    if ((start == end) || !pbw || (pbw->len < 1)) 
+	return meta;
     int i;
     float step = (float)pbw_size/meta->len;
     float pbw_s = pbw_remainder;
     for (i = 0; i < meta->len; i++)
     {
 	float pbw_e = pbw_s + step;
-	/* SEGFAULTS HERE SOMETIMES */
 	if ((int)pbw_e - (int)pbw_s == 0)
 	    meta->data[i] = pbw->data[(int)pbw_s];
-	/* MUST FIX MUST FIX */
 	else
 	{
 	    double area = 0;
