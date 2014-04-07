@@ -418,19 +418,22 @@ struct perBaseWig *perBaseWigLoadSingleContinue(struct metaBig *mb, char *chrom,
 }
 
 static struct perBaseWig *perBaseWigLoadSingleMetaContinueGeneral(struct metaBig *mb, struct perBaseWig *pbw, char *chrom,
-							   int start, int end, float pbw_remainder, float pbw_size, 
+							   int start, int end, double pbw_remainder, double pbw_size, 
 							   boolean reverse, double fill)
 /* complicated */
 {
     struct perBaseWig *meta = alloc_fill_perBaseWig(chrom, start, end, fill);
     if ((start == end) || !pbw || (pbw->len < 1)) 
+    /* catching bad data.  this shouldn't happen */
+    {
 	return meta;
+    }
     int i;
-    float step = (float)pbw_size/meta->len;
-    float pbw_s = pbw_remainder;
+    double step = (double)pbw_size/meta->len;
+    double pbw_s = pbw_remainder;
     for (i = 0; i < meta->len; i++)
     {
-	float pbw_e = pbw_s + step;
+	double pbw_e = pbw_s + step;
 	if ((int)pbw_e - (int)pbw_s == 0)
 	    meta->data[i] = pbw->data[(int)pbw_s];
 	else
@@ -444,8 +447,8 @@ static struct perBaseWig *perBaseWigLoadSingleMetaContinueGeneral(struct metaBig
 	    int lastixp1 = ceil(pbw_e);
 	    if ((between_s > firstix) && (!isnan(pbw->data[firstix])))
 	    {
-		area += ((float)between_s - pbw_s) * pbw->data[firstix];
-		len += (float)between_s - pbw_s;
+		area += ((double)between_s - pbw_s) * pbw->data[firstix];
+		len += (double)between_s - pbw_s;
 	    }
 	    for (j = between_s; j < between_e; j++)
 		if (!isnan(pbw->data[j]))
@@ -455,8 +458,8 @@ static struct perBaseWig *perBaseWigLoadSingleMetaContinueGeneral(struct metaBig
 		}
 	    if ((between_e < pbw->len) && (lastixp1 > between_e) && (!isnan(pbw->data[between_e])))
 	    {
-		area += (pbw_e - (float)between_e) * pbw->data[between_e];
-		len += (pbw_e - (float)between_e);
+		area += (pbw_e - (double)between_e) * pbw->data[between_e];
+		len += (pbw_e - (double)between_e);
 	    }
 	    if (len > 0)
 		meta->data[i] = area/len;
@@ -475,7 +478,7 @@ struct perBaseWig *perBaseWigLoadSingleMetaContinue(struct metaBig *mb, char *ch
 {
     struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, end, reverse, fill);
     struct perBaseWig *meta =  perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, start+meta_size, 0, 
-						   (float)(end-start), reverse, fill);
+						   (double)(end-start), reverse, fill);
     perBaseWigFree(&pbw);
     return meta;
 }
@@ -487,14 +490,14 @@ struct perBaseWig *perBaseWigLoadSingleMetaSideContinue(struct metaBig *mb, char
 /* main region. */
 {
     /* first determine which side this is */
-    float main_size = (float)(main_end - main_start);
-    float step = (float)main_size/meta_size;
-    float pbw_size = step * (end - start);
+    double main_size = (double)(main_end - main_start);
+    double step = (double)main_size/meta_size;
+    double pbw_size = step * (end - start);
     struct perBaseWig *meta = NULL;
     if (start == main_end)
     {
 	/* right side */
-	int pbw_end = ceil((float)start + pbw_size);
+	int pbw_end = ceil((double)start + pbw_size);
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, start, pbw_end, FALSE, fill);
 	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, 0, pbw_size, FALSE, fill);
 	if (reverse)
@@ -504,8 +507,8 @@ struct perBaseWig *perBaseWigLoadSingleMetaSideContinue(struct metaBig *mb, char
     else if (end == main_start)
     {
 	/* left side */
-	int pbw_start = floor((float)end - pbw_size);
-	float pbw_remainder = ((float)end - pbw_size) - pbw_start;
+	int pbw_start = floor((double)end - pbw_size);
+	double pbw_remainder = ((double)end - pbw_size) - pbw_start;
 	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, chrom, pbw_start, end, FALSE, fill);
 	meta = perBaseWigLoadSingleMetaContinueGeneral(mb, pbw, chrom, start, end, pbw_remainder, pbw_size, FALSE, fill);
 	if (reverse)
