@@ -16,6 +16,8 @@ TESTS = \
 	scripts/find_main_extrema.1.sh \
 	scripts/find_main_extrema.2.sh \
 	scripts/find_main.bw_morethan4.sh \
+	scripts/find_max_1.1.sh \
+	scripts/find_max_1.2.sh \
 	scripts/fill_main.bw_zero.sh \
 	scripts/lift_to_new_main.sh \
 	scripts/lift_main_inversion.1.sh \

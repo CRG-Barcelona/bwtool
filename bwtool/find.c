@@ -28,13 +28,15 @@ errAbort(
   "usage:\n"
   "   bwtool find <operator> [operator options] input.bw[:chr:start-end] output.bed\n" 
   "operators:\n"
-  "   local-extrema        output is 6-field bedGraph with +/- indicating if the extrema\n"
-  "                        is a local minimum or maximum.\n"
-  "        -min-sep=d      to avoid local clusters of extrema, define a minimum distance\n"
-  "                        they must be separated by (d)\n"
-  "        -maxima         only find local maxima\n"
-  "        -minima         only find local minima\n"
+  "   local-extrema          output is 6-field bedGraph with +/- indicating if the extrema\n"
+  "                          is a local minimum or maximum.\n"
+  "        -min-sep=d        to avoid local clusters of extrema, define a minimum distance\n"
+  "                          they must be separated by (d)\n"
+  "        -maxima           only find local maxima\n"
+  "        -minima           only find local minima\n"
   "   less|less-equal|more|more-equal|equal|not <number>\n"
+  "   maxima <regions.bed>   find the highest value in each region given in a bed and output\n"
+  "                          the same bed as bed12.\n"
   );
 }
 
@@ -187,6 +189,82 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
 		    bedTabOutN(&out_bed, 3, out);
 	    }
 	}
+	perBaseWigFree(&pbwList);
+    }
+    metaBigClose(&mb);
+    carefulClose(&out);
+}
+
+void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,  
+		     char *bigfile, char *outputfile)
+/* find max points in a range */
+{
+    boolean ave = (hashFindVal(options, "ave") != NULL) ? TRUE : FALSE;
+    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    FILE *out = mustOpen(outputfile, "w");
+    struct bed *section; 
+    for (section = mb->sections; section != NULL; section = section->next)
+    {
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
+							      section->chromEnd);
+	struct perBaseWig *pbw;
+	struct slInt *ii;
+	int i, size;
+	double max = -DBL_MAX;
+	struct slInt *list = NULL;
+	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
+	{
+	    int pbw_off = pbw->chromStart - section->chromStart;
+	    for (i = 0; i < pbw->len; i++)
+	    {
+		if (pbw->data[i] > max)
+		{
+		    slFreeList(&list);
+		    struct slInt *new_int = slIntNew(i + pbw_off);
+		    slAddHead(&list, new_int);
+		    max = pbw->data[i];
+		}
+		else if (pbw->data[i] == max)
+		{
+		    struct slInt *new_int = slIntNew(i + pbw_off);
+		    slAddHead(&list, new_int);		    
+		}
+	    }
+	}
+	slReverse(&list);
+	/* fill in any parts of the section not filled in */
+	if (!section->name)
+	    section->name = cloneString(".");
+	if ((section->strand[0] != '-') && (section->strand[0] != '+'))
+	    section->strand[0] = '+';
+	section->thickStart = section->chromStart;
+	section->thickEnd = section->chromEnd;
+	section->itemRgb = 0;
+	size = slCount(list);
+	if (ave)
+	{
+	    section->blockCount = 1;
+	    int total = 0;
+	    for (ii = list; ii != NULL; ii = ii->next)
+		total += ii->val;
+	    AllocArray(section->blockSizes, sizeof(int));
+	    AllocArray(section->chromStarts, sizeof(int));	    
+	    section->blockSizes[0] = 1;
+	    section->chromStarts[0] = total/size;
+	}
+	else
+	{
+	    section->blockCount = size;
+	    AllocArray(section->blockSizes, sizeof(int) * size);
+	    AllocArray(section->chromStarts, sizeof(int) * size);
+	    for (i = 0, ii = list; (i < size) && (ii != NULL); i++, ii = ii->next)
+	    {
+		section->blockSizes[i] = 1;
+		section->chromStarts[i] = ii->val;
+	    }
+	}
+	bedTabOutN(section, 12, out);
+	slFreeList(&list);
 	perBaseWigFree(&pbwList);
     }
     metaBigClose(&mb);

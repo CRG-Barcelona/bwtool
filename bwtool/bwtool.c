@@ -169,6 +169,13 @@ else if (sameString(argv[1], "find"))
 	else
 	    bwtool_find_thresh(options, favorites, regions, fill, argv[2], argv[3], argv[4], argv[5]);
     }
+    else if (sameString(argv[2], "maxima"))
+    {
+	if (argc != 6)
+	    usage_find();
+	else
+	    bwtool_find_max(options, favorites, argv[3], fill, argv[4], argv[5]);
+    }
 }
 else if (sameString(argv[1], "matrix"))
 {

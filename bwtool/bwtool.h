@@ -88,6 +88,10 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
 			char *thresh_type, char *thresh_s, char *bigfile, char *outputfile);
 /* find regions fitting a specified threshold */
 
+void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,  
+		     char *bigfile, char *outputfile);
+/* find max points in a range */
+
 void bwtool_distrib(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		    char *bigfile, char *outputfile);
 /* make plotting information about the bigWig's distribution */
