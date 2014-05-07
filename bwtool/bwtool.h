@@ -54,6 +54,9 @@ void usage_summary();
 void usage_matrix();
 /* Explain usage of the matrix-creation program and exit. */
 
+void usage_roll();
+/* Explain the usage of the rolling-mean program and exit. */
+
 void usage_sax();
 /* Explain usage of the sax program and exit. */
 
@@ -146,5 +149,9 @@ void bwtool_window(struct hash *options, char *favorites, char *regions, unsigne
 void bwtool_extract(struct hash *options, char *regions, unsigned decimals, double fill,
 		    char *style, char *bigfile, char *output_file);
 /* bwtool_extract - main for the extract program */
+
+void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
+		 enum wigOutType wot, char *command, char *size_s, char *bigfile, char *outputfile);
+/* bwtool_roll - main for the rolling-mean program */
 
 #endif /* BWTOOL_H */
