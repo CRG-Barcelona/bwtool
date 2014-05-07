@@ -37,6 +37,7 @@ errAbort(
   "   less|less-equal|more|more-equal|equal|not <number>\n"
   "   maxima <regions.bed>   find the highest value in each region given in a bed and output\n"
   "                          the same bed as bed12.\n"
+  "        -with-max         output the maximum value just after the bed12.\n"
   );
 }
 
@@ -195,15 +196,44 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
     carefulClose(&out);
 }
 
+static struct bed *bed12FromBed6(struct bed6 **pList)
+/* Destroy bed6 list in favor of a typical bed */
+{
+    struct bed *list = NULL;
+    struct bed6 *top;
+    while ((top = slPopHead(pList)) != NULL)
+    {
+	struct bed *uno;
+	AllocVar(uno);
+	uno->chrom = cloneString(top->chrom);
+	uno->chromStart = top->chromStart;
+	uno->chromEnd = top->chromEnd;
+	uno->name = cloneString(top->name);
+	uno->score = top->score;
+	uno->strand[0] = top->strand[0];
+	uno->strand[1] = '\0';
+	uno->thickStart = uno->chromStart;
+	uno->thickEnd = uno->chromEnd;
+	slAddHead(&list, uno);
+	bed6Free(&top);
+    }
+    freez(pList);
+    slReverse(&list);
+    return list;
+}
+
 void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,  
 		     char *bigfile, char *outputfile)
 /* find max points in a range */
 {
     boolean ave = (hashFindVal(options, "ave") != NULL) ? TRUE : FALSE;
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    boolean with_max = (hashFindVal(options, "with-max") != NULL) ? TRUE : FALSE;
+    struct metaBig *mb = metaBigOpen_check(bigfile, NULL);
     FILE *out = mustOpen(outputfile, "w");
-    struct bed *section; 
-    for (section = mb->sections; section != NULL; section = section->next)
+    struct bed6 *sections6 = readBed6Soft(regions);
+    struct bed *sections = bed12FromBed6(&sections6);
+    struct bed *section;
+    for (section = sections; section != NULL; section = section->next)
     {
 	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
 							      section->chromEnd);
@@ -232,41 +262,43 @@ void bwtool_find_max(struct hash *options, char *favorites, char *regions, doubl
 	    }
 	}
 	slReverse(&list);
-	/* fill in any parts of the section not filled in */
-	if (!section->name)
-	    section->name = cloneString(".");
-	if ((section->strand[0] != '-') && (section->strand[0] != '+'))
-	    section->strand[0] = '+';
-	section->thickStart = section->chromStart;
-	section->thickEnd = section->chromEnd;
-	section->itemRgb = 0;
-	size = slCount(list);
-	if (ave)
+	if (list)
 	{
-	    section->blockCount = 1;
-	    int total = 0;
-	    for (ii = list; ii != NULL; ii = ii->next)
-		total += ii->val;
-	    AllocArray(section->blockSizes, sizeof(int));
-	    AllocArray(section->chromStarts, sizeof(int));	    
-	    section->blockSizes[0] = 1;
-	    section->chromStarts[0] = total/size;
-	}
-	else
-	{
-	    section->blockCount = size;
-	    AllocArray(section->blockSizes, sizeof(int) * size);
-	    AllocArray(section->chromStarts, sizeof(int) * size);
-	    for (i = 0, ii = list; (i < size) && (ii != NULL); i++, ii = ii->next)
+	    size = slCount(list);
+	    if (ave)
 	    {
-		section->blockSizes[i] = 1;
-		section->chromStarts[i] = ii->val;
+		section->blockCount = 1;
+		int total = 0;
+		for (ii = list; ii != NULL; ii = ii->next)
+		    total += ii->val;
+		AllocArray(section->blockSizes, sizeof(int));
+		AllocArray(section->chromStarts, sizeof(int));	    
+		section->blockSizes[0] = 1;
+		section->chromStarts[0] = total/size;
 	    }
+	    else
+	    {
+		section->blockCount = size;
+		AllocArray(section->blockSizes, sizeof(int) * size);
+		AllocArray(section->chromStarts, sizeof(int) * size);
+		for (i = 0, ii = list; (i < size) && (ii != NULL); i++, ii = ii->next)
+		{
+		    section->blockSizes[i] = 1;
+		    section->chromStarts[i] = ii->val;
+		}
+	    }
+	    if (!with_max)
+		bedTabOutN(section, 12, out);
+	    else
+	    {
+		bedOutputN(section, 12, out, '\t', '\t');
+		fprintf(out, "%f\n", max);
+	    }
+	    slFreeList(&list);
 	}
-	bedTabOutN(section, 12, out);
-	slFreeList(&list);
 	perBaseWigFree(&pbwList);
     }
     metaBigClose(&mb);
+    bedFreeList(&sections);
     carefulClose(&out);
 }
