@@ -149,21 +149,24 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, section->chromEnd);
 	struct perBaseWig *pbw;
 	struct rbTree *chrom_tree = (struct rbTree *)hashFindVal(rt_hash, section->chrom);
-	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
+	if (chrom_tree && pbwList)
 	{
-	    int size = pbw->chromEnd - pbw->chromStart;
-	    int i;
-	    for (i = 0; i < size; i++)
+	    for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	    {
-		/* algorithmically, probably not the greatest solution to do a tree lookup at ever base */
-		/* maybe get back to this another day */
-		boolean does_overlap = rangeTreeOverlaps(chrom_tree, pbw->chromStart + i, pbw->chromStart + i + 1); 
-		if ((does_overlap && !inverse) || (!does_overlap && inverse))
-		    pbw->data[i] = na;
-	    }	    
+		int size = pbw->chromEnd - pbw->chromStart;
+		int i;
+		for (i = 0; i < size; i++)
+		{
+		    /* algorithmically, probably not the greatest solution to do a tree lookup at ever base */
+		    /* maybe get back to this another day */
+		    boolean does_overlap = rangeTreeOverlaps(chrom_tree, pbw->chromStart + i, pbw->chromStart + i + 1); 
+		    if ((does_overlap && !inverse) || (!does_overlap && inverse))
+			pbw->data[i] = na;
+		}	    
+	    }
+	    perBaseWigOutputNASkip(pbwList, out, wot, decimals, NULL, FALSE, condense);
+	    perBaseWigFreeList(&pbwList);	
 	}
-	perBaseWigOutputNASkip(pbwList, out, wot, decimals, NULL, FALSE, condense);
-	perBaseWigFreeList(&pbwList);	
     }
     carefulClose(&out);
     writeBw(wigfile, outputfile, mb->chromSizeHash);

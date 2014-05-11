@@ -172,25 +172,28 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	int i, len;
-	out_bed.chrom = pbwList->chrom;
-	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
+	if (pbwList)
 	{
-	    i = 0;
-	    len = pbw->chromEnd - pbw->chromStart;
-	    out_bed.chromStart = out_bed.chromEnd = 0;
-	    while (i < len)
+	    out_bed.chrom = pbwList->chrom;
+	    for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
 	    {
-		while ((i < len) && (!fit_thresh(pbw->data[i], thresh, op)))
-		    i++;
-		out_bed.chromStart = i + pbw->chromStart;
-		while ((i < len) && (fit_thresh(pbw->data[i], thresh, op)))
-		    i++;
-		out_bed.chromEnd = i + pbw->chromStart;
-		if (out_bed.chromEnd > out_bed.chromStart)
-		    bedTabOutN(&out_bed, 3, out);
+		i = 0;
+		len = pbw->chromEnd - pbw->chromStart;
+		out_bed.chromStart = out_bed.chromEnd = 0;
+		while (i < len)
+		{
+		    while ((i < len) && (!fit_thresh(pbw->data[i], thresh, op)))
+			i++;
+		    out_bed.chromStart = i + pbw->chromStart;
+		    while ((i < len) && (fit_thresh(pbw->data[i], thresh, op)))
+			i++;
+		    out_bed.chromEnd = i + pbw->chromStart;
+		    if (out_bed.chromEnd > out_bed.chromStart)
+			bedTabOutN(&out_bed, 3, out);
+		}
 	    }
-	}
 	perBaseWigFree(&pbwList);
+	}
     }
     metaBigClose(&mb);
     carefulClose(&out);
