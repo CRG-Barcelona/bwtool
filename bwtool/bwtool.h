@@ -76,7 +76,8 @@ void usage_extract();
 /* Explain usage and exit. */
 
 void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot, 
-		   boolean condense, char *thresh_type, char *val_or_file, char *bigfile, char *outputfile);
+		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile, 
+		   char *outputfile);
 /* bwtool_remove - main for removal program */
 
 void bwtool_fill(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,

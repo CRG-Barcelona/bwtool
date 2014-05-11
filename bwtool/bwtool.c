@@ -53,6 +53,7 @@ errAbort(
   "   window         print out tiling windows of data in comma-separated lists\n\n"
   "general options:\n"
   " -wigtype=<bg|fix|var>    output bedGraph, fixedStep, or variableStep wig\n"
+  " -wig-only                for bigWig-creating programs, make a wig instead\n"
   " -regions=bed             use specific regions\n"
   " -condense                condense output, particularly bedGraphs\n"
   " -decimals=n              output specified number of decimals (default 2)\n"
@@ -123,6 +124,7 @@ char *favorites = (char *)hashOptionalVal(options, "favorites", NULL);
 unsigned decimals = sqlUnsigned((char *)hashOptionalVal(options, "decimals", "2"));
 enum wigOutType wot = get_wig_out_type((char *)hashOptionalVal(options, "wigtype", "fix"));
 boolean condense = (hashFindVal(options, "condense") != NULL) ? TRUE : FALSE;
+boolean wig_only = (hashFindVal(options, "wig-only") != NULL) ? TRUE : FALSE;
 char *fill_s = hashFindVal(options, "fill"); 
 double na = NANUM;
 double fill = na;
@@ -135,7 +137,7 @@ if (sameString(argv[1], "remove"))
     if (argc != 6)
 	usage_remove();
     else
-	bwtool_remove(options, favorites, regions, decimals, wot, condense, argv[2], argv[3], argv[4], argv[5]);
+	bwtool_remove(options, favorites, regions, decimals, wot, condense, wig_only, argv[2], argv[3], argv[4], argv[5]);
 }
 else if (sameString(argv[1], "fill"))
 {
