@@ -13,6 +13,7 @@
 #include "basicBed.h"
 #include "bigBed.h"
 #include "bigWig.h"
+#include "genomeRangeTree.h"
 #include "hmmstats.h"
 #include "bigs.h"
 
@@ -953,6 +954,29 @@ static boolean local_file(char *filename)
     return ret;
 }
 
+static void subset_with_sections(struct metaBig *mb, struct bed **p_list)
+/* mainly for chopgenome */
+{
+    struct genomeRangeTree *grt = genomeRangeTreeNew();
+    struct bed *sec;
+    struct bed *list;
+    struct bed *newlist = NULL;
+    struct bed *head;
+    for (sec = mb->sections; sec != NULL; sec = sec->next)
+	genomeRangeTreeAdd(grt, sec->chrom, sec->chromStart, sec->chromEnd);
+    list = *p_list;
+    while ((head = slPopHead(&list)) != NULL)
+    {
+	if (genomeRangeTreeOverlaps(grt, head->chrom, head->chromStart, head->chromEnd) &&
+	    genomeRangeTreeFindEnclosing(grt, head->chrom, head->chromStart, head->chromEnd))
+	    slAddHead(&newlist, head);
+	else
+	    bedFree(&head);
+    }
+    slReverse(&newlist);
+    *p_list = newlist;
+}
+
 struct bed *metaBig_chopGenome(struct metaBig *mb, int size)
 /* return a bed of regularly-sized intervals (given) from the chromSizeHash */
 {
@@ -979,6 +1003,8 @@ struct bed *metaBig_chopGenome(struct metaBig *mb, int size)
 	}
     }
     slReverse(&bed_list);
+    if (mb->sections)
+	subset_with_sections(mb, &bed_list);
     return bed_list;
 }
 
