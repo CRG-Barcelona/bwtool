@@ -93,7 +93,7 @@ struct agg_data *init_agg_data(int left, int right, int meta, boolean firstbase,
     agg->nrow = left + right + meta;;
     agg->ncol = num_firsts * num_seconds;
     if (expanded)
-	agg->ncol *= 4;
+	agg->ncol *= 5;
     if (firstbase)
 	agg->nrow++;
     AllocArray(agg->indexes, agg->nrow);
@@ -165,6 +165,7 @@ void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expande
 		agg->data[i][offset+1] = doubleMedian(size, one_pbm_col);
 		agg->data[i][offset+2] = sd;
 		agg->data[i][offset+3] = (double)size;
+		agg->data[i][offset+4] = sum;
 	    }
 	}
 	else
@@ -174,7 +175,8 @@ void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expande
 	    {
 		agg->data[i][offset+1] = na;
 		agg->data[i][offset+2] = na;
-		agg->data[i][offset+3] = na;
+ 		agg->data[i][offset+3] = na;
+ 		agg->data[i][offset+4] = na;
 	    }
 	}
     }
@@ -203,7 +205,7 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 	{
 	    fprintf(out, "Region\tSignal\tPosition\tMean");
 	    if (expanded)
-		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tStd_Err_Mean\tY_High\tY_Low\n");
+		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tSum\tStd_Err_Mean\tY_High\tY_Low\n");
 	    else
 		fprintf(out, "\n");
 	}
@@ -220,8 +222,9 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 		    double se = agg->data[i][j+2]/sqrt(agg->data[i][j+3]);
 		    double y_high = agg->data[i][j] + se;
 		    double y_low = agg->data[i][j] - se;
-		    fprintf(out, "%s\t%s\t%d\t%f\t%f\t%f\t%d\t%f\t%f\t%f\n", agg->first_names[k], agg->second_names[l], agg->indexes[i], agg->data[i][j], 
-			    agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], se, y_high, y_low);
+		    fprintf(out, "%s\t%s\t%d\t%f\t%f\t%f\t%d\t%f\t%f\t%f\t%f\n", agg->first_names[k], 
+			    agg->second_names[l], agg->indexes[i], agg->data[i][j], 
+			    agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], agg->data[i][j+4], se, y_high, y_low);
 		    j += 3;
 		}
 		else
@@ -248,7 +251,7 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 		fprintf(out, "%f", agg->data[i][j]);
 		if (expanded)
 		{
-		    fprintf(out, "\t%f\t%f\t%d", agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3]);
+		    fprintf(out, "\t%f\t%f\t%d\t%f", agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], agg->data[i][j+4]);
 		    j += 4;
 		}
 		else
@@ -425,7 +428,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 		{
 		    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
 		    do_summary(pbm, agg, expanded, offset); 
-		    offset += (expanded) ? 4 : 1;
+		    offset += (expanded) ? 5 : 1;
 		    free_perBaseMatrix(&pbm);
 		}
 		bed6FreeList(&regions);
@@ -451,7 +454,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 		    }
 		    fuse_pbm(&pbm, &right_pbm, TRUE);
 		    do_summary(pbm, agg, expanded, offset);
-		    offset += (expanded) ? 4 : 1;
+		    offset += (expanded) ? 5 : 1;
 		    free_perBaseMatrix(&pbm);
 		}
 		bed6FreeList(&regions_left);
