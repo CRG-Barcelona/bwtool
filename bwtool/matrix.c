@@ -281,7 +281,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	warn("meta uses -starts and -ends anyway");
     else if ((do_meta) && (starts || ends))
 	warn("-starts and -ends both automatically used with meta");
-    if (do_meta && tile)
+    if (do_meta && do_tile)
 	errAbort("meta not compatible with -tile... yet");
     struct slName *bw_names = slNameListFromComma(bigfile);
     struct slName *bw_name;
