@@ -25,6 +25,7 @@ errAbort(
   "   or total:\n"
   "usage:\n"
   "   bwtool roll <command> size file.bw output.txt\n"
+  "where command is either \"mean\" or \"total\""
   "options:\n"
   "   -max-NA       maximum NA-valued bases to consider a region legitimate.\n"
   "   -min-mean=m   remove regions in output having calculated means < m\n"
