@@ -82,7 +82,7 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 /* at each iteration of */
 {
     int i;
-    int size = pbw->chromEnd - pbw->chromStart;
+    int size = pbw->len;
     double *vector = pbw->data;
     unsigned num_data = 0;
     if (zero_remove)
@@ -115,14 +115,25 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 	    third_quart = doubleWithNAInvQuantAlreadySorted(num_data, vector, 4, FALSE);
 	    last_10p = doubleWithNAInvQuantAlreadySorted(num_data, vector, 10, FALSE);
 	}
-	for (i = 0; i < num_data; i++)
-	{
-	    sum += vector[i];
-	    if (vector[i] > max)
-		max = vector[i];
-	    if (vector[i] < min)
-		min = vector[i];
-	}
+	if (!without_med)
+	    for (i = 0; i < num_data; i++)
+	    {
+		sum += vector[i];
+		if (vector[i] > max)
+		    max = vector[i];
+		if (vector[i] < min)
+		    min = vector[i];
+	    }
+	else
+	    for (i = 0; i < size; i++)
+		if (!isnan(vector[i]))
+		{
+		    sum += vector[i];
+		    if (vector[i] > max)
+			max = vector[i];
+		    if (vector[i] < min)
+			min = vector[i];
+		}
 	mean = sum/num_data;
 	if (with_sos)
 	    sos = sumOfSquares(num_data, vector, mean);
