@@ -75,8 +75,8 @@ void usage_window();
 void usage_extract();
 /* Explain usage and exit. */
 
-void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot, 
-		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile, 
+void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
+		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile,
 		   char *outputfile);
 /* bwtool_remove - main for removal program */
 
@@ -92,7 +92,7 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
 			char *thresh_type, char *thresh_s, char *bigfile, char *outputfile);
 /* find regions fitting a specified threshold */
 
-void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,  
+void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,
 		     char *bigfile, char *outputfile);
 /* find max points in a range */
 
@@ -108,7 +108,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 		       char *size_s, char *region_list_s, char *wig, char *output_file);
 /* aggregate - main */
 
-void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file);
 /* random - main */
 
@@ -123,15 +123,15 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
 void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfile, char *outputfile);
 /* bwtool_split - main for the splitting program */
 
-void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		   double fill, char *range_s, char *bigfile, char *outputfile);
 /* bwtool_matrix - main for matrix-creation program */
 
-void bwtool_autocorr(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_autocorr(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		     double fill, char *bigfile, char *outputfile);
 /* bwtool_autocorr - main for autocorrelation program */
 
-void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		char *alpha_s, char *bigfile, char *outputfile);
 /* bwtool_sax - main for the sax symbol program */
 
@@ -139,7 +139,7 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
 		 enum wigOutType wot, char *bigfile, char *chainfile, char *outputfile);
 /* bwtool_lift - main for lifting program */
 
-void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, 
+void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
 		  enum wigOutType wot, struct slName **p_files, char *output_file);
 /* bwtool_paste - main for paste program */
 

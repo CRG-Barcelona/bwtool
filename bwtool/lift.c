@@ -2,19 +2,19 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "obscure.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "chain.h"
-#include "binRange.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/obscure.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/chain.h>
+#include <jkweb/binRange.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -34,7 +34,7 @@ errAbort(
   "bwtool lift - project data base-by-base into a new assembly using\n"
   "   a liftOver chain file from UCSC.\n"
   "usage:\n"
-  "   bwtool lift old.bw[:chr:start-end] oldToNew.liftOver.chain.gz new.bw\n" 
+  "   bwtool lift old.bw[:chr:start-end] oldToNew.liftOver.chain.gz new.bw\n"
   "options:\n"
   "   -sizes=new.sizes       if set use the chrom.sizes file specified instead of\n"
   "                          gathering the size information from the chain.\n"
@@ -70,7 +70,7 @@ struct hash *readLiftOverMapChainHash(char *fileName)
     struct lineFile *lf = lineFileOpen(fileName, TRUE);
     struct chain *chain;
     struct liftOverChromMap *map;
-    
+
     while ((chain = chainRead(lf)) != NULL)
     {
 	if ((map = hashFindVal(chainHash, chain->tName)) == NULL)
@@ -129,7 +129,7 @@ struct hash *readCsizeHash(char *filename)
     return cHash;
 }
 
-enum remapResult 
+enum remapResult
 {
     problem = 0,
     deleted = 1,
@@ -147,7 +147,7 @@ for (b = chain->blockList; b != NULL; b = b->next)
 return total;
 }
 
-static boolean mapThroughChain(struct chain *chain, double minRatio, 
+static boolean mapThroughChain(struct chain *chain, double minRatio,
 	int *pStart, int *pEnd, struct chain **retSubChain,
 	struct chain **retChainToFree)
 /* Map interval from start to end from target to query side of chain.
@@ -159,7 +159,7 @@ static boolean mapThroughChain(struct chain *chain, double minRatio,
     int oldSize = e - s;
     int newCover = 0;
     int ok = TRUE;
-    
+
     chainSubsetOnT(chain, s, e, &subChain, &freeChain);
     if (subChain == NULL)
     {
@@ -200,7 +200,7 @@ enum remapResult remapBase(struct hash *chainHash, char *orig_chrom, int orig_ba
     else if (list->next != NULL)
     {
 	slFreeList(&list);
-	return duplicated;    
+	return duplicated;
     }
     chainHit = list->val;
     if (!mapThroughChain(chainHit, 1, &start, &end, &subChain, &toFree))
@@ -251,7 +251,7 @@ void do_pass1(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw)
 	    }
 	}
 	perBaseWigFreeList(&pbwList);
-    }    
+    }
 }
 
 void do_pass2(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw)
@@ -280,7 +280,7 @@ void do_pass2(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw)
 	    }
 	}
 	perBaseWigFreeList(&pbwList);
-    }    
+    }
 }
 
 void do_final_pass(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw, char *bad_file)
@@ -322,7 +322,7 @@ void do_final_pass(struct metaBig *mb, struct hash *chainHash, struct hash *gpbw
 	    }
 	}
 	perBaseWigFreeList(&pbwList);
-    }    
+    }
     if (bad_file)
 	carefulClose(&bad);
 }

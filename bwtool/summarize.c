@@ -2,18 +2,18 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "obscure.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
-#include "stuff.h"
+#include <jkweb/common.h>
+#include <jkweb/obscure.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
+#include <beato/stuff.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -26,7 +26,7 @@ errAbort(
   "bwtool summary - provide some summary stats for each region in a bed file\n"
   "   or at regular intervals.\n"
   "usage:\n"
-  "   bwtool summary loci input.bw[:chr:start-end] output.txt\n" 
+  "   bwtool summary loci input.bw[:chr:start-end] output.txt\n"
   "where:\n"
   "   -\"loci\" corresponds to either (a) a bed file with regions to summarize or\n"
   "    (b) a size of interval to summarize genome-wide.\n"
@@ -128,13 +128,13 @@ void summary_loop(struct perBaseWig *pbw, unsigned decimals, FILE *out, struct b
 	    sos = sumOfSquares(num_data, vector, mean);
 	bedOutFlexible(section, bed_size, out, '\t', '\t', use_rgb);
 	if (with_quants)
-	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size, 
+	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size,
 		    num_data, decimals, min, decimals, max, decimals, mean, decimals, first_10p, decimals, first_quart, decimals, median, decimals, third_quart, decimals, last_10p);
 	else if (!without_med)
-	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size, 
+	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f\t%0.*f", size,
 		num_data, decimals, min, decimals, max, decimals, mean, decimals, median);
 	else
-	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f", size, 
+	    fprintf(out, "%d\t%d\t%0.*f\t%0.*f\t%0.*f", size,
 		num_data, decimals, min, decimals, max, decimals, mean);
 	if (with_sos)
 	    fprintf(out, "\t%0.*f", decimals, sos);
@@ -165,7 +165,7 @@ void bwtool_summary_bed(struct metaBig *mb, unsigned decimals, struct bed *bed_l
     if (total)
     {
 	struct perBaseWig *big_pbw = perBaseWigLoadHuge(mb, bed_list);
-	struct bed *big_bed;	
+	struct bed *big_bed;
 	AllocVar(big_bed);
 	big_bed->chrom = cloneString(big_pbw->chrom);
 	big_bed->chromStart = big_pbw->chromStart;

@@ -93,21 +93,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_bwtool_OBJECTS = bwtool-aggregate.$(OBJEXT) bwtool-bwtool.$(OBJEXT) \
-	bwtool-bwtool_shared.$(OBJEXT) bwtool-chromgraph.$(OBJEXT) \
-	bwtool-distrib.$(OBJEXT) bwtool-extract.$(OBJEXT) \
-	bwtool-fill.$(OBJEXT) bwtool-find.$(OBJEXT) \
-	bwtool-lift.$(OBJEXT) bwtool-matrix.$(OBJEXT) \
-	bwtool-paste.$(OBJEXT) bwtool-rand.$(OBJEXT) \
-	bwtool-remove.$(OBJEXT) bwtool-roll.$(OBJEXT) \
-	bwtool-sax.$(OBJEXT) bwtool-shift.$(OBJEXT) \
-	bwtool-split.$(OBJEXT) bwtool-summarize.$(OBJEXT) \
-	bwtool-window.$(OBJEXT)
+am_bwtool_OBJECTS = aggregate.$(OBJEXT) bwtool.$(OBJEXT) \
+	bwtool_shared.$(OBJEXT) chromgraph.$(OBJEXT) distrib.$(OBJEXT) \
+	extract.$(OBJEXT) fill.$(OBJEXT) find.$(OBJEXT) lift.$(OBJEXT) \
+	matrix.$(OBJEXT) paste.$(OBJEXT) rand.$(OBJEXT) \
+	remove.$(OBJEXT) roll.$(OBJEXT) sax.$(OBJEXT) shift.$(OBJEXT) \
+	split.$(OBJEXT) summarize.$(OBJEXT) window.$(OBJEXT)
 bwtool_OBJECTS = $(am_bwtool_OBJECTS)
-bwtool_DEPENDENCIES = $(top_srcdir)/lib/libbeato.a \
-	$(top_srcdir)/libjkweb/libjkweb.a
-bwtool_LINK = $(CCLD) $(bwtool_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+bwtool_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -124,10 +117,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
@@ -270,8 +259,6 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-bwtool_CFLAGS = -I$(top_srcdir)/libjkweb -I$(top_srcdir)/lib
-bwtool_LDADD = $(top_srcdir)/lib/libbeato.a $(top_srcdir)/libjkweb/libjkweb.a
 bwtool_SOURCES = \
 	aggregate.c \
 	bwtool.c \
@@ -374,7 +361,7 @@ clean-binPROGRAMS:
 
 bwtool$(EXEEXT): $(bwtool_OBJECTS) $(bwtool_DEPENDENCIES) $(EXTRA_bwtool_DEPENDENCIES) 
 	@rm -f bwtool$(EXEEXT)
-	$(AM_V_CCLD)$(bwtool_LINK) $(bwtool_OBJECTS) $(bwtool_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(bwtool_OBJECTS) $(bwtool_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -382,25 +369,25 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-aggregate.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-bwtool.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-bwtool_shared.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-chromgraph.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-distrib.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-extract.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-fill.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-find.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-lift.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-matrix.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-paste.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-rand.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-remove.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-roll.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-sax.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-shift.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-split.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-summarize.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool-window.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aggregate.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwtool_shared.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chromgraph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/distrib.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fill.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/find.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lift.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/matrix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paste.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rand.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remove.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/roll.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sax.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shift.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/split.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/summarize.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/window.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -415,272 +402,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-bwtool-aggregate.o: aggregate.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-aggregate.o -MD -MP -MF $(DEPDIR)/bwtool-aggregate.Tpo -c -o bwtool-aggregate.o `test -f 'aggregate.c' || echo '$(srcdir)/'`aggregate.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-aggregate.Tpo $(DEPDIR)/bwtool-aggregate.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='aggregate.c' object='bwtool-aggregate.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-aggregate.o `test -f 'aggregate.c' || echo '$(srcdir)/'`aggregate.c
-
-bwtool-aggregate.obj: aggregate.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-aggregate.obj -MD -MP -MF $(DEPDIR)/bwtool-aggregate.Tpo -c -o bwtool-aggregate.obj `if test -f 'aggregate.c'; then $(CYGPATH_W) 'aggregate.c'; else $(CYGPATH_W) '$(srcdir)/aggregate.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-aggregate.Tpo $(DEPDIR)/bwtool-aggregate.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='aggregate.c' object='bwtool-aggregate.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-aggregate.obj `if test -f 'aggregate.c'; then $(CYGPATH_W) 'aggregate.c'; else $(CYGPATH_W) '$(srcdir)/aggregate.c'; fi`
-
-bwtool-bwtool.o: bwtool.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-bwtool.o -MD -MP -MF $(DEPDIR)/bwtool-bwtool.Tpo -c -o bwtool-bwtool.o `test -f 'bwtool.c' || echo '$(srcdir)/'`bwtool.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-bwtool.Tpo $(DEPDIR)/bwtool-bwtool.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bwtool.c' object='bwtool-bwtool.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-bwtool.o `test -f 'bwtool.c' || echo '$(srcdir)/'`bwtool.c
-
-bwtool-bwtool.obj: bwtool.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-bwtool.obj -MD -MP -MF $(DEPDIR)/bwtool-bwtool.Tpo -c -o bwtool-bwtool.obj `if test -f 'bwtool.c'; then $(CYGPATH_W) 'bwtool.c'; else $(CYGPATH_W) '$(srcdir)/bwtool.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-bwtool.Tpo $(DEPDIR)/bwtool-bwtool.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bwtool.c' object='bwtool-bwtool.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-bwtool.obj `if test -f 'bwtool.c'; then $(CYGPATH_W) 'bwtool.c'; else $(CYGPATH_W) '$(srcdir)/bwtool.c'; fi`
-
-bwtool-bwtool_shared.o: bwtool_shared.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-bwtool_shared.o -MD -MP -MF $(DEPDIR)/bwtool-bwtool_shared.Tpo -c -o bwtool-bwtool_shared.o `test -f 'bwtool_shared.c' || echo '$(srcdir)/'`bwtool_shared.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-bwtool_shared.Tpo $(DEPDIR)/bwtool-bwtool_shared.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bwtool_shared.c' object='bwtool-bwtool_shared.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-bwtool_shared.o `test -f 'bwtool_shared.c' || echo '$(srcdir)/'`bwtool_shared.c
-
-bwtool-bwtool_shared.obj: bwtool_shared.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-bwtool_shared.obj -MD -MP -MF $(DEPDIR)/bwtool-bwtool_shared.Tpo -c -o bwtool-bwtool_shared.obj `if test -f 'bwtool_shared.c'; then $(CYGPATH_W) 'bwtool_shared.c'; else $(CYGPATH_W) '$(srcdir)/bwtool_shared.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-bwtool_shared.Tpo $(DEPDIR)/bwtool-bwtool_shared.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bwtool_shared.c' object='bwtool-bwtool_shared.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-bwtool_shared.obj `if test -f 'bwtool_shared.c'; then $(CYGPATH_W) 'bwtool_shared.c'; else $(CYGPATH_W) '$(srcdir)/bwtool_shared.c'; fi`
-
-bwtool-chromgraph.o: chromgraph.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-chromgraph.o -MD -MP -MF $(DEPDIR)/bwtool-chromgraph.Tpo -c -o bwtool-chromgraph.o `test -f 'chromgraph.c' || echo '$(srcdir)/'`chromgraph.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-chromgraph.Tpo $(DEPDIR)/bwtool-chromgraph.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='chromgraph.c' object='bwtool-chromgraph.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-chromgraph.o `test -f 'chromgraph.c' || echo '$(srcdir)/'`chromgraph.c
-
-bwtool-chromgraph.obj: chromgraph.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-chromgraph.obj -MD -MP -MF $(DEPDIR)/bwtool-chromgraph.Tpo -c -o bwtool-chromgraph.obj `if test -f 'chromgraph.c'; then $(CYGPATH_W) 'chromgraph.c'; else $(CYGPATH_W) '$(srcdir)/chromgraph.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-chromgraph.Tpo $(DEPDIR)/bwtool-chromgraph.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='chromgraph.c' object='bwtool-chromgraph.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-chromgraph.obj `if test -f 'chromgraph.c'; then $(CYGPATH_W) 'chromgraph.c'; else $(CYGPATH_W) '$(srcdir)/chromgraph.c'; fi`
-
-bwtool-distrib.o: distrib.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-distrib.o -MD -MP -MF $(DEPDIR)/bwtool-distrib.Tpo -c -o bwtool-distrib.o `test -f 'distrib.c' || echo '$(srcdir)/'`distrib.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-distrib.Tpo $(DEPDIR)/bwtool-distrib.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='distrib.c' object='bwtool-distrib.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-distrib.o `test -f 'distrib.c' || echo '$(srcdir)/'`distrib.c
-
-bwtool-distrib.obj: distrib.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-distrib.obj -MD -MP -MF $(DEPDIR)/bwtool-distrib.Tpo -c -o bwtool-distrib.obj `if test -f 'distrib.c'; then $(CYGPATH_W) 'distrib.c'; else $(CYGPATH_W) '$(srcdir)/distrib.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-distrib.Tpo $(DEPDIR)/bwtool-distrib.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='distrib.c' object='bwtool-distrib.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-distrib.obj `if test -f 'distrib.c'; then $(CYGPATH_W) 'distrib.c'; else $(CYGPATH_W) '$(srcdir)/distrib.c'; fi`
-
-bwtool-extract.o: extract.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-extract.o -MD -MP -MF $(DEPDIR)/bwtool-extract.Tpo -c -o bwtool-extract.o `test -f 'extract.c' || echo '$(srcdir)/'`extract.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-extract.Tpo $(DEPDIR)/bwtool-extract.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='extract.c' object='bwtool-extract.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-extract.o `test -f 'extract.c' || echo '$(srcdir)/'`extract.c
-
-bwtool-extract.obj: extract.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-extract.obj -MD -MP -MF $(DEPDIR)/bwtool-extract.Tpo -c -o bwtool-extract.obj `if test -f 'extract.c'; then $(CYGPATH_W) 'extract.c'; else $(CYGPATH_W) '$(srcdir)/extract.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-extract.Tpo $(DEPDIR)/bwtool-extract.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='extract.c' object='bwtool-extract.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-extract.obj `if test -f 'extract.c'; then $(CYGPATH_W) 'extract.c'; else $(CYGPATH_W) '$(srcdir)/extract.c'; fi`
-
-bwtool-fill.o: fill.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-fill.o -MD -MP -MF $(DEPDIR)/bwtool-fill.Tpo -c -o bwtool-fill.o `test -f 'fill.c' || echo '$(srcdir)/'`fill.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-fill.Tpo $(DEPDIR)/bwtool-fill.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='fill.c' object='bwtool-fill.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-fill.o `test -f 'fill.c' || echo '$(srcdir)/'`fill.c
-
-bwtool-fill.obj: fill.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-fill.obj -MD -MP -MF $(DEPDIR)/bwtool-fill.Tpo -c -o bwtool-fill.obj `if test -f 'fill.c'; then $(CYGPATH_W) 'fill.c'; else $(CYGPATH_W) '$(srcdir)/fill.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-fill.Tpo $(DEPDIR)/bwtool-fill.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='fill.c' object='bwtool-fill.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-fill.obj `if test -f 'fill.c'; then $(CYGPATH_W) 'fill.c'; else $(CYGPATH_W) '$(srcdir)/fill.c'; fi`
-
-bwtool-find.o: find.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-find.o -MD -MP -MF $(DEPDIR)/bwtool-find.Tpo -c -o bwtool-find.o `test -f 'find.c' || echo '$(srcdir)/'`find.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-find.Tpo $(DEPDIR)/bwtool-find.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='find.c' object='bwtool-find.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-find.o `test -f 'find.c' || echo '$(srcdir)/'`find.c
-
-bwtool-find.obj: find.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-find.obj -MD -MP -MF $(DEPDIR)/bwtool-find.Tpo -c -o bwtool-find.obj `if test -f 'find.c'; then $(CYGPATH_W) 'find.c'; else $(CYGPATH_W) '$(srcdir)/find.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-find.Tpo $(DEPDIR)/bwtool-find.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='find.c' object='bwtool-find.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-find.obj `if test -f 'find.c'; then $(CYGPATH_W) 'find.c'; else $(CYGPATH_W) '$(srcdir)/find.c'; fi`
-
-bwtool-lift.o: lift.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-lift.o -MD -MP -MF $(DEPDIR)/bwtool-lift.Tpo -c -o bwtool-lift.o `test -f 'lift.c' || echo '$(srcdir)/'`lift.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-lift.Tpo $(DEPDIR)/bwtool-lift.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='lift.c' object='bwtool-lift.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-lift.o `test -f 'lift.c' || echo '$(srcdir)/'`lift.c
-
-bwtool-lift.obj: lift.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-lift.obj -MD -MP -MF $(DEPDIR)/bwtool-lift.Tpo -c -o bwtool-lift.obj `if test -f 'lift.c'; then $(CYGPATH_W) 'lift.c'; else $(CYGPATH_W) '$(srcdir)/lift.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-lift.Tpo $(DEPDIR)/bwtool-lift.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='lift.c' object='bwtool-lift.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-lift.obj `if test -f 'lift.c'; then $(CYGPATH_W) 'lift.c'; else $(CYGPATH_W) '$(srcdir)/lift.c'; fi`
-
-bwtool-matrix.o: matrix.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-matrix.o -MD -MP -MF $(DEPDIR)/bwtool-matrix.Tpo -c -o bwtool-matrix.o `test -f 'matrix.c' || echo '$(srcdir)/'`matrix.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-matrix.Tpo $(DEPDIR)/bwtool-matrix.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='matrix.c' object='bwtool-matrix.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-matrix.o `test -f 'matrix.c' || echo '$(srcdir)/'`matrix.c
-
-bwtool-matrix.obj: matrix.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-matrix.obj -MD -MP -MF $(DEPDIR)/bwtool-matrix.Tpo -c -o bwtool-matrix.obj `if test -f 'matrix.c'; then $(CYGPATH_W) 'matrix.c'; else $(CYGPATH_W) '$(srcdir)/matrix.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-matrix.Tpo $(DEPDIR)/bwtool-matrix.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='matrix.c' object='bwtool-matrix.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-matrix.obj `if test -f 'matrix.c'; then $(CYGPATH_W) 'matrix.c'; else $(CYGPATH_W) '$(srcdir)/matrix.c'; fi`
-
-bwtool-paste.o: paste.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-paste.o -MD -MP -MF $(DEPDIR)/bwtool-paste.Tpo -c -o bwtool-paste.o `test -f 'paste.c' || echo '$(srcdir)/'`paste.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-paste.Tpo $(DEPDIR)/bwtool-paste.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='paste.c' object='bwtool-paste.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-paste.o `test -f 'paste.c' || echo '$(srcdir)/'`paste.c
-
-bwtool-paste.obj: paste.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-paste.obj -MD -MP -MF $(DEPDIR)/bwtool-paste.Tpo -c -o bwtool-paste.obj `if test -f 'paste.c'; then $(CYGPATH_W) 'paste.c'; else $(CYGPATH_W) '$(srcdir)/paste.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-paste.Tpo $(DEPDIR)/bwtool-paste.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='paste.c' object='bwtool-paste.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-paste.obj `if test -f 'paste.c'; then $(CYGPATH_W) 'paste.c'; else $(CYGPATH_W) '$(srcdir)/paste.c'; fi`
-
-bwtool-rand.o: rand.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-rand.o -MD -MP -MF $(DEPDIR)/bwtool-rand.Tpo -c -o bwtool-rand.o `test -f 'rand.c' || echo '$(srcdir)/'`rand.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-rand.Tpo $(DEPDIR)/bwtool-rand.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rand.c' object='bwtool-rand.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-rand.o `test -f 'rand.c' || echo '$(srcdir)/'`rand.c
-
-bwtool-rand.obj: rand.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-rand.obj -MD -MP -MF $(DEPDIR)/bwtool-rand.Tpo -c -o bwtool-rand.obj `if test -f 'rand.c'; then $(CYGPATH_W) 'rand.c'; else $(CYGPATH_W) '$(srcdir)/rand.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-rand.Tpo $(DEPDIR)/bwtool-rand.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rand.c' object='bwtool-rand.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-rand.obj `if test -f 'rand.c'; then $(CYGPATH_W) 'rand.c'; else $(CYGPATH_W) '$(srcdir)/rand.c'; fi`
-
-bwtool-remove.o: remove.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-remove.o -MD -MP -MF $(DEPDIR)/bwtool-remove.Tpo -c -o bwtool-remove.o `test -f 'remove.c' || echo '$(srcdir)/'`remove.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-remove.Tpo $(DEPDIR)/bwtool-remove.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='remove.c' object='bwtool-remove.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-remove.o `test -f 'remove.c' || echo '$(srcdir)/'`remove.c
-
-bwtool-remove.obj: remove.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-remove.obj -MD -MP -MF $(DEPDIR)/bwtool-remove.Tpo -c -o bwtool-remove.obj `if test -f 'remove.c'; then $(CYGPATH_W) 'remove.c'; else $(CYGPATH_W) '$(srcdir)/remove.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-remove.Tpo $(DEPDIR)/bwtool-remove.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='remove.c' object='bwtool-remove.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-remove.obj `if test -f 'remove.c'; then $(CYGPATH_W) 'remove.c'; else $(CYGPATH_W) '$(srcdir)/remove.c'; fi`
-
-bwtool-roll.o: roll.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-roll.o -MD -MP -MF $(DEPDIR)/bwtool-roll.Tpo -c -o bwtool-roll.o `test -f 'roll.c' || echo '$(srcdir)/'`roll.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-roll.Tpo $(DEPDIR)/bwtool-roll.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='roll.c' object='bwtool-roll.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-roll.o `test -f 'roll.c' || echo '$(srcdir)/'`roll.c
-
-bwtool-roll.obj: roll.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-roll.obj -MD -MP -MF $(DEPDIR)/bwtool-roll.Tpo -c -o bwtool-roll.obj `if test -f 'roll.c'; then $(CYGPATH_W) 'roll.c'; else $(CYGPATH_W) '$(srcdir)/roll.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-roll.Tpo $(DEPDIR)/bwtool-roll.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='roll.c' object='bwtool-roll.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-roll.obj `if test -f 'roll.c'; then $(CYGPATH_W) 'roll.c'; else $(CYGPATH_W) '$(srcdir)/roll.c'; fi`
-
-bwtool-sax.o: sax.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-sax.o -MD -MP -MF $(DEPDIR)/bwtool-sax.Tpo -c -o bwtool-sax.o `test -f 'sax.c' || echo '$(srcdir)/'`sax.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-sax.Tpo $(DEPDIR)/bwtool-sax.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sax.c' object='bwtool-sax.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-sax.o `test -f 'sax.c' || echo '$(srcdir)/'`sax.c
-
-bwtool-sax.obj: sax.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-sax.obj -MD -MP -MF $(DEPDIR)/bwtool-sax.Tpo -c -o bwtool-sax.obj `if test -f 'sax.c'; then $(CYGPATH_W) 'sax.c'; else $(CYGPATH_W) '$(srcdir)/sax.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-sax.Tpo $(DEPDIR)/bwtool-sax.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sax.c' object='bwtool-sax.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-sax.obj `if test -f 'sax.c'; then $(CYGPATH_W) 'sax.c'; else $(CYGPATH_W) '$(srcdir)/sax.c'; fi`
-
-bwtool-shift.o: shift.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-shift.o -MD -MP -MF $(DEPDIR)/bwtool-shift.Tpo -c -o bwtool-shift.o `test -f 'shift.c' || echo '$(srcdir)/'`shift.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-shift.Tpo $(DEPDIR)/bwtool-shift.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shift.c' object='bwtool-shift.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-shift.o `test -f 'shift.c' || echo '$(srcdir)/'`shift.c
-
-bwtool-shift.obj: shift.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-shift.obj -MD -MP -MF $(DEPDIR)/bwtool-shift.Tpo -c -o bwtool-shift.obj `if test -f 'shift.c'; then $(CYGPATH_W) 'shift.c'; else $(CYGPATH_W) '$(srcdir)/shift.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-shift.Tpo $(DEPDIR)/bwtool-shift.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shift.c' object='bwtool-shift.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-shift.obj `if test -f 'shift.c'; then $(CYGPATH_W) 'shift.c'; else $(CYGPATH_W) '$(srcdir)/shift.c'; fi`
-
-bwtool-split.o: split.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-split.o -MD -MP -MF $(DEPDIR)/bwtool-split.Tpo -c -o bwtool-split.o `test -f 'split.c' || echo '$(srcdir)/'`split.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-split.Tpo $(DEPDIR)/bwtool-split.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='split.c' object='bwtool-split.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-split.o `test -f 'split.c' || echo '$(srcdir)/'`split.c
-
-bwtool-split.obj: split.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-split.obj -MD -MP -MF $(DEPDIR)/bwtool-split.Tpo -c -o bwtool-split.obj `if test -f 'split.c'; then $(CYGPATH_W) 'split.c'; else $(CYGPATH_W) '$(srcdir)/split.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-split.Tpo $(DEPDIR)/bwtool-split.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='split.c' object='bwtool-split.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-split.obj `if test -f 'split.c'; then $(CYGPATH_W) 'split.c'; else $(CYGPATH_W) '$(srcdir)/split.c'; fi`
-
-bwtool-summarize.o: summarize.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-summarize.o -MD -MP -MF $(DEPDIR)/bwtool-summarize.Tpo -c -o bwtool-summarize.o `test -f 'summarize.c' || echo '$(srcdir)/'`summarize.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-summarize.Tpo $(DEPDIR)/bwtool-summarize.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='summarize.c' object='bwtool-summarize.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-summarize.o `test -f 'summarize.c' || echo '$(srcdir)/'`summarize.c
-
-bwtool-summarize.obj: summarize.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-summarize.obj -MD -MP -MF $(DEPDIR)/bwtool-summarize.Tpo -c -o bwtool-summarize.obj `if test -f 'summarize.c'; then $(CYGPATH_W) 'summarize.c'; else $(CYGPATH_W) '$(srcdir)/summarize.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-summarize.Tpo $(DEPDIR)/bwtool-summarize.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='summarize.c' object='bwtool-summarize.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-summarize.obj `if test -f 'summarize.c'; then $(CYGPATH_W) 'summarize.c'; else $(CYGPATH_W) '$(srcdir)/summarize.c'; fi`
-
-bwtool-window.o: window.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-window.o -MD -MP -MF $(DEPDIR)/bwtool-window.Tpo -c -o bwtool-window.o `test -f 'window.c' || echo '$(srcdir)/'`window.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-window.Tpo $(DEPDIR)/bwtool-window.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='window.c' object='bwtool-window.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-window.o `test -f 'window.c' || echo '$(srcdir)/'`window.c
-
-bwtool-window.obj: window.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -MT bwtool-window.obj -MD -MP -MF $(DEPDIR)/bwtool-window.Tpo -c -o bwtool-window.obj `if test -f 'window.c'; then $(CYGPATH_W) 'window.c'; else $(CYGPATH_W) '$(srcdir)/window.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwtool-window.Tpo $(DEPDIR)/bwtool-window.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='window.c' object='bwtool-window.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwtool_CFLAGS) $(CFLAGS) -c -o bwtool-window.obj `if test -f 'window.c'; then $(CYGPATH_W) 'window.c'; else $(CYGPATH_W) '$(srcdir)/window.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

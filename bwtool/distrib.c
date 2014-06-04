@@ -2,16 +2,16 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -22,7 +22,7 @@ errAbort(
   "bwtool distribution - produce plot data as the frequency of values\n"
   "   seen in the bigWig (converted to integers)\n"
   "usage:\n"
-  "   bwtool distribution input.bw[:chr:start-end] output.txt\n" 
+  "   bwtool distribution input.bw[:chr:start-end] output.txt\n"
   "options:\n"
   "     -mult=m      multiply data by a number so the range is altered\n"
   );
@@ -54,7 +54,7 @@ void bwtool_distrib(struct hash *options, char *favorites, char *regions, unsign
     AllocArray(counts, size);
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)

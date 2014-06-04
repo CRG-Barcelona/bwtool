@@ -2,19 +2,19 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
-#include "sax.h"
+#include <beato/sax.h>
 
 void usage_sax()
 /* Explain usage of the sax program. */
@@ -95,7 +95,7 @@ void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alpha, i
     {
 	struct bed *bedList = make_initial_bed_list(pbw, alphaE - alphaS + 2);
 	int i, j;
-	int data_len = pbw->chromEnd - pbw->chromStart; 
+	int data_len = pbw->chromEnd - pbw->chromStart;
 	for (i = alphaS; i <= alphaE; i++)
 	{
 	    char *sax = sax_from_array_force_window(pbw->data, data_len, i, window, mean, std);

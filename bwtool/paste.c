@@ -2,19 +2,19 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "obscure.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/obscure.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
-#include "cluster.h"
+#include <beato/cluster.h>
 #include "bwtool_shared.h"
 
 void usage_paste()
@@ -109,13 +109,13 @@ struct slDouble *parse_constants(char *consts)
     return c_list;
 }
 
-void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, 
+void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
 		  enum wigOutType wot, struct slName **p_files, char *output_file)
 /* bwtool_paste - main for paste program */
 {
     struct metaBig *mb;
     struct metaBig *mb_list = NULL;
-    struct bed *bed; 
+    struct bed *bed;
     struct slName *file;
     int num_sections = 0;
     int i = 0;

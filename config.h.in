@@ -1,13 +1,13 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Use 32-bit color in PNG etc */
-#undef COLOR32
-
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
+
+/* Define to 1 if you have the <beato/bigs.h> header file. */
+#undef HAVE_BEATO_BIGS_H
 
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
@@ -42,11 +42,8 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `gsl' library (-lgsl). */
-#undef HAVE_LIBGSL
-
-/* Define to 1 if you have the `gslcblas' library (-lgslcblas). */
-#undef HAVE_LIBGSLCBLAS
+/* Define to 1 if you have the <jkweb/common.h> header file. */
+#undef HAVE_JKWEB_COMMON_H
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -54,6 +51,9 @@
 /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
    to 0 otherwise. */
 #undef HAVE_MALLOC
+
+/* Define to 1 if you have the <math.h> header file. */
+#undef HAVE_MATH_H
 
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
@@ -81,6 +81,9 @@
 
 /* Define to 1 if you have the `pow' function. */
 #undef HAVE_POW
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the `putenv' function. */
 #undef HAVE_PUTENV
@@ -206,24 +209,6 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
-/* Used in some rare cases. */
-#undef MACHTYPE_alpha
-
-/* Used in some rare cases. */
-#undef MACHTYPE_i386
-
-/* Used in some rare cases. */
-#undef MACHTYPE_ppc
-
-/* Used in some rare cases. */
-#undef MACHTYPE_sparc
-
-/* Used in some rare cases. */
-#undef MACHTYPE_unknown
-
-/* Used in some rare cases. */
-#undef MACHTYPE_x86_64
-
 /* Name of package */
 #undef PACKAGE
 
@@ -250,12 +235,6 @@
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
-
-/* Turn on PNG support in pngwrite.c */
-#undef USE_PNG
-
-/* Turn on SSL support in https.c */
-#undef USE_SSL
 
 /* Version number of package */
 #undef VERSION

@@ -2,16 +2,16 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -21,7 +21,7 @@ void usage_chromgraph()
 errAbort(
   "bwtool chromgraph - produce a chromgraph file usable by the UCSC Genome Graphs tool\n"
   "usage:\n"
-  "   bwtool chromgraph input.bw[:chr:start-end] output.txt\n" 
+  "   bwtool chromgraph input.bw[:chr:start-end] output.txt\n"
   "options:\n"
   "   -every=N     Output datapoints every N bases instead of default (10,000 bp)\n"
   );
@@ -53,7 +53,7 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 	{
 	    numBases = 0;
 	    sum = 0;
-	    int end = (windowPos + every > pbw->chromEnd) ? pbw->chromEnd : windowPos + every; 
+	    int end = (windowPos + every > pbw->chromEnd) ? pbw->chromEnd : windowPos + every;
 	    int middle = windowPos + (end-windowPos)/2;
 	    for (i = windowPos; i < end; i++)
 	    {
@@ -67,7 +67,7 @@ void bwtool_chromgraph(struct hash *options, char *favorites, char *regions, uns
 		sum = sum / numBases;
 	    fprintf(output, "%s\t%d\t%0.*f\n", pbw->chrom, middle, decimals, sum);
 	    windowPos += every;
-	} 
+	}
 	perBaseWigFreeList(&pbw);
     }
     carefulClose(&output);

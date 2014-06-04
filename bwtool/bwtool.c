@@ -4,14 +4,14 @@
 #include "config.h"
 #endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 
 #define NANUM sqrt(-1)
@@ -22,7 +22,7 @@ void usage()
 errAbort(
   "bwtool - Data operations on bigWig files\n"
   "usage:\n"
-  "   bwtool command [additional command parameters]\n" 
+  "   bwtool command [additional command parameters]\n"
   "commands:\n"
   "   aggregate      (or \"agg\") produce plot data as an average of values around\n"
   "                  the regions specified in a bed file\n"
@@ -90,13 +90,13 @@ enum bw_op_type get_bw_op_type(char *thresh_type, boolean inverse)
 	    return more;
 	}
 	else if (sameWord(thresh_type, "more-equal"))
-	{	
+	{
 	    if (inverse)
 		return less;
 	    return more_equal;
 	}
 	else if (sameWord(thresh_type, "equal"))
-	{	
+	{
 	    if (inverse)
 		return not_equal;
 	    return equal;
@@ -125,7 +125,7 @@ unsigned decimals = sqlUnsigned((char *)hashOptionalVal(options, "decimals", "2"
 enum wigOutType wot = get_wig_out_type((char *)hashOptionalVal(options, "wigtype", "fix"));
 boolean condense = (hashFindVal(options, "condense") != NULL) ? TRUE : FALSE;
 boolean wig_only = (hashFindVal(options, "wig-only") != NULL) ? TRUE : FALSE;
-char *fill_s = hashFindVal(options, "fill"); 
+char *fill_s = hashFindVal(options, "fill");
 double na = NANUM;
 double fill = na;
 if (fill_s)
@@ -141,14 +141,14 @@ if (sameString(argv[1], "remove"))
 }
 else if (sameString(argv[1], "fill"))
 {
-    if (argc != 5) 
+    if (argc != 5)
 	usage_fill();
     else
 	bwtool_fill(options, favorites, regions, decimals, wot, condense, argv[2], argv[3], argv[4]);
 }
 else if (sameString(argv[1], "shift"))
 {
-    if (argc != 5) 
+    if (argc != 5)
 	usage_shift();
     else
 	bwtool_shift(options, favorites, regions, decimals, wot, condense, argv[2], argv[3], argv[4]);
@@ -286,7 +286,7 @@ else if (sameString(argv[1], "extract") || sameString(argv[1], "ex"))
     else
 	bwtool_extract(options, argv[3], decimals, fill, argv[2], argv[4], argv[5]);
 }
-else 
+else
     usage();
 hashFree(&options);
 return 0;

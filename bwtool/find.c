@@ -2,20 +2,20 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
-#include "rangeTree.h"
-#include "extrema.h"
+#include <jkweb/rangeTree.h>
+#include <beato/extrema.h>
 
 #include <float.h>
 
@@ -26,7 +26,7 @@ errAbort(
   "bwtool find - find parts of genome that satisfy given constraints\n"
   "   in the bigWig data.\n"
   "usage:\n"
-  "   bwtool find <operator> [operator options] input.bw[:chr:start-end] output.bed\n" 
+  "   bwtool find <operator> [operator options] input.bw[:chr:start-end] output.bed\n"
   "operators:\n"
   "   local-extrema          output is 6-field bedGraph with +/- indicating if the extrema\n"
   "                          is a local minimum or maximum.\n"
@@ -150,12 +150,12 @@ static boolean fit_thresh(double val, double thresh, enum bw_op_type op)
     case invalid:
     default:
     {
-	ret = FALSE; 
+	ret = FALSE;
     }}
     return ret;
 }
 
-void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, double fill,  
+void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, double fill,
 			char *thresh_type, char *thresh_s, char *bigfile, char *outputfile)
 /* the other kind of finding, based on thresholding. */
 {
@@ -165,10 +165,10 @@ void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, do
     double thresh = sqlDouble(thresh_s);
     FILE *out = mustOpen(outputfile, "w");
     struct bed out_bed;
-    struct bed *section; 
+    struct bed *section;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	int i, len;
@@ -225,7 +225,7 @@ static struct bed *bed12FromBed6(struct bed6 **pList)
     return list;
 }
 
-void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,  
+void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,
 		     char *bigfile, char *outputfile)
 /* find max points in a range */
 {
@@ -238,7 +238,7 @@ void bwtool_find_max(struct hash *options, char *favorites, char *regions, doubl
     struct bed *section;
     for (section = sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	struct slInt *ii;
@@ -260,7 +260,7 @@ void bwtool_find_max(struct hash *options, char *favorites, char *regions, doubl
 		else if (pbw->data[i] == max)
 		{
 		    struct slInt *new_int = slIntNew(i + pbw_off);
-		    slAddHead(&list, new_int);		    
+		    slAddHead(&list, new_int);
 		}
 	    }
 	}
@@ -275,7 +275,7 @@ void bwtool_find_max(struct hash *options, char *favorites, char *regions, doubl
 		for (ii = list; ii != NULL; ii = ii->next)
 		    total += ii->val;
 		AllocArray(section->blockSizes, sizeof(int));
-		AllocArray(section->chromStarts, sizeof(int));	    
+		AllocArray(section->chromStarts, sizeof(int));
 		section->blockSizes[0] = 1;
 		section->chromStarts[0] = total/size;
 	    }

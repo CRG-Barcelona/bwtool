@@ -2,16 +2,16 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 
 #include <math.h>
@@ -53,7 +53,7 @@ enum style_type
 };
 
 void extractOutBed(FILE *out, struct bed6 *section, int orig_size, unsigned decimals, struct perBaseWig *pbw, boolean tabs)
-/* Do the output like: 
+/* Do the output like:
    chr1   2   4   2   3.00,4.00
    chr1   8   12  4   9.00,10.00,11.00,12.00    */
 {
@@ -121,7 +121,7 @@ void bwtool_extract(struct hash *options, char *regions, unsigned decimals, doub
     /* loop through each region */
     for (section = region_list; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd, (section->strand[0] == '-') ? TRUE : FALSE, fill);
 	if (style == bed)
 	    /* for bed there is no name manipulation */

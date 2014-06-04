@@ -2,16 +2,16 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -25,7 +25,7 @@ void usage_shift()
 errAbort(
   "bwtool shift - move the data on the chromosome by N number of bases\n"
   "usage:\n"
-  "   bwtool shift N input.bw[:chr:start-end] output.bw\n" 
+  "   bwtool shift N input.bw[:chr:start-end] output.bw\n"
   );
 }
 
@@ -50,7 +50,7 @@ void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned
 	errAbort("it doesn't make sense to shift by zero.");
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd, FALSE, na);
 	int i;
 	/* if the shift size is bigger than the section, NA the entire thing */

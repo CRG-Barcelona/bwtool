@@ -2,16 +2,16 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -22,7 +22,7 @@ errAbort(
   "bwtool fill - fill given sections or whole chromosomes with\n"
   "   a given value anywhere there is no data.\n"
   "usage:\n"
-  "   bwtool fill <val> input.bw[:chr:start-end] output.bw\n" 
+  "   bwtool fill <val> input.bw[:chr:start-end] output.bw\n"
   );
 }
 
@@ -39,7 +39,7 @@ void bwtool_fill(struct hash *options, char *favorites, char *regions, unsigned 
     int i;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbw = perBaseWigLoadSingleContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd, FALSE, val);
 	perBaseWigOutput(pbw, out, wot, decimals, NULL, FALSE, condense);
 	perBaseWigFree(&pbw);

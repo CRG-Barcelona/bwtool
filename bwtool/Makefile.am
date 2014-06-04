@@ -1,6 +1,4 @@
 bin_PROGRAMS = bwtool
-bwtool_CFLAGS = -I$(top_srcdir)/libjkweb -I$(top_srcdir)/lib
-bwtool_LDADD = $(top_srcdir)/lib/libbeato.a $(top_srcdir)/libjkweb/libjkweb.a
 bwtool_SOURCES = \
 	aggregate.c \
 	bwtool.c \

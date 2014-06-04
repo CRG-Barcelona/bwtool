@@ -2,20 +2,20 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "obscure.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
-#include "metaBig.h"
+#include <jkweb/common.h>
+#include <jkweb/obscure.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
+#include <beato/metaBig.h>
 #include "bwtool.h"
-#include "cluster.h"
+#include <beato/cluster.h>
 #include "bwtool_shared.h"
 
 void usage_matrix()
@@ -149,7 +149,7 @@ void output_cluster_matrix_long(struct cluster_bed_matrix *cbm, struct slName *l
     carefulClose(&out);
 }
 
-void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *labels, boolean keep_bed, int left, 
+void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *labels, boolean keep_bed, int left,
 			int right, int tile, boolean header, char *outputfile)
 /* long output.  right this is just patching things up.  this and some other stuff could be combined */
 /* with aggregate some day. */
@@ -195,7 +195,7 @@ void output_matrix_long(struct perBaseMatrix *pbm, int decimals, struct slName *
 		fprintf(out, "\n");
 	    }
 	}
-    }	
+    }
     carefulClose(&out);
 }
 
@@ -214,7 +214,7 @@ void output_matrix(struct perBaseMatrix *pbm, int decimals, boolean keep_bed, ch
 	    na_or_num(out, pbw->data[j], decimals);
 	    fprintf(out, "%c", (j == pbw->len-1) ? '\n' : '\t');
 	}
-    }	
+    }
     carefulClose(&out);
 }
 
@@ -252,7 +252,7 @@ void check_list(struct bed6 *list)
 	uglyf("   %s\t%d\t%d\n", one->chrom, one->chromStart, one->chromEnd);
 }
 
-void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		   double fill, char *range_s, char *bigfile, char *outputfile)
 /* bwtool_matrix - main for matrix-creation program */
 {
@@ -294,7 +294,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
     int i;
     if (do_meta)
     {
-	if (meta == -1) 
+	if (meta == -1)
 	{
 	    meta = calculate_meta_file(regions);
 	    fprintf(stderr, "calculated meta = %d bases\n", meta);
@@ -322,7 +322,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	}
 	else
 	{
-	    struct perBaseMatrix *one_pbm = (do_tile) ? load_ave_perBaseMatrix(mb, regs, tile, fill) : 
+	    struct perBaseMatrix *one_pbm = (do_tile) ? load_ave_perBaseMatrix(mb, regs, tile, fill) :
 		load_perBaseMatrix(mb, regs, fill);
 	    fuse_pbm(&pbm, &one_pbm, FALSE);
 	}
@@ -342,7 +342,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	    output_centroids(cbm, centroid_file, decimals);
 	free_cbm(&cbm);
     }
-    else 
+    else
     {
 	if (do_long_form)
 	    output_matrix_long(pbm, decimals, labels, keep_bed, left, right, tile, lf_header, outputfile);

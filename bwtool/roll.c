@@ -2,20 +2,20 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "obscure.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/obscure.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
-#include "cluster.h"
+#include <beato/cluster.h>
 
 void usage_roll()
 /* Explain usage of the rolling-average program and exit */
@@ -48,7 +48,7 @@ void sub_from_tots(double d, int *p_num_na, double *p_total)
     else *p_total = *p_total - d;
 }
 
-enum roll_command 
+enum roll_command
 {
     roll_mean = 0,
     roll_total = 1,
@@ -95,7 +95,7 @@ void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned 
 	    int num_na = 0;
 	    /* load data */
 	    for (i = 0; i < size; i++)
-		add_to_tots(pbw->data[i], &num_na, &total); 
+		add_to_tots(pbw->data[i], &num_na, &total);
 	    i = 0;
 	    do
 	    {
@@ -118,15 +118,15 @@ void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned 
 		    {
 			if (broken)
 			    fprintf(out, "fixedStep chrom=%s start=%d step=%d span=%d\n", pbw->chrom, s+1, step, step);
-			fprintf(out, "%0.*f\n", decimals, out_val); 
+			fprintf(out, "%0.*f\n", decimals, out_val);
 		    }
 		    else if (wot == varStepOut)
 		    {
 			if (broken)
 			    fprintf(out, "variableStep chrom=%s span=%d\n", pbw->chrom, step);
-			fprintf(out, "%d\t%0.*f\n", s+1, decimals, out_val); 
+			fprintf(out, "%d\t%0.*f\n", s+1, decimals, out_val);
 		    }
-		    else 
+		    else
 			fprintf(out, "%s\t%d\t%d\t%0.*f\n", pbw->chrom, s, e, decimals, out_val);
 		    broken = FALSE;
 		}

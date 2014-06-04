@@ -2,20 +2,20 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "obscure.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/obscure.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
-#include "cluster.h"
+#include <beato/cluster.h>
 
 void usage_window()
 /* Explain usage of the window-tiling program and exit */
@@ -33,11 +33,11 @@ errAbort(
   "   -skip-NA        don't output lines (windows) containing any NA values\n"
   "   -center         print start and end coordinates of the middle of the window\n"
   "                   with size step such that the start/ends are connected each\n"
-  "                   line (if step < size)\n" 
+  "                   line (if step < size)\n"
   );
 }
 
-void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals,
                    double fill, char *size_s, char *bigfile, char *output_file)
 /* bwtool_window - main for the windowing program */
 {

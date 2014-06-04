@@ -2,17 +2,17 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "rangeTree.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/rangeTree.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -24,7 +24,7 @@ void usage_remove()
 errAbort(
   "bwtool - Data operations on bigWig files\n"
   "usage:\n"
-  "   bwtool remove <operator> <value|mask.bed> input.bw[:chr:start-end] output.bw\n" 
+  "   bwtool remove <operator> <value|mask.bed> input.bw[:chr:start-end] output.bw\n"
   "where:\n"
   "   operator is one of the following: \"less\", \"more\", or \"mask\".  In the case\n"
   "   of \"mask\", the next parameter is a bed file containing the regions to remove.\n"
@@ -58,7 +58,7 @@ static struct hash *load_range_tree( char *range_file)
     return rt_hash;
 }
 
-static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *val_s, 
+static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *val_s,
 				 char *outputfile, enum wigOutType wot, unsigned decimals,
                                  boolean condense, boolean wig_only)
 /* deal with the thresholding type of removal. */
@@ -81,10 +81,10 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 	    {
 		switch (op)
 		{
-		case less: 
+		case less:
 		{
-		    if (pbw->data[i] < val) 
-			pbw->data[i] = na; 
+		    if (pbw->data[i] < val)
+			pbw->data[i] = na;
 		    break;
 		}
 		case less_equal:
@@ -137,9 +137,9 @@ static void bwtool_remove_thresh(struct metaBig *mb, enum bw_op_type op, char *v
 	writeBw(wigfile, outputfile, mb->chromSizeHash);
 	remove(wigfile);
     }
-}  
+}
 
-static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *outputfile, enum wigOutType wot, 
+static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *outputfile, enum wigOutType wot,
 			       unsigned decimals, boolean condense, boolean wig_only, boolean inverse)
 /* masking */
 {
@@ -164,13 +164,13 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 		{
 		    /* algorithmically, probably not the greatest solution to do a tree lookup at ever base */
 		    /* maybe get back to this another day */
-		    boolean does_overlap = rangeTreeOverlaps(chrom_tree, pbw->chromStart + i, pbw->chromStart + i + 1); 
+		    boolean does_overlap = rangeTreeOverlaps(chrom_tree, pbw->chromStart + i, pbw->chromStart + i + 1);
 		    if ((does_overlap && !inverse) || (!does_overlap && inverse))
 			pbw->data[i] = na;
-		}	    
+		}
 	    }
 	    perBaseWigOutputNASkip(pbwList, out, wot, decimals, NULL, FALSE, condense);
-	    perBaseWigFreeList(&pbwList);	
+	    perBaseWigFreeList(&pbwList);
 	}
     }
     carefulClose(&out);
@@ -181,11 +181,11 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 	writeBw(wigfile, outputfile, mb->chromSizeHash);
 	remove(wigfile);
     }
-    hashFree(&rt_hash);    
+    hashFree(&rt_hash);
 }
 
-void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot, 
-		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile, 
+void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
+		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile,
 		   char *outputfile)
 /* bwtool_remove - main for removal program */
 {

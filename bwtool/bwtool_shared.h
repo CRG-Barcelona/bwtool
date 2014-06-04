@@ -1,8 +1,8 @@
 #ifndef BWTOOL_SHARED_H
 #define BWTOOL_SHARED_H
 
-#include "common.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <beato/bigs.h>
 
 struct bed6 *load_and_recalculate_coords(char *list_file, int left, int right, boolean firstbase, boolean starts, boolean ends);
 /* do the coordinate recalculation */

@@ -1,15 +1,15 @@
-/* Some common routines for a few of the bwtool programs. */ 
+/* Some common routines for a few of the bwtool programs. */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "sqlNum.h"
-#include "metaBig.h"
-#include "bigs.h"
-#include "bigWig.h"
-#include "bwgInternal.h"
+#include <jkweb/common.h>
+#include <jkweb/sqlNum.h>
+#include <beato/metaBig.h>
+#include <beato/bigs.h>
+#include <jkweb/bigWig.h>
+#include <jkweb/bwgInternal.h>
 #include "bwtool_shared.h"
 
 #include <math.h>
@@ -31,7 +31,7 @@ struct bed6 *load_and_recalculate_coords(char *list_file, int left, int right, b
 		center = bed->chromStart;
 	    else if (ends)
 		center = bed->chromEnd;
-	    else 
+	    else
 		center = bed->chromStart + (reg_size/2);
 	    bed->chromStart = center - left;
 	    bed->chromEnd = center + right;
@@ -61,7 +61,7 @@ struct bed6 *load_and_recalculate_coords(char *list_file, int left, int right, b
 		    bed->chromEnd++;
 		else
 		    bed->chromStart--;
-	    }		
+	    }
 	}
     }
     return list;
@@ -77,7 +77,7 @@ static boolean sniff_bed6(char *filename)
     boolean good_bed = TRUE;
     while (((num_words = lineFileChop(lf, words)) == 6) && (i < 10))
     {
-	if (((words[5][0] != '+') && (words[5][0] != '-')) || (countLeadingDigits(words[1]) != strlen(words[1])) 
+	if (((words[5][0] != '+') && (words[5][0] != '-')) || (countLeadingDigits(words[1]) != strlen(words[1]))
 	    || (countLeadingDigits(words[2]) != strlen(words[2])))
 	{
 	    good_bed = FALSE;
@@ -229,7 +229,7 @@ struct metaBig *metaBigOpen_check(char *bigfile, char *regions)
 	else if (!internet)
 	    errAbort("%s could not be opened. Perhaps it is not a valid bigWig.", bigfile);
 	else
-	    errAbort("There was a problem opening %s. Perhaps there is a problem with the internet connection.", bigfile); 
+	    errAbort("There was a problem opening %s. Perhaps there is a problem with the internet connection.", bigfile);
     }
     return mb;
 }
@@ -258,7 +258,7 @@ void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add, boole
 		    struct perBaseWig *add_pbw = to_add->array[i];
 		    struct perBaseWig *new_pbw = alloc_perBaseWig(big_pbw->chrom, big_pbw->chromStart, big_pbw->chromStart + big->ncol + expanding);
 		    new_pbw->name = cloneString(big_pbw->name);
-		    new_pbw->score = 0; 
+		    new_pbw->score = 0;
 		    new_pbw->strand[0] = big_pbw->strand[0];
 		    new_pbw->chromEnd = (add_coords) ? add_pbw->chromEnd : big_pbw->chromEnd;
 		    for (j = 0; j < big_pbw->len; j++)

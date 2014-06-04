@@ -2,16 +2,16 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
 #include "bwtool.h"
 
 void usage_split()
@@ -54,7 +54,7 @@ void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfi
     int gap = 0;
     for (section = mb->sections; section != NULL; section = section->next)
     {
-	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart, 
+	struct perBaseWig *pbwList = perBaseWigLoadContinue(mb, section->chrom, section->chromStart,
 							      section->chromEnd);
 	struct perBaseWig *pbw;
 	for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
@@ -68,10 +68,10 @@ void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfi
 		    slAddHead(&splitList, newBed(chrom, start, end));
 		strcpy(chrom, pbw->chrom);
 		start = pbw->chromStart;
-		end = pbw->chromEnd;		
+		end = pbw->chromEnd;
 		if (size + length > chunk_size)
-		    size = length; 
-		else 
+		    size = length;
+		else
 		    size += length;
 	    }
 	    else

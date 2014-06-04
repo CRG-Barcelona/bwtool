@@ -1,17 +1,17 @@
 /* bwtool_random - retrieve random data */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
-#include "common.h"
-#include "linefile.h"
-#include "hash.h"
-#include "options.h"
-#include "sqlNum.h"
-#include "basicBed.h"
-#include "bigWig.h"
-#include "bigs.h"
-#include "random_coord.h"
+#include <jkweb/common.h>
+#include <jkweb/linefile.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/bigWig.h>
+#include <beato/bigs.h>
+#include <beato/random_coord.h>
 #include "bwtool.h"
 #include "bwtool_shared.h"
 
@@ -25,7 +25,7 @@ void usage_random()
 errAbort(
   "bwtool random - retrieve data from random regions in the bigWig.\n"
   "usage:\n"
-  "   bwtool random n size input.bw output.txt\n" 
+  "   bwtool random n size input.bw output.txt\n"
   "where n is the number of regions desired, and size is the size of each\n"
   "region retrieved.\n"
   "options:\n"
@@ -37,7 +37,7 @@ errAbort(
   );
 }
 
-void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
@@ -56,7 +56,7 @@ void bwtool_random(struct hash *options, char *favorites, char *regions, unsigne
 	blacklist = bedLoadNAll(blacklist_file, 3);
     pbwList = random_pbw_list(size, N, mb, NA_perc, fill, blacklist, seed);
     slSort(&pbwList, bedCmp);
-    /* output either the bed or a tab-separated list of vals*/ 
+    /* output either the bed or a tab-separated list of vals*/
     for (pbw = pbwList; pbw != NULL; pbw = pbw->next)
     {
 	if (just_bed)
@@ -80,7 +80,7 @@ void usage_random()
 errAbort(
   "bwtool random - retrieve data from random regions in the bigWig.\n"
   "usage:\n"
-  "   bwtool random n size input.bw output.txt\n" 
+  "   bwtool random n size input.bw output.txt\n"
   "where n is the number of regions desired, and size is the size of each\n"
   "region retrieved.\n"
   "options:\n"
@@ -92,7 +92,7 @@ errAbort(
   );
 }
 
-void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals, 
+void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals,
 		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
