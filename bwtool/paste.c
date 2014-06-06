@@ -32,6 +32,11 @@ errAbort(
   "   -consts-totals    like -consts-means except the total sum\n"
   "   -consts-covs      like -consts-means except number of bases covered\n"
   "   -skip-NA          don't output lines (bases) where one of the inputs is NA\n"
+  "   -skip-min=m       skip in output where one of the inputs is < m\n"
+  "                     Care should be taken with this option so that the decimal\n"
+  "                     precision corresponds to a threshold.  E.g. if two decimal\n"
+  "                     places is the output (the default), then instead of using\n"
+  "                     -min=0, use -min=0.01\n"
   );
 }
 
@@ -64,7 +69,16 @@ boolean has_na(struct perBaseWig *pbw_list, int i)
     return FALSE;
 }
 
-void output_pbws(struct perBaseWig *pbw_list, struct slDouble *c_list, int decimals, enum wigOutType wot, boolean skip_NA, FILE *out)
+boolean has_under(struct perBaseWig *pbw_list, int i, double m)
+{
+    struct perBaseWig *pbw;
+    for (pbw = pbw_list; pbw != NULL; pbw = pbw->next)
+	if (pbw->data[i] < m)
+	    return TRUE;
+    return FALSE;
+}
+
+void output_pbws(struct perBaseWig *pbw_list, struct slDouble *c_list, int decimals, enum wigOutType wot, boolean skip_NA, boolean skip_min, double min, FILE *out)
 /* outputs one set of perBaseWigs all at the same section */
 {
     struct perBaseWig *pbw;
@@ -75,7 +89,7 @@ void output_pbws(struct perBaseWig *pbw_list, struct slDouble *c_list, int decim
 	int last_printed = -2;
 	for (i = 0; i < pbw_list->len; i++)
 	{
-	    if (!skip_NA || !has_na(pbw_list, i))
+	    if ((!skip_NA || !has_na(pbw_list, i)) && (!skip_min || !has_under(pbw_list, i, min)))
 	    {
 		if (i - last_printed > 1)
 		{
@@ -127,6 +141,17 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
     boolean do_mean_consts = (hashFindVal(options, "consts-means") != NULL) ? TRUE : FALSE;
     boolean do_total_consts = (hashFindVal(options, "consts-totals") != NULL) ? TRUE : FALSE;
     boolean do_covs_consts = (hashFindVal(options, "consts-covs") != NULL) ? TRUE : FALSE;
+    boolean skip_min = FALSE;
+    double min = 0;
+    if (hashFindVal(options, "skip-min"))
+    {
+	skip_min = TRUE;
+	char *min_s = (char *)hashFindVal(options, "skip-min");
+	if (min_s)
+	    min = sqlDouble(min_s);
+	else
+	    min = 0;
+    }
     struct slDouble *c_list = parse_constants((char *)hashOptionalVal(options, "consts", NULL));
     struct slDouble *fix_consts = NULL;
     struct slName *labels = NULL;
@@ -203,7 +228,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	    slAddHead(&pbw_list, pbw);
 	}
 	slReverse(&pbw_list);
-	output_pbws(pbw_list, c_list, decimals, wot, skip_na, out);
+	output_pbws(pbw_list, c_list, decimals, wot, skip_na, skip_min, min, out);
 	perBaseWigFreeList(&pbw_list);
     }
     /* close the files */
