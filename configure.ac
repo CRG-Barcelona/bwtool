@@ -67,12 +67,39 @@ if test "x${has_jkweb}" != xyes; then
    See the INSTALL for examples.
    ---------------------------------------------])
 fi
-AC_SEARCH_LIBS([perBaseWigFree],[beato], [has_beato=yes], [has_beato=no])
+
+dnl This is a manual test instead of AC_SEARCH_LIBS because the
+dnl include file is in a subdir of the include paths.
+OLDLIBS=$LIBS;
+LIBS="-lbeato $LIBS";
+AC_MSG_CHECKING([checking for beato library containing perBaseWigFree])
+    AC_LINK_IFELSE([
+      AC_LANG_PROGRAM([[
+        char perBaseWigFree ();
+        ]],
+        [[
+        return perBaseWigFree();
+        ]])],
+      [AC_MSG_RESULT([-lbeato]); has_beato=yes;],      
+      [AC_MSG_RESULT([no])
+       LIBS=$OLDLIBS; LIBS="-lbeato -lhts $LIBS";
+       AC_MSG_CHECKING([checking for beato library (compiled with htslib) containing perBaseWigFree])
+          AC_LINK_IFELSE([
+            AC_LANG_PROGRAM([[
+            char perBaseWigFree ();
+            ]],
+            [[
+            return perBaseWigFree();
+            ]])],
+           [AC_MSG_RESULT([-lbeato -lhts]); has_beato=yes;],
+           [AC_MSG_RESULT([no]); has_beato=no;
+         ])
+     ])
 if test "x${has_beato}" != xyes; then
    AC_MSG_ERROR([
    ---------------------------------------------
-   Unable to find libbeato required for compiling
-   bwtool. Install this and run ./configure
+   libbeato, required for bwtool does not seem to
+   be installed.  Install this and run ./configure
    with the appropriate LDFLAGS/CFLAGS/etc.
    See the INSTALL for examples.
    ---------------------------------------------])

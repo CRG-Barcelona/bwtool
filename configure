@@ -4931,69 +4931,71 @@ if test "x${has_jkweb}" != xyes; then
    See the INSTALL for examples.
    ---------------------------------------------" "$LINENO" 5
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing perBaseWigFree" >&5
-$as_echo_n "checking for library containing perBaseWigFree... " >&6; }
-if ${ac_cv_search_perBaseWigFree+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+OLDLIBS=$LIBS;
+LIBS="-lbeato $LIBS";
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for beato library containing perBaseWigFree" >&5
+$as_echo_n "checking checking for beato library containing perBaseWigFree... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char perBaseWigFree ();
+
+        char perBaseWigFree ();
+
 int
 main ()
 {
-return perBaseWigFree ();
+
+        return perBaseWigFree();
+
   ;
   return 0;
 }
 _ACEOF
-for ac_lib in '' beato; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_perBaseWigFree=$ac_res
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: -lbeato" >&5
+$as_echo "-lbeato" >&6; }; has_beato=yes;
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+       LIBS=$OLDLIBS; LIBS="-lbeato -lhts $LIBS";
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for beato library (compiled with htslib) containing perBaseWigFree" >&5
+$as_echo_n "checking checking for beato library (compiled with htslib) containing perBaseWigFree... " >&6; }
+          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+            char perBaseWigFree ();
+
+int
+main ()
+{
+
+            return perBaseWigFree();
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: -lbeato -lhts" >&5
+$as_echo "-lbeato -lhts" >&6; }; has_beato=yes;
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; has_beato=no;
+
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_perBaseWigFree+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_perBaseWigFree+:} false; then :
+    conftest$ac_exeext conftest.$ac_ext
 
-else
-  ac_cv_search_perBaseWigFree=no
 fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_perBaseWigFree" >&5
-$as_echo "$ac_cv_search_perBaseWigFree" >&6; }
-ac_res=$ac_cv_search_perBaseWigFree
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  has_beato=yes
-else
-  has_beato=no
-fi
-
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 if test "x${has_beato}" != xyes; then
    as_fn_error $? "
    ---------------------------------------------
-   Unable to find libbeato required for compiling
-   bwtool. Install this and run ./configure
+   libbeato, required for bwtool does not seem to
+   be installed.  Install this and run ./configure
    with the appropriate LDFLAGS/CFLAGS/etc.
    See the INSTALL for examples.
    ---------------------------------------------" "$LINENO" 5
