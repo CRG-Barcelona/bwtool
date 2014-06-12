@@ -227,7 +227,7 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 		    fprintf(out, "%s\t%s\t%d\t%f\t%f\t%f\t%d\t%f\t%f\t%f\t%f\n", agg->first_names[k],
 			    agg->second_names[l], agg->indexes[i], agg->data[i][j],
 			    agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], agg->data[i][j+4], se, y_high, y_low);
-		    j += 3;
+		    j += 4;
 		}
 		else
 		    fprintf(out, "%s\t%s\t%d\t%f\n", agg->first_names[k], agg->second_names[l], agg->indexes[i], agg->data[i][j]);
