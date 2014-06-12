@@ -79,7 +79,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 check_PROGRAMS = bwmake$(EXEEXT) wigmake$(EXEEXT)
-subdir = bwtool/tests
+subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp $(top_srcdir)/test-driver
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -90,17 +90,12 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_bwmake_OBJECTS = bwmake-bwmake.$(OBJEXT)
+am_bwmake_OBJECTS = bwmake.$(OBJEXT)
 bwmake_OBJECTS = $(am_bwmake_OBJECTS)
-bwmake_DEPENDENCIES = $(top_srcdir)/libjkweb/libjkweb.a
-bwmake_LINK = $(CCLD) $(bwmake_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_wigmake_OBJECTS = wigmake-wigmake.$(OBJEXT)
+bwmake_LDADD = $(LDADD)
+am_wigmake_OBJECTS = wigmake.$(OBJEXT)
 wigmake_OBJECTS = $(am_wigmake_OBJECTS)
-wigmake_DEPENDENCIES = $(top_srcdir)/lib/libbeato.a \
-	$(top_srcdir)/libjkweb/libjkweb.a
-wigmake_LINK = $(CCLD) $(wigmake_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+wigmake_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -117,10 +112,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
@@ -467,11 +458,7 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-bwmake_CFLAGS = -I$(top_srcdir)/libjkweb 
-bwmake_LDADD = $(top_srcdir)/libjkweb/libjkweb.a
 bwmake_SOURCES = bwmake.c
-wigmake_CFLAGS = -I$(top_srcdir)/libjkweb -I$(top_srcdir)/lib
-wigmake_LDADD = $(top_srcdir)/lib/libbeato.a $(top_srcdir)/libjkweb/libjkweb.a
 wigmake_SOURCES = wigmake.c
 TESTS = \
 	scripts/aggregate_main.wig_agg1.bed.1.sh \
@@ -524,9 +511,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu bwtool/tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu bwtool/tests/Makefile
+	  $(AUTOMAKE) --gnu tests/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -551,11 +538,11 @@ clean-checkPROGRAMS:
 
 bwmake$(EXEEXT): $(bwmake_OBJECTS) $(bwmake_DEPENDENCIES) $(EXTRA_bwmake_DEPENDENCIES) 
 	@rm -f bwmake$(EXEEXT)
-	$(AM_V_CCLD)$(bwmake_LINK) $(bwmake_OBJECTS) $(bwmake_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(bwmake_OBJECTS) $(bwmake_LDADD) $(LIBS)
 
 wigmake$(EXEEXT): $(wigmake_OBJECTS) $(wigmake_DEPENDENCIES) $(EXTRA_wigmake_DEPENDENCIES) 
 	@rm -f wigmake$(EXEEXT)
-	$(AM_V_CCLD)$(wigmake_LINK) $(wigmake_OBJECTS) $(wigmake_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(wigmake_OBJECTS) $(wigmake_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -563,8 +550,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwmake-bwmake.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wigmake-wigmake.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwmake.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wigmake.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -579,34 +566,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-bwmake-bwmake.o: bwmake.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwmake_CFLAGS) $(CFLAGS) -MT bwmake-bwmake.o -MD -MP -MF $(DEPDIR)/bwmake-bwmake.Tpo -c -o bwmake-bwmake.o `test -f 'bwmake.c' || echo '$(srcdir)/'`bwmake.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwmake-bwmake.Tpo $(DEPDIR)/bwmake-bwmake.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bwmake.c' object='bwmake-bwmake.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwmake_CFLAGS) $(CFLAGS) -c -o bwmake-bwmake.o `test -f 'bwmake.c' || echo '$(srcdir)/'`bwmake.c
-
-bwmake-bwmake.obj: bwmake.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwmake_CFLAGS) $(CFLAGS) -MT bwmake-bwmake.obj -MD -MP -MF $(DEPDIR)/bwmake-bwmake.Tpo -c -o bwmake-bwmake.obj `if test -f 'bwmake.c'; then $(CYGPATH_W) 'bwmake.c'; else $(CYGPATH_W) '$(srcdir)/bwmake.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bwmake-bwmake.Tpo $(DEPDIR)/bwmake-bwmake.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bwmake.c' object='bwmake-bwmake.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bwmake_CFLAGS) $(CFLAGS) -c -o bwmake-bwmake.obj `if test -f 'bwmake.c'; then $(CYGPATH_W) 'bwmake.c'; else $(CYGPATH_W) '$(srcdir)/bwmake.c'; fi`
-
-wigmake-wigmake.o: wigmake.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wigmake_CFLAGS) $(CFLAGS) -MT wigmake-wigmake.o -MD -MP -MF $(DEPDIR)/wigmake-wigmake.Tpo -c -o wigmake-wigmake.o `test -f 'wigmake.c' || echo '$(srcdir)/'`wigmake.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wigmake-wigmake.Tpo $(DEPDIR)/wigmake-wigmake.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='wigmake.c' object='wigmake-wigmake.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wigmake_CFLAGS) $(CFLAGS) -c -o wigmake-wigmake.o `test -f 'wigmake.c' || echo '$(srcdir)/'`wigmake.c
-
-wigmake-wigmake.obj: wigmake.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wigmake_CFLAGS) $(CFLAGS) -MT wigmake-wigmake.obj -MD -MP -MF $(DEPDIR)/wigmake-wigmake.Tpo -c -o wigmake-wigmake.obj `if test -f 'wigmake.c'; then $(CYGPATH_W) 'wigmake.c'; else $(CYGPATH_W) '$(srcdir)/wigmake.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wigmake-wigmake.Tpo $(DEPDIR)/wigmake-wigmake.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='wigmake.c' object='wigmake-wigmake.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wigmake_CFLAGS) $(CFLAGS) -c -o wigmake-wigmake.obj `if test -f 'wigmake.c'; then $(CYGPATH_W) 'wigmake.c'; else $(CYGPATH_W) '$(srcdir)/wigmake.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

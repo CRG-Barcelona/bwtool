@@ -6,12 +6,12 @@
 #include "config.h"
 #endif 
 
-#include "common.h"
-#include "hash.h"
-#include "linefile.h"
-#include "sqlNum.h"
-#include "bigWig.h"
-#include "bwgInternal.h"
+#include <jkweb/common.h>
+#include <jkweb/hash.h>
+#include <jkweb/linefile.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/bigWig.h>
+#include <jkweb/bwgInternal.h>
 
 void writeBw(char *inName, char *outName, struct hash *chromSizeHash)
 /* copied from bwtool_shared.c */

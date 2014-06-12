@@ -9,16 +9,16 @@
 #include "config.h"
 #endif 
 
-#include "common.h"
-#include "basicBed.h"
-#include "hash.h"
-#include "options.h"
-#include "linefile.h"
-#include "sqlNum.h"
-#include "bigWig.h"
-#include "bwgInternal.h"
-#include "bigs.h"
-#include "metaBig.h"
+#include <jkweb/common.h>
+#include <jkweb/basicBed.h>
+#include <jkweb/hash.h>
+#include <jkweb/options.h>
+#include <jkweb/linefile.h>
+#include <jkweb/sqlNum.h>
+#include <jkweb/bigWig.h>
+#include <jkweb/bwgInternal.h>
+#include <beato/bigs.h>
+#include <beato/metaBig.h>
 
 #define NANUM sqrt(-1)
 

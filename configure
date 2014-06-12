@@ -582,7 +582,7 @@ PACKAGE_STRING='bwtool 1.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="bwtool/bwtool.c"
+ac_unique_file="bwtool.c"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -6520,7 +6520,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile bwtool/Makefile bwtool/tests/Makefile"
+ac_config_files="$ac_config_files Makefile tests/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -7255,8 +7255,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "bwtool/Makefile") CONFIG_FILES="$CONFIG_FILES bwtool/Makefile" ;;
-    "bwtool/tests/Makefile") CONFIG_FILES="$CONFIG_FILES bwtool/tests/Makefile" ;;
+    "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

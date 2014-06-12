@@ -47,6 +47,8 @@ errAbort(
   "                    has left+right+1 lines\n"
   "   -expanded        output medians and standard deviations instead of just\n"
   "                    averages\n"
+  "   -header          useful particularly with the -expanded option to have a\n"
+  "                    reminder of what column is what.\n"
   "   -cluster=k       cluster with k-means with given parameter (2-10 are best)\n"
   "   -cluster-sets=file.bed\n"
   "                    write out the original bed with the cluster label along\n"
@@ -240,6 +242,14 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
     }
     else
     {
+	if (header)
+	{
+	    fprintf(out, "Position\tMean");
+	    if (expanded)
+		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tSum\tStd_Err_Mean\tY_High\tY_Low\n");
+	    else
+		fprintf(out, "\n");
+	}
 	for (i = 0; i < agg->nrow; i++)
 	{
 	    if ((agg->meta > 0) && (i == agg->left + agg->meta))

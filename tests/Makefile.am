@@ -1,9 +1,5 @@
 check_PROGRAMS = bwmake wigmake
-bwmake_CFLAGS = -I$(top_srcdir)/libjkweb 
-bwmake_LDADD = $(top_srcdir)/libjkweb/libjkweb.a
 bwmake_SOURCES = bwmake.c
-wigmake_CFLAGS = -I$(top_srcdir)/libjkweb -I$(top_srcdir)/lib
-wigmake_LDADD = $(top_srcdir)/lib/libbeato.a $(top_srcdir)/libjkweb/libjkweb.a
 wigmake_SOURCES = wigmake.c
 TESTS = \
 	scripts/aggregate_main.wig_agg1.bed.1.sh \
