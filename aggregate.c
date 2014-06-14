@@ -19,6 +19,7 @@
 #include <beato/stuff.h>
 
 #define NANUM sqrt(-1)
+#define NUM_EXPANDED 5
 
 void usage_aggregate()
 /* Explain usage of distribution program and exit. */
@@ -95,7 +96,7 @@ struct agg_data *init_agg_data(int left, int right, int meta, boolean firstbase,
     agg->nrow = left + right + meta;;
     agg->ncol = num_firsts * num_seconds;
     if (expanded)
-	agg->ncol *= 5;
+	agg->ncol *= NUM_EXPANDED;
     if (firstbase)
 	agg->nrow++;
     AllocArray(agg->indexes, agg->nrow);
@@ -160,7 +161,10 @@ void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expande
 	    sum = 0;
 	    for (j = 0; j < size; j++)
 		sum += pow(one_pbm_col[j] - mean,2);
-	    sd = sqrt(sum/size);
+	    if (size > 1)
+		sd = sqrt(sum/size);
+	    else
+		sd = na;
 	    agg->data[i][offset] = mean;
 	    if (expanded)
 	    {
@@ -177,7 +181,7 @@ void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expande
 	    {
 		agg->data[i][offset+1] = na;
 		agg->data[i][offset+2] = na;
- 		agg->data[i][offset+3] = na;
+ 		agg->data[i][offset+3] = 0;
  		agg->data[i][offset+4] = na;
 	    }
 	}
@@ -196,10 +200,45 @@ void copy_centroids(struct cluster_bed_matrix *cbm, struct agg_data *agg)
     }
 }
 
+static void output_data_of_line(FILE *out, struct agg_data *agg, boolean expanded, int i, int j)
+{
+    char buf[LONG_NUMBER];
+    /* mean */
+    NAorNumToS(buf, agg->data[i][j], -1);
+    fprintf(out, "%s", buf);
+    if (expanded)
+    {
+	double se = agg->data[i][j+2]/sqrt(agg->data[i][j+3]);
+	double y_high = agg->data[i][j] + se;
+	double y_low = agg->data[i][j] - se;
+	/* median */
+	NAorNumToS(buf, agg->data[i][j+1], -1);
+	fprintf(out, "\t%s\t", buf);
+	/* std dev */
+	NAorNumToS(buf, agg->data[i][j+2], -1);
+	fprintf(out, "%s\t", buf);
+	/* number of data */
+	fprintf(out, "%d\t", (int)agg->data[i][j+3]);
+	/* sum squares */
+	NAorNumToS(buf, agg->data[i][j+4], -1);
+	fprintf(out, "%s\t", buf);
+	/* SE */
+	NAorNumToS(buf, se, -1);
+	fprintf(out, "%s\t", buf);
+	/* Y low */
+	NAorNumToS(buf, y_low, -1);
+	fprintf(out, "%s\t", buf);
+	/* Y high */
+	NAorNumToS(buf, y_high, -1);
+	fprintf(out, "%s", buf);
+    }
+}
+
 void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_data *agg, boolean long_form)
 /* simply output the stuff */
 {
     int i, j, k, l;
+    char buf[LONG_NUMBER];
     if (long_form)
     /* currently there is no expanded form here */
     {
@@ -207,7 +246,7 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 	{
 	    fprintf(out, "Region\tSignal\tPosition\tMean");
 	    if (expanded)
-		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tSum\tStd_Err_Mean\tY_High\tY_Low\n");
+		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tSum_Squares\tStd_Err_Mean\tY_Low\tY_High\n");
 	    else
 		fprintf(out, "\n");
 	}
@@ -217,20 +256,19 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 	    l = 0;   /* index for second names (wigs) */
 	    if ((agg->meta > 0) && (i == agg->left + agg->meta))
 		fprintf(out, "# meta part ends here\n");
-	    for (j = 0; j < agg->ncol; j++)
+	    j = 0;
+	    while (j < agg->ncol)
 	    {
+		fprintf(out, "%s\t%s\t%d\t", agg->first_names[k], agg->second_names[l], agg->indexes[i]);
 		if (expanded)
 		{
-		    double se = agg->data[i][j+2]/sqrt(agg->data[i][j+3]);
-		    double y_high = agg->data[i][j] + se;
-		    double y_low = agg->data[i][j] - se;
-		    fprintf(out, "%s\t%s\t%d\t%f\t%f\t%f\t%d\t%f\t%f\t%f\t%f\n", agg->first_names[k],
-			    agg->second_names[l], agg->indexes[i], agg->data[i][j],
-			    agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], agg->data[i][j+4], se, y_high, y_low);
-		    j += 4;
+		    /* line out, newline  */
+		    output_data_of_line(out, agg, expanded, i, j);
+		    j += NUM_EXPANDED;
 		}
 		else
-		    fprintf(out, "%s\t%s\t%d\t%f\n", agg->first_names[k], agg->second_names[l], agg->indexes[i], agg->data[i][j]);
+		    output_data_of_line(out, agg, expanded, i, j);
+		fprintf(out, "\n");
 		l++;
 		if (l == agg->num_seconds)
 		{
@@ -244,11 +282,24 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
     {
 	if (header)
 	{
-	    fprintf(out, "Position\tMean");
-	    if (expanded)
-		fprintf(out, "\tMedian\tStd_Dev\tNum_Data\tSum\tStd_Err_Mean\tY_High\tY_Low\n");
-	    else
-		fprintf(out, "\n");
+	    j = 0;
+	    k = 1;
+	    fprintf(out, "Position\t");
+	    while (j < agg->ncol)
+	    {
+		if (expanded)
+		{
+		    fprintf(out, "Mean_%d\tMedian_%d\tStd_Dev_%d\tNum_Data_%d\tSum_Squares_%d\tStd_Err_Mean_%d\tY_High_%d\tY_Low_%d", k, k, k, k, k, k, k, k);
+		    j += NUM_EXPANDED;
+		}
+		else
+		{
+		    fprintf(out, "Mean_%d", k);
+		    j++;
+		}
+		fprintf(out, "%c", (j < agg->ncol) ? '\t' : '\n');
+		k++;
+	    }
 	}
 	for (i = 0; i < agg->nrow; i++)
 	{
@@ -258,14 +309,9 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 	    j = 0;
 	    while (j < agg->ncol)
 	    {
-		fprintf(out, "%f", agg->data[i][j]);
-		if (expanded)
-		{
-		    fprintf(out, "\t%f\t%f\t%d\t%f", agg->data[i][j+1], agg->data[i][j+2], (int)agg->data[i][j+3], agg->data[i][j+4]);
-		    j += 4;
-		}
-		else
-		    j++;
+		/* line out, no newline */
+		output_data_of_line(out, agg, expanded, i, j);
+		j += (expanded) ? NUM_EXPANDED : 1;
 		fprintf(out, "%c", (j < agg->ncol) ? '\t' : '\n');
 	    }
 	}
@@ -402,8 +448,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	nozero = FALSE;
     if (mult_regions && mult_wigs)
 	do_long_form = TRUE;
-    if (do_long_form)
-	lf_labels = setup_labels(long_form, clustering, k, region_list, wig_list, &lf_labels_b, &lf_labels_w);
+    lf_labels = setup_labels(long_form, clustering, k, region_list, wig_list, &lf_labels_b, &lf_labels_w);
     output = mustOpen(output_file, "w");
     if (!clustering)
     {
@@ -438,7 +483,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 		{
 		    struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);
 		    do_summary(pbm, agg, expanded, offset);
-		    offset += (expanded) ? 5 : 1;
+		    offset += (expanded) ? NUM_EXPANDED : 1;
 		    free_perBaseMatrix(&pbm);
 		}
 		bed6FreeList(&regions);
@@ -464,7 +509,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 		    }
 		    fuse_pbm(&pbm, &right_pbm, TRUE);
 		    do_summary(pbm, agg, expanded, offset);
-		    offset += (expanded) ? 5 : 1;
+		    offset += (expanded) ? NUM_EXPANDED : 1;
 		    free_perBaseMatrix(&pbm);
 		}
 		bed6FreeList(&regions_left);
