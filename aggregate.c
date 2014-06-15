@@ -162,7 +162,7 @@ void do_summary(struct perBaseMatrix *pbm, struct agg_data *agg, boolean expande
 	    for (j = 0; j < size; j++)
 		sum += pow(one_pbm_col[j] - mean,2);
 	    if (size > 1)
-		sd = sqrt(sum/size);
+		sd = sqrt(sum/(size-1));
 	    else
 		sd = na;
 	    agg->data[i][offset] = mean;
