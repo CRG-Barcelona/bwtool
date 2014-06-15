@@ -267,7 +267,10 @@ void output_agg_data(FILE *out, boolean expanded, boolean header, struct agg_dat
 		    j += NUM_EXPANDED;
 		}
 		else
+		{
 		    output_data_of_line(out, agg, expanded, i, j);
+		    j++;
+		}
 		fprintf(out, "\n");
 		l++;
 		if (l == agg->num_seconds)
