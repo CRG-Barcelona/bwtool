@@ -409,7 +409,7 @@ static struct slName *setup_labels(char *long_form, boolean clustering, int k, s
 }
 
 void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, double fill,
-		       char *size_s, char *region_list_s, char *wig, char *output_file)
+		      char *size_s, char *region_list_s, char *wig, char *tmp_dir, char *output_file)
 /* aggregate - main */
 {
     unsigned left = 0, right = 0;
@@ -471,7 +471,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	agg = init_agg_data(left, right, meta, firstbase, nozero, num_regions, num_wigs, expanded, lf_labels);
 	for (wig_name = wig_list; wig_name != NULL; wig_name = wig_name->next)
 	{
-	    mb = metaBigOpen(wig_name->name, NULL);
+	    mb = metaBigOpenWithTmpDir(wig_name->name, tmp_dir, NULL);
 	    slAddHead(&mbList, mb);
 	}
 	slReverse(&mbList);
@@ -529,7 +529,7 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
     else
     {
 	struct agg_data *agg = init_agg_data(left, right, 0, firstbase, nozero, 1, k, FALSE, lf_labels);
-	struct metaBig *mb = metaBigOpen(wig_list->name, NULL);
+	struct metaBig *mb = metaBigOpenWithTmpDir(wig_list->name, tmp_dir, NULL);
 	struct bed6 *regions = load_and_recalculate_coords(region_list->name, left, right, firstbase, use_start, use_end);
 	struct bed6 *orig_regions = readBed6Soft(region_list->name);
 	struct perBaseMatrix *pbm = load_perBaseMatrix(mb, regions, fill);

@@ -37,10 +37,10 @@ struct bed *newBed(char *chrom, int start, int end)
     return bed;
 }
 
-void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfile, char *outputfile)
+void bwtool_split(struct hash *options, char *regions, char *size_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* bwtool_split - main for the splitting program */
 {
-    struct metaBig *mb = metaBigOpen(bigfile, regions);
+    struct metaBig *mb = metaBigOpenWithTmpDir(bigfile, tmp_dir, regions);
     FILE *output = mustOpen(outputfile, "w");
     struct bed *section;
     struct bed *splitList = NULL;

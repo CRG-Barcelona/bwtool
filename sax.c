@@ -131,11 +131,11 @@ void wigsax_bed4(FILE *out, struct metaBig *mb, struct bed *region, int alpha, i
     slFreeList(&datList);
 }
 
-void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned decimals, char *alpha_s, char *bigfile,
+void bwtool_sax(struct hash *options, char *favorites, char *regions, unsigned decimals, char *alpha_s, char *bigfile, char *tmp_dir,
 		char *outputfile)
 /* bwtool_sax - main for the sax symbol program */
 {
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     struct bed *bed;
     int alpha = (alpha_s != NULL) ? sqlUnsigned(alpha_s) : 8;
     unsigned itStart = sqlUnsigned((char *)hashOptionalVal(options, "iterate-start", (alpha_s != NULL) ? alpha_s : "8"));

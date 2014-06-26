@@ -38,10 +38,10 @@ errAbort(
 }
 
 void bwtool_window(struct hash *options, char *favorites, char *regions, unsigned decimals,
-                   double fill, char *size_s, char *bigfile, char *output_file)
+                   double fill, char *size_s, char *bigfile, char *tmp_dir, char *output_file)
 /* bwtool_window - main for the windowing program */
 {
-    struct metaBig *mb = metaBigOpen(bigfile, regions);
+    struct metaBig *mb = metaBigOpenWithTmpDir(bigfile, tmp_dir, regions);
     boolean skip_na = (hashFindVal(options, "skip-NA") != NULL) ? TRUE : FALSE;
     if (!isnan(fill) && skip_na)
 	errAbort("cannot use -skip_na with -fill");

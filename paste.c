@@ -124,7 +124,7 @@ struct slDouble *parse_constants(char *consts)
 }
 
 void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
-		  enum wigOutType wot, struct slName **p_files, char *output_file)
+		  enum wigOutType wot, struct slName **p_files, char *tmp_dir, char *output_file)
 /* bwtool_paste - main for paste program */
 {
     struct metaBig *mb;
@@ -162,7 +162,7 @@ void bwtool_paste(struct hash *options, char *favorites, char *regions, unsigned
 	check_for_list_files(&files, &labels, 0);
     for (file = files; file != NULL; file = file->next)
     {
-	mb = metaBigOpen(file->name, regions);
+	mb = metaBigOpenWithTmpDir(file->name, tmp_dir, regions);
 	if (do_mean_consts || do_total_consts || do_covs_consts)
 	{
 	    struct bbiSummaryElement sum = bbiTotalSummary(mb->big.bbi);

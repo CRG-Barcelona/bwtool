@@ -55,13 +55,13 @@ static enum ex_removal get_removal(struct hash *options)
     return no_removal;
 }
 
-void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, char *bigfile, char *outputfile)
+void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill, char *bigfile, char *tmp_dir, char *outputfile)
 /* find local extrema */
 {
     unsigned min_sep = sqlUnsigned((char *)hashOptionalVal(options, "min-sep", "0"));
     char *other_bigfile = (char *)hashOptionalVal(options, "against", NULL);
     enum ex_removal rem = get_removal(options);
-    struct metaBig *main_big = metaBigOpen_check(bigfile, regions);
+    struct metaBig *main_big = metaBigOpen_check(bigfile, tmp_dir, regions);
     struct metaBig *other_big = NULL;
     struct extrema *main_list;
     struct extrema *other_list = NULL;
@@ -77,7 +77,7 @@ void bwtool_find_extrema(struct hash *options, char *favorites, char *regions, u
 	    errAbort("must specify shift limit in -against option");
 	num = chopPrefixAt(other_bigfile, ',');
 	shift = sqlUnsigned(num);
-	other_big = metaBigOpen_check(other_bigfile, regions);
+	other_big = metaBigOpen_check(other_bigfile, tmp_dir, regions);
     }
     if (!main_big || (!other_big && other_bigfile))
 	errAbort("could not open bigWig file");
@@ -156,12 +156,12 @@ static boolean fit_thresh(double val, double thresh, enum bw_op_type op)
 }
 
 void bwtool_find_thresh(struct hash *options, char *favorites, char *regions, double fill,
-			char *thresh_type, char *thresh_s, char *bigfile, char *outputfile)
+			char *thresh_type, char *thresh_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* the other kind of finding, based on thresholding. */
 {
     boolean inverse = (hashFindVal(options, "inverse") != NULL) ? TRUE : FALSE;
     enum bw_op_type op= get_bw_op_type(thresh_type, inverse);
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     double thresh = sqlDouble(thresh_s);
     FILE *out = mustOpen(outputfile, "w");
     struct bed out_bed;
@@ -226,12 +226,12 @@ static struct bed *bed12FromBed6(struct bed6 **pList)
 }
 
 void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,
-		     char *bigfile, char *outputfile)
+		     char *bigfile, char *tmp_dir, char *outputfile)
 /* find max points in a range */
 {
     boolean ave = (hashFindVal(options, "ave") != NULL) ? TRUE : FALSE;
     boolean with_max = (hashFindVal(options, "with-max") != NULL) ? TRUE : FALSE;
-    struct metaBig *mb = metaBigOpen_check(bigfile, NULL);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, NULL);
     FILE *out = mustOpen(outputfile, "w");
     struct bed6 *sections6 = readBed6Soft(regions);
     struct bed *sections = bed12FromBed6(&sections6);

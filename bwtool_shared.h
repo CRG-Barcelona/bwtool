@@ -19,7 +19,7 @@ int parse_left_right(char *size_s, unsigned *pleft, unsigned *pright, int *pmeta
 void writeBw(char *inName, char *outName, struct hash *chromSizeHash);
 /* shared func */
 
-struct metaBig *metaBigOpen_check(char *bigfile, char *regions);
+struct metaBig *metaBigOpen_check(char *bigfile, char *tmp_dir, char *regions);
 /* A wrapper for metaBigOpen that does some checking and erroring */
 
 void fuse_pbm(struct perBaseMatrix **pBig, struct perBaseMatrix **pTo_add, boolean add_coords);

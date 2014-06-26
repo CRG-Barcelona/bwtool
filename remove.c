@@ -185,7 +185,7 @@ static void bwtool_remove_mask(struct metaBig *mb, char *mask_file, char *output
 }
 
 void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
-		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile,
+		   boolean condense, boolean wig_only, char *thresh_type, char *val_or_file, char *bigfile, char *tmp_dir,
 		   char *outputfile)
 /* bwtool_remove - main for removal program */
 {
@@ -193,7 +193,7 @@ void bwtool_remove(struct hash *options, char *favorites, char *regions, unsigne
     enum bw_op_type op= get_bw_op_type(thresh_type, inverse);
     if (op == invalid)
 	usage_remove();
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     if (op == mask)
 	bwtool_remove_mask(mb, val_or_file, outputfile, wot, decimals, condense, wig_only, inverse);
     else

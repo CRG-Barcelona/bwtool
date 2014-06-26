@@ -56,11 +56,11 @@ enum roll_command
 };
 
 void bwtool_roll(struct hash *options, char *favorites, char *regions, unsigned decimals, double fill,
-		 enum wigOutType wot, char *command, char *size_s, char *bigfile, char *outputfile)
+		 enum wigOutType wot, char *command, char *size_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* bwtool_roll - main for the rolling-mean program */
 /* this function is too long. it'd be nice to break it up some time. */
 {
-    struct metaBig *mb = metaBigOpen(bigfile, regions);
+    struct metaBig *mb = metaBigOpenWithTmpDir(bigfile, tmp_dir, regions);
     int step = (int)sqlUnsigned((char *)hashOptionalVal(options, "step", "1"));
     int max_na = (int)sqlSigned((char *)hashOptionalVal(options, "max-NA", "-1"));
     char *min_mean_s = (char *)hashOptionalVal(options, "min-mean", "unused");

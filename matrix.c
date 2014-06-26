@@ -253,7 +253,7 @@ void check_list(struct bed6 *list)
 }
 
 void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigned decimals,
-		   double fill, char *range_s, char *bigfile, char *outputfile)
+		   double fill, char *range_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* bwtool_matrix - main for matrix-creation program */
 {
     boolean do_k = (hashFindVal(options, "cluster") != NULL) ? TRUE : FALSE;
@@ -307,7 +307,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	regs = load_and_recalculate_coords(regions, left, right, FALSE, starts, ends);
     for (bw_name = bw_names; bw_name != NULL; bw_name = bw_name->next)
     {
-	struct metaBig *mb = metaBigOpen(bw_name->name, NULL);
+	struct metaBig *mb = metaBigOpenWithTmpDir(bw_name->name, tmp_dir, NULL);
 	if (do_meta)
 	{
 	    struct perBaseMatrix *one_pbm = load_perBaseMatrix(mb, regions_left, fill);

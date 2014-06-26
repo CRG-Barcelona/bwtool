@@ -30,13 +30,13 @@ errAbort(
 }
 
 void bwtool_shift(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
-		  boolean condense, char *val_s, char *bigfile, char *outputfile)
+		  boolean condense, char *val_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* bwtool_shift - main for shifting program */
 {
     const double na = NANUM;
     int shft = sqlSigned(val_s);
     int abs_shft = abs(shft);
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     if (!mb)
 	errAbort("problem opening %s", bigfile);
     char wigfile[512];

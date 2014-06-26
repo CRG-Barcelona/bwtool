@@ -217,10 +217,10 @@ static boolean local_file(char *filename)
     return ret;
 }
 
-struct metaBig *metaBigOpen_check(char *bigfile, char *regions)
+struct metaBig *metaBigOpen_check(char *bigfile, char *tmp_dir, char *regions)
 /* A wrapper for metaBigOpen that does some checking and erroring */
 {
-    struct metaBig *mb = metaBigOpen(bigfile, regions);
+    struct metaBig *mb = metaBigOpenWithTmpDir(bigfile, tmp_dir, regions);
     if (!mb)
     {
 	boolean internet = (strstr(bigfile, "tp://") != 0);

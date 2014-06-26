@@ -38,10 +38,10 @@ errAbort(
 }
 
 void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals,
-		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
+		   double fill, char *num_s, char *size_s, char *bigfile, char *tmp_dir, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     FILE *out = mustOpen(output_file, "w");
     boolean just_bed = (hashFindVal(options, "bed") != NULL) ? TRUE : FALSE;
     unsigned seed = sqlUnsigned((char *)hashOptionalVal(options, "seed", "0"));
@@ -93,7 +93,7 @@ errAbort(
 }
 
 void bwtool_random(struct hash *options, char *favorites, char *regions, unsigned decimals,
-		   double fill, char *num_s, char *size_s, char *bigfile, char *output_file)
+		   double fill, char *num_s, char *size_s, char *bigfile, char *tmp_dir, char *output_file)
 /* random - main ... random number generation takes place here.  */
 {
 }

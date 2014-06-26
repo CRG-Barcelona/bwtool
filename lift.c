@@ -335,7 +335,7 @@ int pbwHashElCmp(const void *va, const void *vb)
 }
 
 void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned decimals,
-		 enum wigOutType wot, char *bigfile, char *chainfile, char *outputfile)
+		 enum wigOutType wot, char *bigfile, char *tmp_dir, char *chainfile, char *outputfile)
 /* bwtool_lift - main for lifting program */
 {
     struct hash *sizeHash = NULL;
@@ -348,7 +348,7 @@ void bwtool_lift(struct hash *options, char *favorites, char *regions, unsigned 
     else
 	sizeHash = qSizeHash(chainfile);
     gpbw = genomePbw(sizeHash);
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     char wigfile[512];
     safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
     FILE *out = mustOpen(wigfile, "w");

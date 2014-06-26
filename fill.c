@@ -27,11 +27,11 @@ errAbort(
 }
 
 void bwtool_fill(struct hash *options, char *favorites, char *regions, unsigned decimals, enum wigOutType wot,
-		 boolean condense, char *val_s, char *bigfile, char *outputfile)
+		 boolean condense, char *val_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* bwtool_fill - main for filling program */
 {
     double val = sqlDouble(val_s);
-    struct metaBig *mb = metaBigOpen_check(bigfile, regions);
+    struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, regions);
     char wigfile[512];
     safef(wigfile, sizeof(wigfile), "%s.tmp.wig", outputfile);
     FILE *out = mustOpen(wigfile, "w");

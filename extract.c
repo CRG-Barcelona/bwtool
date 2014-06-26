@@ -98,14 +98,14 @@ void extractOutJsp(FILE *out, struct bed6 *section, unsigned decimals, struct pe
 }
 
 void bwtool_extract(struct hash *options, char *regions, unsigned decimals, double fill,
-		  char *style_s, char *bigfile, char *outputfile)
+		  char *style_s, char *bigfile, char *tmp_dir, char *outputfile)
 /* bwtool_extract - main for the extract program */
 {
     boolean tabs = (hashFindVal(options, "tabs") != NULL) ? TRUE : FALSE;
     boolean locus_name = (hashFindVal(options, "locus-name") != NULL) ? TRUE : FALSE;
     int orig_size = 0;
     struct bed6 *region_list = readBed6SoftAndSize(regions, &orig_size);
-    struct metaBig *mb = metaBigOpen(bigfile, NULL);
+    struct metaBig *mb = metaBigOpenWithTmpDir(bigfile, tmp_dir, NULL);
     if (!mb)
 	errAbort("problem opening %s", bigfile);
     FILE *out = mustOpen(outputfile, "w");
