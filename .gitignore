@@ -1,0 +1,7 @@
+.deps/*
+.deps
+*/.deps
+stamp-h1
+config.log
+config.status
+config.h
