@@ -38,6 +38,8 @@ errAbort(
   "   maxima <regions.bed>   find the highest value in each region given in a bed and output\n"
   "                          the same bed as bed12.\n"
   "        -with-max         output the maximum value just after the bed12.\n"
+  "        -median-base      if there are multiple tied maxima, output the median base location\n"
+  "                          instead of all of them.\n"
   );
 }
 
@@ -225,11 +227,36 @@ static struct bed *bed12FromBed6(struct bed6 **pList)
     return list;
 }
 
+static int median_base_calc(struct slInt **pList)
+/* in a list of ints, find the median.  straight-forward enough. */
+{
+    struct slInt *list;
+    if (!pList || !*pList)
+	return -1;
+    int size = slCount(*pList);
+    list = *pList;
+    if (size == 1)
+	return list->val;
+    int i = 0;
+    struct slInt *cur;
+    slSort(pList, slIntCmp);
+    list = *pList;
+    if (size % 2 == 0)
+    {	
+	for (cur = list, i = 0; ((cur != NULL) && (i < (size/2)-1)); cur = cur->next, i++)
+	     ;
+	return (cur->val + cur->next->val)/2;
+    } 
+    for (cur = list, i = 0; ((cur != NULL) && (i < (size/2))); cur = cur->next, i++)
+	;
+    return cur->val;
+}
+
 void bwtool_find_max(struct hash *options, char *favorites, char *regions, double fill,
 		     char *bigfile, char *tmp_dir, char *outputfile)
 /* find max points in a range */
 {
-    boolean ave = (hashFindVal(options, "ave") != NULL) ? TRUE : FALSE;
+    boolean med_base = (hashFindVal(options, "median-base") != NULL) ? TRUE : FALSE;
     boolean with_max = (hashFindVal(options, "with-max") != NULL) ? TRUE : FALSE;
     struct metaBig *mb = metaBigOpen_check(bigfile, tmp_dir, NULL);
     FILE *out = mustOpen(outputfile, "w");
@@ -268,16 +295,13 @@ void bwtool_find_max(struct hash *options, char *favorites, char *regions, doubl
 	if (list)
 	{
 	    size = slCount(list);
-	    if (ave)
+	    if (med_base)
 	    {
 		section->blockCount = 1;
-		int total = 0;
-		for (ii = list; ii != NULL; ii = ii->next)
-		    total += ii->val;
 		AllocArray(section->blockSizes, sizeof(int));
 		AllocArray(section->chromStarts, sizeof(int));
 		section->blockSizes[0] = 1;
-		section->chromStarts[0] = total/size;
+		section->chromStarts[0] = median_base_calc(&list);
 	    }
 	    else
 	    {
