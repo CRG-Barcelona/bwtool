@@ -68,7 +68,7 @@ void extractOutBed(FILE *out, struct bed6 *section, int orig_size, unsigned deci
     fprintf(out, "%d\t", pbw->len);
     for (i = 0; i < pbw->len-1; i++)
 	if (isnan(pbw->data[i]))
-	    fprintf(out, "NA,%c", (tabs) ? '\t' : ',');
+	    fprintf(out, "NA%c", (tabs) ? '\t' : ',');
 	else
 	    fprintf(out, "%0.*f%c", decimals, pbw->data[i], (tabs) ? '\t' : ',');
     if (isnan(pbw->data[pbw->len-1]))
