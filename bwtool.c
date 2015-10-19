@@ -20,7 +20,7 @@ void usage()
 /* Explain usage and exit. */
 {
 errAbort(
-  "bwtool - Data operations on bigWig files\n"
+  PACKAGE_STRING " - Data operations on bigWig files\n"
   "usage:\n"
   "   bwtool command [additional command parameters]\n"
   "commands:\n"
@@ -118,6 +118,7 @@ enum bw_op_type get_bw_op_type(char *thresh_type, boolean inverse)
 int main(int argc, char *argv[])
 /* Process command line. */
 {
+bool version_cmd = sameString(argv[1], "--version") || sameString(argv[1], "-V");//argv containing '-' will be removed by the next function
 struct hash *options = optionParseIntoHashExceptNumbers(&argc, argv, FALSE);
 /* common options */
 char *tmp_dir = (char *)hashOptionalVal(options, "tmp-dir", NULL);
@@ -133,9 +134,19 @@ double na = NANUM;
 double fill = na;
 if (fill_s)
     fill = sqlDouble(hashFindVal(options, "fill"));
-if (argc <= 1)
+if (argc <= 1 && !version_cmd)
     usage();
-if (sameString(argv[1], "remove"))
+
+if (version_cmd)
+{
+    printf(PACKAGE_STRING "\nCopyright (C) 2015 Centre for Genomic Regulation (CRG) in Barcelona.\n"
+        "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+        "This is free software: you are free to change and redistribute it.\n"
+        "There is NO WARRANTY, to the extent permitted by law.\n\n"
+        "Written by Andy Pohl.\n");
+
+}
+else if (sameString(argv[1], "remove"))
 {
     if (argc != 6)
 	usage_remove();
