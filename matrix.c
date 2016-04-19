@@ -4,6 +4,7 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
 #include <jkweb/common.h>
 #include <jkweb/obscure.h>
 #include <jkweb/linefile.h>
@@ -17,6 +18,114 @@
 #include "bwtool.h"
 #include <beato/cluster.h>
 #include "bwtool_shared.h"
+
+/* bwtool binary matrix magic bytes:
+     BwTool\x91\x90
+     42 77 54 6f 6f 6c 91 90
+*/
+const uint64_t BWTOOL_MAGIC = 0x90916c6f6f547742;
+
+/* bwtool binary matrix file format version number. */
+const uint64_t BWTOOL_FILEFORMAT_VERSION = 1;
+
+/* bwtool binary matrix type. */
+const uint64_t BWTOOL_BINARY_MATRIX = 0;
+/* bwtool binary cluster matrix type. */
+const uint64_t BWTOOL_BINARY_CLUSTER_MATRIX = 1;
+
+struct binary_matrix_header
+{
+    /* Magic bytes: BWTOOL_MAGIC */
+    uint64_t bwtool_magic;
+    /* File format version: BWTOOL_FILEFORMAT_VERSION */
+    uint64_t bwtool_fileformat_version;
+    /* bwtool binary (cluster) matrix type: BWTOOL_BINARY_MATRIX or BWTOOL_BINARY_CLUSTER_MATRIX */
+    uint64_t bwtool_matrix_type;
+    /* Number of rows in the matrix. */
+    uint64_t nbr_rows;
+    /* Number of columns in the matrix. */
+    uint64_t nbr_columns;
+    /* Size of float (double) in bytes. */
+    uint64_t float_byte_size;
+    /* Matrix length in bytes: nbr_rows * nbr_columns * sizeof(double). */
+    uint64_t matrix_length_in_bytes;
+    /* Offset of binary matrix: 4096 */
+    uint64_t matrix_offset;
+    /* Offset of text metadata file: multiple of 4096 (if 0: no text metadata file). */
+    uint64_t text_metadata_offset;
+};
+
+struct binary_matrix_header make_binary_matrix_header(struct perBaseMatrix *pbm, boolean keep_bed)
+{
+    uint64_t nbr_rows = (uint64_t) pbm->nrow;
+    uint64_t nbr_columns = (uint64_t) pbm->ncol;
+    uint64_t float_byte_size = (uint64_t) sizeof(double);
+    uint64_t matrix_length_in_bytes = nbr_rows * nbr_columns * sizeof(double);
+    uint64_t matrix_offset = 4096;
+    uint64_t text_metadata_offset = 0;
+
+    if (keep_bed) {
+	if ( ((matrix_offset + matrix_length_in_bytes) % 4096) != 0)
+	{
+	    text_metadata_offset = ( ( (matrix_offset + matrix_length_in_bytes) / 4096 ) + 1 ) * 4096;
+	}
+	else
+	{
+	    text_metadata_offset = matrix_offset + matrix_length_in_bytes;
+	}
+    }
+
+    struct binary_matrix_header binary_matrix_header_instance =
+    {
+	BWTOOL_MAGIC,
+	BWTOOL_FILEFORMAT_VERSION,
+	BWTOOL_BINARY_MATRIX,
+	nbr_rows,
+	nbr_columns,
+	float_byte_size,
+	matrix_length_in_bytes,
+	matrix_offset,
+	text_metadata_offset,
+    };
+
+    return binary_matrix_header_instance;
+}
+
+struct binary_matrix_header make_binary_cluster_matrix_header(struct cluster_bed_matrix *cbm, boolean keep_bed)
+{
+    uint64_t nbr_rows = (uint64_t) cbm->pbm->nrow;
+    uint64_t nbr_columns = (uint64_t) cbm->pbm->ncol;
+    uint64_t float_byte_size = (uint64_t) sizeof(double);
+    uint64_t matrix_length_in_bytes = nbr_rows * nbr_columns * sizeof(double);
+    uint64_t matrix_offset = 4096;
+    uint64_t text_metadata_offset = 0;
+
+    if (keep_bed) {
+	if ( ((matrix_offset + matrix_length_in_bytes) % 4096) != 0)
+	{
+	    text_metadata_offset = ( ( (matrix_offset + matrix_length_in_bytes) / 4096 ) + 1 ) * 4096;
+	}
+	else
+	{
+	    text_metadata_offset = matrix_offset + matrix_length_in_bytes;
+	}
+    }
+
+    struct binary_matrix_header binary_matrix_header_instance =
+    {
+	BWTOOL_MAGIC,
+	BWTOOL_FILEFORMAT_VERSION,
+	BWTOOL_BINARY_CLUSTER_MATRIX,
+	nbr_rows,
+	nbr_columns,
+	float_byte_size,
+	matrix_length_in_bytes,
+	matrix_offset,
+	text_metadata_offset,
+    };
+
+    return binary_matrix_header_instance;
+}
 
 void usage_matrix()
 /* Explain usage of matrix program and exit. */
@@ -33,6 +142,9 @@ errAbort(
   "matrix is fused to the first, and the third to the second, etc. in the\n"
   "same left-to-right order as the comma-list of bigWigs\n\n"
   "options:\n"
+  "   -binary-matrix  write a binary matrix file instead of a tab-delimited\n"
+  "                   file which can be imported faster by programs that support\n"
+  "                   reading of binary files\n"
   "   -keep-bed       in this case output the original bed loci in the first\n"
   "                   columns of the output and output data as comma-separated\n"
   "   -starts         use starts of bed regions as opposed to the middles\n"
@@ -92,6 +204,43 @@ void output_cluster_matrix(struct cluster_bed_matrix *cbm, int decimals, boolean
 	    na_or_num(out, pbw->data[j], decimals);
 	    fprintf(out, "%c", (j == pbw->len-1) ? '\n' : '\t');
 	}
+    }
+    carefulClose(&out);
+}
+
+void output_binary_cluster_matrix(struct cluster_bed_matrix *cbm, boolean keep_bed, char *outputfile)
+/* Binary cluster matrix output */
+{
+    FILE *out = mustOpen(outputfile, "w");
+    int i;
+
+    /* Write the header. */
+    struct binary_matrix_header binary_matrix_header_instance = make_binary_cluster_matrix_header(cbm, keep_bed);
+    fwrite(&binary_matrix_header_instance, sizeof(binary_matrix_header_instance), 1, out);
+
+    /* Put binary cluster matrix at offset 4096. */
+    fseek(out, 4096, SEEK_SET);
+
+    /* Write the binary cluster matrix. */
+    for (i = 0; i < cbm->pbm->nrow; i++)
+    {
+	struct perBaseWig *pbw = cbm->pbm->array[i];
+	fwrite(pbw->data, sizeof(double), pbw->len, out);
+    }
+
+    /* Put the text metadata at a multiple of 4096. */
+    fseek(out, binary_matrix_header_instance.text_metadata_offset, SEEK_SET);
+
+    /* Write the text metadata after the matrix. */
+    for (i = 0; i < cbm->pbm->nrow; i++)
+    {
+	struct perBaseWig *pbw = cbm->pbm->array[i];
+	if (keep_bed)
+	{
+	    fprintf(out, "%s\t%d\t%d\t%s\t%d\t%c\t", pbw->chrom, pbw->chromStart, pbw->chromEnd, pbw->name, pbw->score, pbw->strand[0]);
+	}
+	fprintf(out, "%d\t", pbw->label);
+	fprintf(out, "%f\n", pbw->cent_distance);
     }
     carefulClose(&out);
 }
@@ -218,6 +367,40 @@ void output_matrix(struct perBaseMatrix *pbm, int decimals, boolean keep_bed, ch
     carefulClose(&out);
 }
 
+void output_binary_matrix(struct perBaseMatrix *pbm, boolean keep_bed, char *outputfile)
+/* Binary matrix output */
+{
+    FILE *out = mustOpen(outputfile, "w");
+    int i;
+
+    /* Write the header. */
+    struct binary_matrix_header binary_matrix_header_instance = make_binary_matrix_header(pbm, keep_bed);
+    fwrite(&binary_matrix_header_instance, sizeof(binary_matrix_header_instance), 1, out);
+
+    /* Put matrix at offset 4096. */
+    fseek(out, 4096, SEEK_SET);
+
+    /* Write the binary matrix. */
+    for (i = 0; i < pbm->nrow; i++)
+    {
+	struct perBaseWig *pbw = pbm->array[i];
+        fwrite(pbw->data, sizeof(double), pbw->len, out);
+    }
+
+    /* Write the BED file after the matrix, if requested. */
+    if (keep_bed){
+        /* Put BED file at a multiple of 4096. */
+        fseek(out, binary_matrix_header_instance.text_metadata_offset, SEEK_SET);
+
+	for (i = 0; i < pbm->nrow; i++)
+	{
+	    struct perBaseWig *pbw = pbm->array[i];
+	    fprintf(out, "%s\t%d\t%d\t%s\t%d\t%c\n", pbw->chrom, pbw->chromStart, pbw->chromEnd, pbw->name, pbw->score, pbw->strand[0]);
+	}
+    }
+    carefulClose(&out);
+}
+
 static struct slName *setup_labels(char *long_form, struct slName *bw_list, struct slName **labels_from_bw_list)
 {
     struct slName *lf_labels = NULL;
@@ -258,6 +441,7 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 {
     boolean do_k = (hashFindVal(options, "cluster") != NULL) ? TRUE : FALSE;
     boolean do_tile = (hashFindVal(options, "tiled-averages") != NULL) ? TRUE : FALSE;
+    boolean do_binary_matrix = (hashFindVal(options, "binary-matrix") != NULL) ? TRUE : FALSE;
     boolean keep_bed = (hashFindVal(options, "keep-bed") != NULL) ? TRUE : FALSE;
     boolean starts = (hashFindVal(options, "starts") != NULL) ? TRUE : FALSE;
     boolean ends = (hashFindVal(options, "ends") != NULL) ? TRUE : FALSE;
@@ -283,6 +467,8 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	warn("-starts and -ends both automatically used with meta");
     if (do_meta && do_tile)
 	errAbort("meta not compatible with -tile... yet");
+    if (do_binary_matrix && do_long_form)
+	errAbort("Writing binary matrix is not compatible with -long-form... yet");
     struct slName *bw_names = slNameListFromComma(bigfile);
     struct slName *bw_name;
     struct slName *labels_from_file = NULL;
@@ -335,19 +521,43 @@ void bwtool_matrix(struct hash *options, char *favorites, char *regions, unsigne
 	cbm = init_cbm_from_pbm(pbm, k);
 	do_kmeans_sort(cbm, 0.001, TRUE);
 	if (do_long_form)
+	{
 	    output_cluster_matrix_long(cbm, labels, keep_bed, outputfile, lf_header);
+	}
 	else
-	    output_cluster_matrix(cbm, decimals, keep_bed, outputfile);
+	{
+	    if (do_binary_matrix)
+	    {
+		output_binary_cluster_matrix(cbm, keep_bed, outputfile);
+	    }
+	    else
+	    {
+		output_cluster_matrix(cbm, decimals, keep_bed, outputfile);
+	    }
+	}
 	if (centroid_file)
+	{
 	    output_centroids(cbm, centroid_file, decimals);
+	}
 	free_cbm(&cbm);
     }
     else
     {
 	if (do_long_form)
+	{
 	    output_matrix_long(pbm, decimals, labels, keep_bed, left, right, tile, lf_header, outputfile);
+	}
 	else
-	    output_matrix(pbm, decimals, keep_bed, outputfile);
+	{
+	    if (do_binary_matrix)
+	    {
+		output_binary_matrix(pbm, keep_bed, outputfile);
+	    }
+	    else
+	    {
+		output_matrix(pbm, decimals, keep_bed, outputfile);
+	    }
+	}
 	/* unordered, no label  */
 	free_perBaseMatrix(&pbm);
     }
