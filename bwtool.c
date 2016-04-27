@@ -118,8 +118,15 @@ enum bw_op_type get_bw_op_type(char *thresh_type, boolean inverse)
 int main(int argc, char *argv[])
 /* Process command line. */
 {
+/* Display help if no arguments are given. */
+if (argc == 1)
+{
+    usage();
+}
+
 bool version_cmd = sameString(argv[1], "--version") || sameString(argv[1], "-V");//argv containing '-' will be removed by the next function
 struct hash *options = optionParseIntoHashExceptNumbers(&argc, argv, FALSE);
+
 /* common options */
 char *tmp_dir = (char *)hashOptionalVal(options, "tmp-dir", NULL);
 char *regions = (char *)hashOptionalVal(options, "regions", NULL);
@@ -134,8 +141,10 @@ double na = NANUM;
 double fill = na;
 if (fill_s)
     fill = sqlDouble(hashFindVal(options, "fill"));
-if (argc <= 1 && !version_cmd)
+
+if (argc == 1 && !version_cmd) {
     usage();
+}
 
 if (version_cmd)
 {
@@ -301,7 +310,10 @@ else if (sameString(argv[1], "extract") || sameString(argv[1], "ex"))
 	bwtool_extract(options, argv[3], decimals, fill, argv[2], argv[4], tmp_dir, argv[5]);
 }
 else
+{
     usage();
+}
+
 hashFree(&options);
 return 0;
 }
