@@ -472,6 +472,8 @@ void bwtool_aggregate(struct hash *options, char *regions, unsigned decimals, do
 	for (wig_name = wig_list; wig_name != NULL; wig_name = wig_name->next)
 	{
 	    mb = metaBigOpenWithTmpDir(wig_name->name, tmp_dir, NULL);
+	    if (mb == NULL)
+	        errAbort("ERROR: Problem opening one of the bigWigs. Check that your arguments are in the correct order.");
 	    slAddHead(&mbList, mb);
 	}
 	slReverse(&mbList);
