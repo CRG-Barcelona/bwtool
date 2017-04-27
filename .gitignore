@@ -6,3 +6,14 @@ config.log
 config.status
 config.h
 *.o
+tests/*.log
+tests/*.bw
+tests/*/*.log
+tests/*/*.trs
+tests/fails
+tests/wigmake
+tests/bwmake
+tests/Makefile
+Makefile
+bwtool
+.vscode
