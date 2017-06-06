@@ -1,4 +1,3 @@
-ACLOCAL_AMFLAGS = -I m4
 bin_PROGRAMS = bwtool
 bwtool_SOURCES = \
 	aggregate.c \

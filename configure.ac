@@ -2,15 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([bwtool],[1.0])
-#AC_CANONICAL_SYSTEM
+AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
-LT_INIT([shared,static])
-AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([bwtool.c])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_RANLIB
 AC_LANG([C])
 AM_PROG_CC_C_O
 AM_MAINTAINER_MODE([disable])
