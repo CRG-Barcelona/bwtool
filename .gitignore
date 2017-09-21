@@ -17,3 +17,4 @@ tests/Makefile
 Makefile
 bwtool
 .vscode
+autom4te.cache
